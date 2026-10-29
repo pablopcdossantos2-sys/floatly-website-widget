@@ -9,7 +9,8 @@ Widget compacto para Windows que muestra el calendario económico de Investing.c
 - Icono en la bandeja del sistema, instancia única y atajo global (predeterminado: CTRL+ALT+C). Cerrar la ventana la oculta en la bandeja; usa **Salir** para cerrar la aplicación.
 - Sesión WebView2 persistente en %APPDATA%\WidgetWebsite\webview-data; configuración en %APPDATA%\WidgetWebsite\config.json.
 - Interfaz disponible en portugués de Brasil, inglés y español. Cambia el idioma en **Configuración → Idioma**.
-- Arrastra el widget desde el borde azul bien visible que rodea el contenido (parte superior, inferior o cualquiera de los lados). El tamaño y la posición se pueden configurar.
+- Una pequeña pestaña en la parte superior central permite arrastrar el widget. Las zonas de interacción de los bordes siguen activas, pero son transparentes y no dibujan un marco alrededor del contenido. El tamaño y la posición se pueden cambiar en la configuración.
+- El tamaño predeterminado es 350 × 550 px y el zoom predeterminado del navegador integrado es del 80 %; ambos se pueden cambiar en la configuración.
 - URL, tamaño, posición, bloqueo del movimiento, mantener siempre visible, visibilidad en la barra de tareas, opacidad, zoom, esquinas redondeadas y actualización automática configurables.
 - Los enlaces externos se abren en el navegador predeterminado. Los dominios de autenticación reconocidos se abren en una ventana secundaria con una barra de direcciones sencilla y la misma carpeta de datos de WebView2. La ventana intenta cerrarse cuando el inicio de sesión vuelve al sitio configurado.
 - Flujo de compilación para Windows x64 e instalador NSIS.
@@ -72,7 +73,7 @@ La aplicación no lee, copia ni almacena contraseñas. Se conserva el agente de 
 ## Privacidad y limitaciones
 
 - Sin telemetría. La navegación principal se limita al sitio configurado y a recursos de autenticación reconocidos; los demás enlaces HTTP/HTTPS se abren en el navegador predeterminado.
-- Si el archivo de configuración está dañado, se reemplaza por valores predeterminados. **Restaurar tamaño predeterminado** solo cambia las dimensiones a 500 × 700 px; conserva las demás preferencias.
+- Si el archivo de configuración está dañado, se reemplaza por valores predeterminados. **Restaurar tamaño predeterminado** solo cambia las dimensiones a 350 × 550 px; conserva las demás preferencias.
 - CI comprueba la alineación de versiones de Tauri, el manifiesto de comandos y las capabilities; ejecuta `npm ci`, la verificación de tipos, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` y `cargo test`, y después compila el instalador de Windows.
 - La ventana secundaria de inicio de sesión comparte la carpeta de datos de WebView2 e incluye una barra de direcciones inyectada. Los dominios no autorizados se abren en el navegador predeterminado. El cierre automático depende de que el proveedor vuelva al sitio configurado; algunos inicios de sesión sociales pueden requerir cerrar la ventana manualmente.
 - El zoom usa el control nativo de WebView2. La opacidad y las esquinas redondeadas usan CSS/recorte nativo; el aspecto de las esquinas puede variar en Windows 10.
