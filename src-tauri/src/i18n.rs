@@ -16,7 +16,11 @@ pub fn tray_labels(language: &str, locked: bool) -> TrayLabels {
             show_hide: "Show / hide",
             reload: "Reload page",
             settings: "Settings",
-            lock: if locked { "Unlock moving / resizing" } else { "Lock moving / resizing" },
+            lock: if locked {
+                "Unlock moving / resizing"
+            } else {
+                "Lock moving / resizing"
+            },
             topmost: "Toggle always on top",
             login: "Sign in / login window",
             quit: "Quit",
@@ -26,7 +30,11 @@ pub fn tray_labels(language: &str, locked: bool) -> TrayLabels {
             show_hide: "Mostrar / ocultar",
             reload: "Actualizar página",
             settings: "Configuración",
-            lock: if locked { "Desbloquear movimiento / tamaño" } else { "Bloquear movimiento / tamaño" },
+            lock: if locked {
+                "Desbloquear movimiento / tamaño"
+            } else {
+                "Bloquear movimiento / tamaño"
+            },
             topmost: "Alternar siempre visible",
             login: "Iniciar sesión",
             quit: "Salir",
@@ -36,7 +44,11 @@ pub fn tray_labels(language: &str, locked: bool) -> TrayLabels {
             show_hide: "Mostrar / ocultar",
             reload: "Recarregar página",
             settings: "Configurações",
-            lock: if locked { "Destravar mover/redimensionar" } else { "Travar mover/redimensionar" },
+            lock: if locked {
+                "Destravar mover/redimensionar"
+            } else {
+                "Travar mover/redimensionar"
+            },
             topmost: "Alternar sempre no topo",
             login: "Entrar / mostrar janela de login",
             quit: "Sair",
@@ -74,8 +86,14 @@ mod tests {
             assert!(!locked.lock.is_empty());
             assert!(!unlocked.lock.is_empty());
         }
-        assert_eq!(tray_labels("pt-BR", true).lock, "Destravar mover/redimensionar");
-        assert_eq!(tray_labels("pt-BR", false).lock, "Travar mover/redimensionar");
+        assert_eq!(
+            tray_labels("pt-BR", true).lock,
+            "Destravar mover/redimensionar"
+        );
+        assert_eq!(
+            tray_labels("pt-BR", false).lock,
+            "Travar mover/redimensionar"
+        );
     }
 
     #[test]
