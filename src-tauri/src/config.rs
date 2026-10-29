@@ -6,7 +6,7 @@ use std::{
     str::FromStr,
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
-        Mutex,
+        Mutex, MutexGuard,
     },
     thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -158,41 +158,36 @@ pub struct AppState {
 }
 
 impl AppState {
-    /// Read the latest configuration even if an earlier panic poisoned the mutex.
-    /// A poisoned lock does not make the already-stored plain data invalid.
-    pub fn snapshot(&self) -> AppConfig {
+    fn log_poison_recovery(&self) {
+        if !CONFIG_POISON_WARNING_LOGGED.swap(true, Ordering::Relaxed) {
+            crate::diagnostics::log(
+                &self.app_dir,
+                "WARN",
+                "O mutex da configuração foi envenenado; recuperando o último estado armazenado.",
+            );
+        }
+    }
+
+    /// Lock the current configuration, recovering the last valid state after a panic.
+    pub fn lock_config(&self) -> MutexGuard<'_, AppConfig> {
         match self.config.lock() {
-            Ok(config) => config.clone(),
+            Ok(config) => config,
             Err(poisoned) => {
                 self.config.clear_poison();
-                if !CONFIG_POISON_WARNING_LOGGED.swap(true, Ordering::Relaxed) {
-                    crate::diagnostics::log(
-                        &self.app_dir,
-                        "WARN",
-                        "O mutex da configuração foi envenenado; recuperando o último estado armazenado.",
-                    );
-                }
-                poisoned.into_inner().clone()
+                self.log_poison_recovery();
+                poisoned.into_inner()
             }
         }
     }
 
+    /// Read the latest configuration even if an earlier panic poisoned the mutex.
+    pub fn snapshot(&self) -> AppConfig {
+        self.lock_config().clone()
+    }
+
     /// Persist while holding the config lock so a debounced writer cannot commit a stale snapshot.
     pub fn persist_current(&self) -> Result<(), String> {
-        let config = match self.config.lock() {
-            Ok(config) => config,
-            Err(poisoned) => {
-                self.config.clear_poison();
-                if !CONFIG_POISON_WARNING_LOGGED.swap(true, Ordering::Relaxed) {
-                    crate::diagnostics::log(
-                        &self.app_dir,
-                        "WARN",
-                        "O mutex da configuração foi envenenado; persistindo o último estado armazenado.",
-                    );
-                }
-                poisoned.into_inner()
-            }
-        };
+        let config = self.lock_config();
         save(&self.app_dir, &config)
     }
 }
