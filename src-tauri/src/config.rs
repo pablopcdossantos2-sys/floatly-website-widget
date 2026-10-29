@@ -175,6 +175,24 @@ impl AppState {
             }
         }
     }
+
+    /// Persist while holding the config lock so a debounced writer cannot commit a stale snapshot.
+    pub fn persist_current(&self) -> Result<(), String> {
+        let config = match self.config.lock() {
+            Ok(config) => config,
+            Err(poisoned) => {
+                if !CONFIG_POISON_WARNING_LOGGED.swap(true, Ordering::Relaxed) {
+                    crate::diagnostics::log(
+                        &self.app_dir,
+                        "WARN",
+                        "O mutex da configuração foi envenenado; persistindo o último estado armazenado.",
+                    );
+                }
+                poisoned.into_inner()
+            }
+        };
+        save(&self.app_dir, &config)
+    }
 }
 
 pub fn app_directory() -> PathBuf {
