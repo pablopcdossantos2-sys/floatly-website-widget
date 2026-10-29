@@ -205,19 +205,95 @@ pub fn start_watchdog(app: AppHandle, dir: PathBuf) {
 fn native_window_status(app: &AppHandle) -> String {
     use windows_sys::Win32::UI::WindowsAndMessaging::IsHungAppWindow;
 
-    let Some(window) = app.get_webview_window("main") else {
-        return "A janela principal não foi encontrada".to_owned();
+    let window_status = if let Some(window) = app.get_webview_window("main") {
+        match window.hwnd() {
+            Ok(hwnd) => {
+                let hung = unsafe { IsHungAppWindow(hwnd.0) != 0 };
+                if hung {
+                    "O Windows também marca a janela nativa como sem resposta".to_owned()
+                } else {
+                    "A janela nativa ainda responde às mensagens do Windows".to_owned()
+                }
+            }
+            Err(error) => format!("Não foi possível inspecionar a janela nativa: {error}"),
+        }
+    } else {
+        "A janela principal não foi encontrada".to_owned()
     };
-    match window.hwnd() {
-        Ok(hwnd) => {
-            let hung = unsafe { IsHungAppWindow(hwnd.0) != 0 };
-            if hung {
-                "O Windows também marca a janela nativa como sem resposta".to_owned()
-            } else {
-                "A janela nativa ainda responde às mensagens do Windows; o bloqueio pode estar no conteúdo WebView2".to_owned()
+
+    format!(
+        "{window_status}. {}",
+        webview2_descendant_process_status(std::process::id())
+    )
+}
+
+#[cfg(windows)]
+fn webview2_descendant_process_status(app_pid: u32) -> String {
+    use std::collections::HashSet;
+    use windows_sys::Win32::Foundation::CloseHandle;
+    use windows_sys::Win32::System::Diagnostics::ToolHelp::{
+        CreateToolhelp32Snapshot, Process32FirstW, Process32NextW, PROCESSENTRY32W,
+        TH32CS_SNAPPROCESS,
+    };
+
+    let snapshot = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
+    if snapshot as isize == -1 {
+        return "O Windows não permitiu consultar a árvore de processos".to_owned();
+    }
+
+    let mut entry: PROCESSENTRY32W = unsafe { std::mem::zeroed() };
+    entry.dwSize = std::mem::size_of::<PROCESSENTRY32W>() as u32;
+    let mut processes: Vec<(u32, u32, String)> = Vec::new();
+    let mut has_entry = unsafe { Process32FirstW(snapshot, &mut entry) } != 0;
+
+    while has_entry {
+        let length = entry
+            .szExeFile
+            .iter()
+            .position(|unit| *unit == 0)
+            .unwrap_or(entry.szExeFile.len());
+        let name = String::from_utf16_lossy(&entry.szExeFile[..length]);
+        processes.push((entry.th32ProcessID, entry.th32ParentProcessID, name));
+        has_entry = unsafe { Process32NextW(snapshot, &mut entry) } != 0;
+    }
+    unsafe {
+        let _ = CloseHandle(snapshot);
+    }
+
+    if processes.is_empty() {
+        return "A lista de processos retornada pelo Windows estava vazia".to_owned();
+    }
+
+    // Include descendants of the widget, such as WebView2's browser and renderer processes.
+    let mut descendants = HashSet::new();
+    descendants.insert(app_pid);
+    loop {
+        let mut changed = false;
+        for (pid, parent_pid, _) in &processes {
+            if descendants.contains(parent_pid) && descendants.insert(*pid) {
+                changed = true;
             }
         }
-        Err(error) => format!("Não foi possível inspecionar a janela nativa: {error}"),
+        if !changed {
+            break;
+        }
+    }
+
+    let count = processes
+        .iter()
+        .filter(|(pid, _, name)| {
+            *pid != app_pid
+                && descendants.contains(pid)
+                && name.eq_ignore_ascii_case("msedgewebview2.exe")
+        })
+        .count();
+
+    if count > 0 {
+        format!(
+            "Foram encontrados {count} processo(s) msedgewebview2.exe na árvore do widget"
+        )
+    } else {
+        "Nenhum msedgewebview2.exe descendente do widget foi encontrado; isso pode indicar que o processo WebView2 terminou ou foi bloqueado".to_owned()
     }
 }
 
