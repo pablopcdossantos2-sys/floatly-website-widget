@@ -74,7 +74,7 @@ pub fn log(dir: &Path, level: &str, message: impl AsRef<str>) {
     let line = format!("[{timestamp}][{level}] {}\n", message.as_ref());
 
     // Logging should never crash the widget, even when the profile directory is unavailable.
-    if let Some(lock) = LOG_LOCK.get_or_init(|| Mutex::new(())).lock().ok() {
+    if let Ok(lock) = LOG_LOCK.get_or_init(|| Mutex::new(())).lock() {
         let path = log_path(dir);
         if fs::create_dir_all(dir).is_ok() {
             if fs::metadata(&path)
