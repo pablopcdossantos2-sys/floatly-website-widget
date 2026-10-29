@@ -271,7 +271,11 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
         serde_json::to_value(AppConfig::default()).expect("AppConfig default serializes");
     if let Some(saved) = value.as_object() {
         for (key, candidate_value) in saved {
-            let previous = match merged.as_object().and_then(|base| base.get::<str>(key.as_str())).cloned() {
+            let previous = match merged
+                .as_object()
+                .and_then(|base| base.get::<str>(key.as_str()))
+                .cloned()
+            {
                 Some(previous) => previous,
                 None => continue,
             };
