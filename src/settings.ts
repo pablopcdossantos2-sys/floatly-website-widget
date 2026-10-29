@@ -41,11 +41,12 @@ const translations: Record<Language, Record<string, string>> = {
     zoomHelp: "Ampliação do WebView2 entre 50% e 200%, independente do CSS do site.",
     cornerRadius: "Raio dos cantos (px)", reload: "Recarregar a cada (min)",
     reloadHelp: "0 desliga; valores ativos abaixo de 5 são ajustados para 5.",
-    shortcutSection: "Atalho global", shortcutCombination: "Combinação de teclas",
+    shortcutSection: "Atalho global", shortcutCombination: "Combinação de teclas", shortcutReset: "Restaurar atalho padrão",
     shortcutHelp: "Esse atalho mostra ou oculta o widget mesmo quando você está usando outro programa. Clique no campo e pressione a combinação desejada (ex.: Ctrl + Alt + C).",
     reset: "Restaurar tamanho padrão", close: "Fechar", save: "Salvar alterações",
     saving: "Salvando…", saved: "Configurações salvas.", resetSaved: "Dimensões padrão preenchidas. Clique em Salvar alterações para aplicar.",
-    fieldRequired: "Preencha os campos numéricos obrigatórios.", fieldRange: "Use um número inteiro dentro dos limites indicados.", shortcutModifierRequired: "Inclua pelo menos um modificador (Ctrl, Alt, Shift ou Win).", shortcutKeyUnsupported: "Essa tecla não é compatível com o atalho global.",
+    fieldRequired: "Preencha os campos numéricos obrigatórios.", fieldRange: "Use um número inteiro dentro dos limites indicados.",
+    siteUrlRequired: "Informe a URL do site.", siteUrlInvalid: "A URL informada é inválida.", siteUrlHttpOnly: "Use uma URL HTTP ou HTTPS válida, sem credenciais.", configReadFailed: "Não foi possível ler a configuração.", configWriteFailed: "Não foi possível atualizar a configuração.", configDiskWriteFailed: "Não foi possível gravar o arquivo de configuração.", shortcutModifierRequired: "Inclua pelo menos um modificador (Ctrl, Alt, Shift ou Win).", shortcutKeyUnsupported: "Essa tecla não é compatível com o atalho global.",
     autostartEnableWarning: "Não foi possível habilitar o início com o Windows.", autostartDisableWarning: "Não foi possível desabilitar o início com o Windows.",
     loadFailed: "Não foi possível ler as configurações: ", invalidConfig: "Não foi possível salvar as configurações: ",
     shortcutWarning: "O novo atalho conflita com outro aplicativo; o atalho anterior foi mantido.",
@@ -70,11 +71,12 @@ const translations: Record<Language, Record<string, string>> = {
     zoomHelp: "Controls WebView2 zoom from 50% to 200%, independently of the website's CSS.",
     cornerRadius: "Corner radius (px)", reload: "Reload every (min)",
     reloadHelp: "0 disables automatic refresh; active values below 5 are raised to 5.",
-    shortcutSection: "Global shortcut", shortcutCombination: "Key combination",
+    shortcutSection: "Global shortcut", shortcutCombination: "Key combination", shortcutReset: "Restore default shortcut",
     shortcutHelp: "This shortcut shows or hides the widget even while you are using another application. Click the field and press the desired combination (e.g. Ctrl + Alt + C).",
     reset: "Restore default size", close: "Close", save: "Save changes",
     saving: "Saving…", saved: "Settings saved.", resetSaved: "Default dimensions filled in. Click Save changes to apply them.",
-    fieldRequired: "Fill in all required numeric fields.", fieldRange: "Enter an integer within the indicated limits.", shortcutModifierRequired: "Include at least one modifier (Ctrl, Alt, Shift or Win).", shortcutKeyUnsupported: "This key is not supported for the global shortcut.",
+    fieldRequired: "Fill in all required numeric fields.", fieldRange: "Enter an integer within the indicated limits.",
+    siteUrlRequired: "Enter the website URL.", siteUrlInvalid: "The supplied URL is invalid.", siteUrlHttpOnly: "Use a valid HTTP or HTTPS URL without credentials.", configReadFailed: "Could not read the configuration.", configWriteFailed: "Could not update the configuration.", configDiskWriteFailed: "Could not write the configuration file.", shortcutModifierRequired: "Include at least one modifier (Ctrl, Alt, Shift or Win).", shortcutKeyUnsupported: "This key is not supported for the global shortcut.",
     autostartEnableWarning: "Could not enable startup with Windows.", autostartDisableWarning: "Could not disable startup with Windows.",
     loadFailed: "Could not load settings: ", invalidConfig: "Could not save settings: ",
     shortcutWarning: "The new shortcut conflicts with another application; the previous shortcut was kept.",
@@ -99,11 +101,12 @@ const translations: Record<Language, Record<string, string>> = {
     zoomHelp: "Controla el zoom de WebView2 entre el 50 % y el 200 %, independientemente del CSS del sitio.",
     cornerRadius: "Radio de las esquinas (px)", reload: "Actualizar cada (min)",
     reloadHelp: "0 desactiva la actualización automática; los valores activos inferiores a 5 se ajustan a 5.",
-    shortcutSection: "Atajo global", shortcutCombination: "Combinación de teclas",
+    shortcutSection: "Atajo global", shortcutCombination: "Combinación de teclas", shortcutReset: "Restaurar atajo predeterminado",
     shortcutHelp: "Este atajo muestra u oculta el widget aunque estés usando otra aplicación. Haz clic en el campo y pulsa la combinación deseada (p. ej., Ctrl + Alt + C).",
     reset: "Restaurar tamaño predeterminado", close: "Cerrar", save: "Guardar cambios",
     saving: "Guardando…", saved: "Configuración guardada.", resetSaved: "Dimensiones predeterminadas completadas. Pulsa Guardar cambios para aplicarlas.",
-    fieldRequired: "Completa los campos numéricos obligatorios.", fieldRange: "Introduce un número entero dentro de los límites indicados.", shortcutModifierRequired: "Incluye al menos un modificador (Ctrl, Alt, Shift o Win).", shortcutKeyUnsupported: "Esta tecla no es compatible con el atajo global.",
+    fieldRequired: "Completa los campos numéricos obligatorios.", fieldRange: "Introduce un número entero dentro de los límites indicados.",
+    siteUrlRequired: "Introduce la URL del sitio.", siteUrlInvalid: "La URL indicada no es válida.", siteUrlHttpOnly: "Usa una URL HTTP o HTTPS válida y sin credenciales.", configReadFailed: "No se pudo leer la configuración.", configWriteFailed: "No se pudo actualizar la configuración.", configDiskWriteFailed: "No se pudo escribir el archivo de configuración.", shortcutModifierRequired: "Incluye al menos un modificador (Ctrl, Alt, Shift o Win).", shortcutKeyUnsupported: "Esta tecla no es compatible con el atajo global.",
     autostartEnableWarning: "No se pudo activar el inicio con Windows.", autostartDisableWarning: "No se pudo desactivar el inicio con Windows.",
     loadFailed: "No se pudo leer la configuración: ", invalidConfig: "No se pudo guardar la configuración: ",
     shortcutWarning: "El nuevo atajo entra en conflicto con otra aplicación; se mantuvo el atajo anterior.",
@@ -141,6 +144,21 @@ function f<T extends HTMLInputElement | HTMLSelectElement = HTMLInputElement>(id
 }
 function t(key: string): string {
   return translations[activeLanguage][key] ?? translations["pt-BR"][key] ?? key;
+}
+const backendErrorKeys: Record<string, string> = {
+  "config.site_url_required": "siteUrlRequired",
+  "config.site_url_invalid": "siteUrlInvalid",
+  "config.site_url_http_only": "siteUrlHttpOnly",
+  "config.shortcut_modifier_required": "shortcutModifierRequired",
+  "config.shortcut_key_unsupported": "shortcutKeyUnsupported",
+  "config.read_failed": "configReadFailed",
+  "config.write_failed": "configWriteFailed",
+  "config.disk_write_failed": "configDiskWriteFailed"
+};
+function translateBackendError(error: unknown): string {
+  const code = error instanceof Error ? error.message : String(error);
+  const key = backendErrorKeys[code];
+  return key ? t(key) : code;
 }
 function say(message: string, kind = "") {
   msg.textContent = message;
@@ -233,7 +251,10 @@ form.addEventListener("submit", async (event) => {
     const message = error instanceof Error ? error.message : String(error);
     if (message === "FIELD_REQUIRED") say(t("fieldRequired"), "error");
     else if (message === "FIELD_RANGE") say(t("fieldRange"), "error");
-    else say(t("invalidConfig") + message, "error");
+    else {
+      const key = backendErrorKeys[message];
+      say(key ? t(key) : t("invalidConfig") + translateBackendError(error), "error");
+    }
   }
 });
 
@@ -297,6 +318,11 @@ document.getElementById("close")!.addEventListener("click", () => {
 
 document.getElementById("theme-light")!.addEventListener("click", () => setSettingsTheme("light"));
 document.getElementById("theme-dark")!.addEventListener("click", () => setSettingsTheme("dark"));
+document.getElementById("reset-shortcut")!.addEventListener("click", () => {
+  f("global_shortcut").value = "CTRL+ALT+C";
+  dirtyFields.add("global_shortcut");
+  say("");
+});
 try {
   setSettingsTheme(localStorage.getItem(themePreferenceKey) === "dark" ? "dark" : "light", false);
 } catch {
@@ -320,4 +346,8 @@ void listen<C>("config-changed", (event) => {
   say(t("loadFailed") + String(error), "error");
 });
 
-void load().catch((error) => say(t("loadFailed") + String(error), "error"));
+void load().catch((error) => {
+  const message = error instanceof Error ? error.message : String(error);
+  const key = backendErrorKeys[message];
+  say(key ? t(key) : t("loadFailed") + translateBackendError(error), "error");
+});
