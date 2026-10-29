@@ -400,6 +400,48 @@ fn external_open_allowed(state: &mut ExternalOpenState, url: &str, now_ms: u64) 
 
 static EXTERNAL_OPEN_STATE: std::sync::OnceLock<Mutex<ExternalOpenState>> = std::sync::OnceLock::new();
 static LOGIN_WINDOW_LOCK: Mutex<()> = Mutex::new(());
+static LOGIN_LAST_OPEN_MS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum LoginWindowAction {
+    Create,
+    Reuse,
+    RateLimited,
+}
+
+fn login_window_action(existing: usize, last_open_ms: u64, now_ms: u64) -> LoginWindowAction {
+    if existing > 0 {
+        LoginWindowAction::Reuse
+    } else if last_open_ms != 0 && now_ms.saturating_sub(last_open_ms) < 1_000 {
+        LoginWindowAction::RateLimited
+    } else {
+        LoginWindowAction::Create
+    }
+}
+
+fn current_time_ms() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+        .min(u64::MAX as u128) as u64
+}
+
+fn allow_login_popup() -> bool {
+    let now = current_time_ms();
+    loop {
+        let previous = LOGIN_LAST_OPEN_MS.load(Ordering::SeqCst);
+        if previous != 0 && now.saturating_sub(previous) < 1_000 {
+            return false;
+        }
+        if LOGIN_LAST_OPEN_MS
+            .compare_exchange(previous, now, Ordering::SeqCst, Ordering::SeqCst)
+            .is_ok()
+        {
+            return true;
+        }
+    }
+}
 
 fn open_external_limited(dir: std::path::PathBuf, url: String) {
     let now = std::time::SystemTime::now()
@@ -640,27 +682,37 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
 
-    if let Some((label, existing)) = app
+    let existing_logins = app
         .webview_windows()
         .into_iter()
-        .find(|(label, _)| label.starts_with("login-"))
-    {
-        let app_dir = app.state::<AppState>().app_dir.clone();
-        crate::diagnostics::log(&app_dir, "INFO", format!("Reutilizando a janela de autenticação existente ({label})."));
-        existing.navigate(url).map_err(|error| {
-            crate::diagnostics::log(&app_dir, "ERRO", format!("Não foi possível navegar na janela de autenticação existente: {error}"));
-            error
-        })?;
-        for (name, result) in [
-            ("restaurar", existing.unminimize().map_err(|error| error.to_string())),
-            ("exibir", existing.show().map_err(|error| error.to_string())),
-            ("focar", existing.set_focus().map_err(|error| error.to_string())),
-        ] {
-            if let Err(error) = result {
-                crate::diagnostics::log(&app_dir, "WARN", format!("Não foi possível {name} a janela de autenticação: {error}"));
+        .filter(|(label, _)| label.starts_with("login-"))
+        .collect::<Vec<_>>();
+    let action = login_window_action(existing_logins.len(), LOGIN_LAST_OPEN_MS.load(Ordering::SeqCst), current_time_ms());
+    match action {
+        LoginWindowAction::Reuse => {
+            let (label, existing) = existing_logins.into_iter().next().expect("reuse requires an existing login window");
+            let app_dir = app.state::<AppState>().app_dir.clone();
+            crate::diagnostics::log(&app_dir, "INFO", format!("Reutilizando a janela de autenticação existente ({label})."));
+            existing.navigate(url).map_err(|error| {
+                crate::diagnostics::log(&app_dir, "ERRO", format!("Não foi possível navegar na janela de autenticação existente: {error}"));
+                error
+            })?;
+            for (name, result) in [
+                ("restaurar", existing.unminimize().map_err(|error| error.to_string())),
+                ("exibir", existing.show().map_err(|error| error.to_string())),
+                ("focar", existing.set_focus().map_err(|error| error.to_string())),
+            ] {
+                if let Err(error) = result {
+                    crate::diagnostics::log(&app_dir, "WARN", format!("Não foi possível {name} a janela de autenticação: {error}"));
+                }
             }
+            return Ok(());
         }
-        return Ok(());
+        LoginWindowAction::RateLimited => {
+            crate::diagnostics::log(&app.state::<AppState>().app_dir, "WARN", "A criação da janela de autenticação foi limitada para evitar a abertura de várias janelas em sequência.");
+            return Ok(());
+        }
+        LoginWindowAction::Create => LOGIN_LAST_OPEN_MS.store(current_time_ms(), Ordering::SeqCst),
     }
 
     let id = LOGIN_ID.fetch_add(1, Ordering::Relaxed);
@@ -751,7 +803,11 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                     if is_auth_page(url.host_str().unwrap_or(""), url.path(), &config) {
                         popup_seen_auth.store(true, Ordering::SeqCst);
                     }
-                    open_login_limited(popup.clone(), url, popup_diag_dir.clone());
+                    if allow_login_popup() {
+                        open_login_limited(popup.clone(), url, popup_diag_dir.clone());
+                    } else {
+                        crate::diagnostics::log(&popup_diag_dir, "WARN", "Pop-up de autenticação descartado pelo limite de uma abertura por segundo.");
+                    }
                 }
                 NavAction::External => open_external_limited(popup_diag_dir.clone(), url.as_str().to_owned()),
                 NavAction::Block => crate::diagnostics::log(&popup_diag_dir, "WARN", "Pop-up de autenticação bloqueado por esquema não HTTP(S)."),
@@ -1207,6 +1263,18 @@ mod navigation_policy_tests {
         assert!(!host_matches("x.127.0.0.1", "127.0.0.1"));
         assert!(host_matches("x.intranet", "intranet"));
         assert!(!host_matches("intranetx", "intranet"));
+    }
+
+    #[test]
+    fn login_window_reuses_existing_window() {
+        assert_eq!(login_window_action(1, 10_000, 10_100), LoginWindowAction::Reuse);
+        assert_eq!(login_window_action(0, 0, 10_100), LoginWindowAction::Create);
+    }
+
+    #[test]
+    fn login_window_rate_limits_popups() {
+        assert_eq!(login_window_action(0, 10_000, 10_500), LoginWindowAction::RateLimited);
+        assert_eq!(login_window_action(0, 10_000, 11_000), LoginWindowAction::Create);
     }
 
     #[test]
