@@ -13,25 +13,22 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 #[cfg(windows)]
 fn webview2_runtime_present() -> bool {
     let bases = ["ProgramFiles(x86)", "ProgramFiles", "LOCALAPPDATA"];
-    bases
-        .iter()
-        .filter_map(std::env::var_os)
-        .any(|base| {
-            let folder = std::path::PathBuf::from(base)
-                .join("Microsoft")
-                .join("EdgeWebView")
-                .join("Application");
-            if folder.join("msedgewebview2.exe").is_file() {
-                return true;
-            }
-            std::fs::read_dir(folder)
-                .map(|entries| {
-                    entries
-                        .flatten()
-                        .any(|entry| entry.path().join("msedgewebview2.exe").is_file())
-                })
-                .unwrap_or(false)
-        })
+    bases.iter().filter_map(std::env::var_os).any(|base| {
+        let folder = std::path::PathBuf::from(base)
+            .join("Microsoft")
+            .join("EdgeWebView")
+            .join("Application");
+        if folder.join("msedgewebview2.exe").is_file() {
+            return true;
+        }
+        std::fs::read_dir(folder)
+            .map(|entries| {
+                entries
+                    .flatten()
+                    .any(|entry| entry.path().join("msedgewebview2.exe").is_file())
+            })
+            .unwrap_or(false)
+    })
 }
 
 #[cfg(windows)]
