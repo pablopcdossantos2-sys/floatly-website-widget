@@ -333,7 +333,7 @@ pub fn create_main(
     if payload.event()!=PageLoadEvent::Finished{return;}
     let url=payload.url();
     if url.scheme()!="https"&&url.scheme()!="http"{return;}
-    let config=page_load_app.state::<AppState>().config.lock().map(|value|value.clone()).unwrap_or_default();
+    let config=page_load_app.state::<AppState>().snapshot();
     let language=serde_json::to_string(&config.language).unwrap_or_else(|_|"\"pt-BR\"".to_owned());
     let script=format!("(function(){{function apply(){{const root=document.documentElement;if(!root)return;root.style.opacity='{}';root.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});}}if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{{once:true}});}})();",config.opacity as f64/100.0,config.corner_radius,language,config.locked);
     let _=window.eval(&script);
@@ -354,7 +354,7 @@ if u.scheme()=="widget-action"{
         }
     };
     let state=nav_app.state::<AppState>();
-    let locked=state.config.lock().map(|config|config.locked).unwrap_or(true);
+    let locked=state.snapshot().locked;
     if locked {
         crate::diagnostics::log(&diag_dir,"WARN",format!("Ação de janela ignorada porque mover/redimensionar está travado: {action}"));
         return false;
@@ -382,12 +382,12 @@ if u.scheme()=="widget-action"{
 }
 if u.scheme()!="https"&&u.scheme()!="http"{crate::diagnostics::log(&diag_dir,"WARN",format!("Navegação bloqueada por esquema não HTTP(S): {}",u.scheme()));return false}
 crate::diagnostics::log_navigation(&diag_dir,u);
-let cfg=nav_app.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();let host=u.host_str().unwrap_or("");let target=Url::parse(&cfg.site_url).ok().and_then(|v|v.host_str().map(str::to_owned)).unwrap_or_default();
+let cfg=nav_app.state::<AppState>().snapshot();let host=u.host_str().unwrap_or("");let target=Url::parse(&cfg.site_url).ok().and_then(|v|v.host_str().map(str::to_owned)).unwrap_or_default();
 if host==target||host.ends_with(&format!(".{target}")){return true}
 if allowed(host,&cfg){crate::diagnostics::log(&diag_dir,"INFO",format!("Abrindo fluxo de autenticação em janela secundária (host={host})."));let a=nav_app.clone();let dest=u.clone();thread::spawn(move||{let _=open_login(&a,dest);});return false}
 crate::diagnostics::log(&diag_dir,"INFO",format!("Encaminhando link externo ao navegador padrão (host={host})."));let _=open::that(u.as_str());false
 })
-.on_new_window(move|u,_|{if u.scheme()=="http"||u.scheme()=="https"{crate::diagnostics::log_navigation(&popup_diag_dir,&u);let cfg=popup_app.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();if allowed(u.host_str().unwrap_or(""),&cfg){let a=popup_app.clone();thread::spawn(move||{let _=open_login(&a,u);});}else{let _=open::that(u.as_str());}}NewWindowResponse::Deny}).build().map_err(|error|{crate::diagnostics::log(&build_diag_dir,"ERRO",format!("Falha ao criar a janela WebView2 principal: {error}"));error})?;
+.on_new_window(move|u,_|{if u.scheme()=="http"||u.scheme()=="https"{crate::diagnostics::log_navigation(&popup_diag_dir,&u);let cfg=popup_app.state::<AppState>().snapshot();if allowed(u.host_str().unwrap_or(""),&cfg){let a=popup_app.clone();thread::spawn(move||{let _=open_login(&a,u);});}else{let _=open::that(u.as_str());}}NewWindowResponse::Deny}).build().map_err(|error|{crate::diagnostics::log(&build_diag_dir,"ERRO",format!("Falha ao criar a janela WebView2 principal: {error}"));error})?;
     restore_position(&w, c);
     apply_config(app, c, true);
     Ok(w)
@@ -461,11 +461,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
     let navigation_close_token = close_token.clone();
     let state = app.state::<AppState>();
     let diag_dir = state.app_dir.clone();
-    let language = state
-        .config
-        .lock()
-        .map(|config| config.language.clone())
-        .unwrap_or_else(|_| "pt-BR".to_owned());
+    let language = state.snapshot().language;
     let dir = state.app_dir.join("webview-data");
     std::fs::create_dir_all(&dir).ok();
     crate::diagnostics::log(
@@ -530,12 +526,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                 return false;
             }
             crate::diagnostics::log_navigation(&diag_dir, u);
-            let c = nav
-                .state::<AppState>()
-                .config
-                .lock()
-                .map(|v| v.clone())
-                .unwrap_or_default();
+            let c = nav.state::<AppState>().snapshot();
             let host = u.host_str().unwrap_or("");
             if is_auth_page(host, u.path(), &c) {
                 nav_seen_auth.store(true, Ordering::SeqCst);
@@ -560,12 +551,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
         })
         .on_new_window(move |u, _| {
             if u.scheme() == "http" || u.scheme() == "https" {
-                let c = pop
-                    .state::<AppState>()
-                    .config
-                    .lock()
-                    .map(|v| v.clone())
-                    .unwrap_or_default();
+                let c = pop.state::<AppState>().snapshot();
                 if allowed(u.host_str().unwrap_or(""), &c) {
                     if is_auth_page(u.host_str().unwrap_or(""), u.path(), &c) {
                         popup_seen_auth.store(true, Ordering::SeqCst);
