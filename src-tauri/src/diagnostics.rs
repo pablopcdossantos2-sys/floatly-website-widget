@@ -123,6 +123,18 @@ pub fn start_watchdog(app: AppHandle, dir: PathBuf) {
         .spawn(move || loop {
             thread::sleep(Duration::from_secs(5));
             let now = now_ms();
+
+            // A widget hidden in the system tray is not useful for UI hang detection;
+            // reset the grace clock while hidden to avoid false positives from timer throttling.
+            if let Some(window) = app.get_webview_window("main") {
+                if matches!(window.is_visible(), Ok(false)) {
+                    LAST_HEARTBEAT_MS.store(now, Ordering::SeqCst);
+                    LAST_WARNING_MS.store(0, Ordering::SeqCst);
+                    WATCHDOG_ALERTED.store(false, Ordering::SeqCst);
+                    continue;
+                }
+            }
+
             let last = LAST_HEARTBEAT_MS.load(Ordering::SeqCst);
             let age = now.saturating_sub(last);
             if age < HEARTBEAT_TIMEOUT_MS {
