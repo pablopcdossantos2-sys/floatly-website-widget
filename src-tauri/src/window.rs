@@ -11,13 +11,21 @@ const UI_COPY={
  en:{dragTitle:'Drag this handle to move the widget. You can also hold Alt and drag any area.',dragLabel:'Drag to move the widget',offlineTitle:'Calendar connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
  es:{dragTitle:'Arrastra esta asa para mover el widget. También puedes mantener Alt y arrastrar cualquier zona.',dragLabel:'Arrastrar para mover el widget',offlineTitle:'Sin conexión con el calendario',offlineMessage:'El sitio no respondió. Comprueba la conexión e inténtalo de nuevo.',retry:'Reintentar'}
 };
-function setUiLanguage(language){UI_LANGUAGE=UI_COPY[language]?language:'pt-BR';const copy=UI_COPY[UI_LANGUAGE];const drag=document.getElementById('__widget_drag');if(drag){drag.title=copy.dragTitle;drag.setAttribute('aria-label',copy.dragLabel)}const overlay=document.getElementById('__widget_offline');if(overlay){const heading=overlay.querySelector('h2');const paragraph=overlay.querySelector('p');const button=overlay.querySelector('button');if(heading)heading.textContent=copy.offlineTitle;if(paragraph)paragraph.textContent=copy.offlineMessage;if(button)button.textContent=copy.retry}}
+function setUiLanguage(language){UI_LANGUAGE=UI_COPY[language]?language:'pt-BR';const copy=UI_COPY[UI_LANGUAGE];const drag=document.getElementById('__widget_drag');if(drag){drag.title=copy.dragTitle;drag.setAttribute('aria-label',copy.dragLabel)}document.querySelectorAll('#__widget_drag_frame .__widget_drag_edge').forEach(edge=>{edge.title=copy.dragTitle;edge.setAttribute('aria-label',copy.dragLabel)});const overlay=document.getElementById('__widget_offline');if(overlay){const heading=overlay.querySelector('h2');const paragraph=overlay.querySelector('p');const button=overlay.querySelector('button');if(heading)heading.textContent=copy.offlineTitle;if(paragraph)paragraph.textContent=copy.offlineMessage;if(button)button.textContent=copy.retry}}
 window.__widgetSetLanguage=setUiLanguage;
 const style=document.createElement('style');
 style.textContent=`
 #__widget_drag{position:fixed;z-index:2147483647;left:50%;transform:translateX(-50%);top:8px;width:78px;height:20px;display:flex;align-items:center;justify-content:center;background:rgba(33,52,75,.22);border:1px solid rgba(255,255,255,.72);border-radius:999px;opacity:.78;cursor:move;transition:background .12s,opacity .12s,box-shadow .12s;box-shadow:0 1px 4px rgba(0,0,0,.14);user-select:none;-webkit-user-select:none;touch-action:none}
 #__widget_drag::before{content:'⋮⋮';font:700 13px/1 Segoe UI,Arial,sans-serif;letter-spacing:2px;color:rgba(25,45,69,.96)}
 #__widget_drag:hover{opacity:1;background:rgba(24,105,210,.88);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+#__widget_drag_frame{position:fixed;z-index:2147483644;inset:10px;border:3px solid rgba(24,105,210,.68);border-radius:8px;box-sizing:border-box;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);transition:border-color .12s,box-shadow .12s}
+#__widget_drag_frame:hover{border-color:rgba(24,105,210,.88);box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}
+#__widget_drag_frame .__widget_drag_edge{position:absolute;display:block;pointer-events:auto;background:transparent;touch-action:none;user-select:none;-webkit-user-select:none}
+#__widget_drag_frame .__widget_drag_edge:hover{background:rgba(24,105,210,.16)}
+#__widget_drag_frame .__widget_drag_edge--top{top:-3px;left:0;right:0;height:9px;cursor:move}
+#__widget_drag_frame .__widget_drag_edge--bottom{bottom:-3px;left:0;right:0;height:9px;cursor:move}
+#__widget_drag_frame .__widget_drag_edge--left{left:-3px;top:0;bottom:0;width:9px;cursor:move}
+#__widget_drag_frame .__widget_drag_edge--right{right:-3px;top:0;bottom:0;width:9px;cursor:move}
 #__widget_offline{position:fixed;z-index:2147483646;inset:0;background:rgba(248,250,253,.98);color:#203247;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font:14px Segoe UI,Arial,sans-serif;padding:24px}
 #__widget_offline button{border:0;background:#1769d2;color:#fff;border-radius:8px;padding:10px 14px}
 html{overflow-y:auto!important}
@@ -30,11 +38,47 @@ html.__widget_scroll_active::-webkit-scrollbar-thumb,html.__widget_scroll_active
 `;
 (document.head||document.documentElement).appendChild(style);
 function action(p){location.href='widget-action://'+p}
-function install(){if(!document.body||document.getElementById('__widget_drag'))return;const d=document.createElement('div');d.id='__widget_drag';const copy=UI_COPY[UI_LANGUAGE]||UI_COPY['pt-BR'];d.title=copy.dragTitle;d.setAttribute('aria-label',copy.dragLabel);d.addEventListener('pointerdown',e=>{if(e.button===0){e.preventDefault();e.stopPropagation();action('drag')}});document.body.appendChild(d)}
+function dragWindow(event){
+ if(event.button!==0)return;
+ event.preventDefault();
+ event.stopPropagation();
+ if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();
+ try{
+  const invoke=window.__TAURI__&&window.__TAURI__.core&&window.__TAURI__.core.invoke;
+  if(typeof invoke==='function'){
+   invoke('start_window_drag').catch(()=>action('drag'));
+   return;
+  }
+ }catch(_){}
+ action('drag');
+}
+function install(){
+ if(!document.documentElement)return;
+ if(!document.getElementById('__widget_drag_frame')){
+  const frame=document.createElement('div');frame.id='__widget_drag_frame';frame.setAttribute('aria-label','Borda para mover o widget');
+  for(const side of ['top','bottom','left','right']){
+   const edge=document.createElement('div');edge.className='__widget_drag_edge __widget_drag_edge--'+side;edge.title=UI_COPY[UI_LANGUAGE]?.dragTitle||UI_COPY['pt-BR'].dragTitle;edge.setAttribute('aria-label',UI_COPY[UI_LANGUAGE]?.dragLabel||UI_COPY['pt-BR'].dragLabel);edge.addEventListener('pointerdown',dragWindow);frame.appendChild(edge);
+  }
+  document.documentElement.appendChild(frame);
+ }
+ if(!document.body||document.getElementById('__widget_drag'))return;
+ const d=document.createElement('div');d.id='__widget_drag';const copy=UI_COPY[UI_LANGUAGE]||UI_COPY['pt-BR'];d.title=copy.dragTitle;d.setAttribute('aria-label',copy.dragLabel);d.addEventListener('pointerdown',dragWindow);document.body.appendChild(d);
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 const dragObserver=new MutationObserver(()=>install());
 dragObserver.observe(document.documentElement,{childList:true,subtree:true});
-document.addEventListener('pointerdown',e=>{if(e.button!==0)return;const x=e.clientX,y=e.clientY,w=innerWidth,h=innerHeight;if(x<6||x>w-6||y<6||y>h-6){const ns=y<6?'north':y>h-6?'south':'';const ew=x<6?'west':x>w-6?'east':'';const dir=ns&&ew?ns+'-'+ew:(ns||ew);if(dir){e.preventDefault();action('resize/'+dir)}return}if(e.altKey){e.preventDefault();action('drag')}},true);
+document.addEventListener('pointerdown',e=>{
+ if(e.button!==0)return;
+ const x=e.clientX,y=e.clientY,w=innerWidth,h=innerHeight;
+ if(x<6||x>w-6||y<6||y>h-6){
+  const ns=y<6?'north':y>h-6?'south':'';
+  const ew=x<6?'west':x>w-6?'east':'';
+  const dir=ns&&ew?ns+'-'+ew:(ns||ew);
+  if(dir){e.preventDefault();action('resize/'+dir)}
+  return;
+ }
+ if(e.altKey)dragWindow(e);
+},true);
 document.addEventListener('contextmenu',e=>e.preventDefault(),true);
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['l','t','n','w','p','j','u','s'].includes(e.key.toLowerCase())){e.preventDefault();e.stopImmediatePropagation()}else if(e.key==='F5'){e.preventDefault();location.reload()}},true);
 let scrollHideTimer=0;
