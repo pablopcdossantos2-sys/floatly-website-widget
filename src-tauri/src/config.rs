@@ -155,6 +155,8 @@ pub struct AppState {
     pub geometry_save_worker_running: AtomicBool,
     /// Per-process token accepted only by the minimal remote heartbeat command.
     pub heartbeat_token: String,
+    /// Set before an explicit app exit, so a destroyed main window is not misreported as a crash.
+    pub shutdown_requested: AtomicBool,
 }
 
 impl AppState {
@@ -569,6 +571,7 @@ mod tests {
             geometry_save_revision: AtomicU64::new(0),
             geometry_save_worker_running: AtomicBool::new(false),
             heartbeat_token: "test-token".into(),
+            shutdown_requested: AtomicBool::new(false),
         };
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let mut config = state.config.lock().unwrap();
