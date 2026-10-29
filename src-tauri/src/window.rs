@@ -10,8 +10,7 @@ use std::{
 use tauri::{
     utils::config::WebviewUrl,
     webview::{NewWindowResponse, PageLoadEvent, WebviewWindowBuilder},
-    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, WebviewWindow,
-    WindowEvent,
+    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, WebviewWindow, WindowEvent,
 };
 use url::Url;
 static LOGIN_ID: AtomicU64 = AtomicU64::new(1);
@@ -254,9 +253,15 @@ fn is_auth_provider(host: &str, path: &str) -> bool {
         | "login.live.com" => true,
         "facebook.com" | "www.facebook.com" | "m.facebook.com" => {
             let path = path.to_ascii_lowercase();
-            let segments = path.split('/').filter(|segment| !segment.is_empty()).collect::<Vec<_>>();
+            let segments = path
+                .split('/')
+                .filter(|segment| !segment.is_empty())
+                .collect::<Vec<_>>();
             segments.iter().any(|segment| {
-                matches!(*segment, "login" | "log-in" | "signin" | "sign-in" | "dialog" | "oauth" | "authorize")
+                matches!(
+                    *segment,
+                    "login" | "log-in" | "signin" | "sign-in" | "dialog" | "oauth" | "authorize"
+                )
             })
         }
         _ => false,
@@ -291,8 +296,10 @@ fn is_exact_configured_page(url: &Url, c: &AppConfig) -> bool {
     let Ok(target) = Url::parse(&c.site_url) else {
         return false;
     };
-    host_matches(url.host_str().unwrap_or(""), target.host_str().unwrap_or(""))
-        && url.path().trim_end_matches('/') == target.path().trim_end_matches('/')
+    host_matches(
+        url.host_str().unwrap_or(""),
+        target.host_str().unwrap_or(""),
+    ) && url.path().trim_end_matches('/') == target.path().trim_end_matches('/')
 }
 
 fn decide_main(url: &Url, c: &AppConfig) -> NavAction {
@@ -387,7 +394,8 @@ fn external_open_allowed(state: &mut ExternalOpenState, url: &str, now_ms: u64) 
     true
 }
 
-static EXTERNAL_OPEN_STATE: std::sync::OnceLock<Mutex<ExternalOpenState>> = std::sync::OnceLock::new();
+static EXTERNAL_OPEN_STATE: std::sync::OnceLock<Mutex<ExternalOpenState>> =
+    std::sync::OnceLock::new();
 static LOGIN_WINDOW_LOCK: Mutex<()> = Mutex::new(());
 static LOGIN_LAST_OPEN_MS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 static LOGIN_POPUP_LAST_MS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
@@ -447,12 +455,20 @@ fn open_external_limited(dir: std::path::PathBuf, url: String) {
         external_open_allowed(&mut state, &url, now)
     };
     if !allowed {
-        crate::diagnostics::log(&dir, "WARN", "Abertura externa descartada pelo limite contra navegações repetidas.");
+        crate::diagnostics::log(
+            &dir,
+            "WARN",
+            "Abertura externa descartada pelo limite contra navegações repetidas.",
+        );
         return;
     }
     thread::spawn(move || {
         if let Err(error) = open::that(&url) {
-            crate::diagnostics::log(&dir, "ERRO", format!("Não foi possível abrir o link no navegador padrão: {error}"));
+            crate::diagnostics::log(
+                &dir,
+                "ERRO",
+                format!("Não foi possível abrir o link no navegador padrão: {error}"),
+            );
         }
     });
 }
@@ -460,7 +476,11 @@ fn open_external_limited(dir: std::path::PathBuf, url: String) {
 fn open_login_limited(app: AppHandle, url: Url, dir: std::path::PathBuf) {
     thread::spawn(move || {
         if let Err(error) = open_login(&app, url) {
-            crate::diagnostics::log(&dir, "ERRO", format!("Não foi possível abrir/reutilizar a janela de autenticação: {error}"));
+            crate::diagnostics::log(
+                &dir,
+                "ERRO",
+                format!("Não foi possível abrir/reutilizar a janela de autenticação: {error}"),
+            );
         }
     });
 }
@@ -473,7 +493,11 @@ pub fn create_main(
     let data = dir.join("webview-data");
     let diag_dir = dir.to_path_buf();
     if let Err(error) = std::fs::create_dir_all(&data) {
-        crate::diagnostics::log(&diag_dir, "ERRO", format!("Não foi possível criar o diretório de dados do WebView2 principal: {error}"));
+        crate::diagnostics::log(
+            &diag_dir,
+            "ERRO",
+            format!("Não foi possível criar o diretório de dados do WebView2 principal: {error}"),
+        );
     }
     let build_diag_dir = dir.to_path_buf();
     let popup_diag_dir = dir.to_path_buf();
@@ -611,7 +635,13 @@ fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
     let packed_position = pack_lparam(cursor.x, cursor.y);
     unsafe {
         ReleaseCapture();
-        if PostMessageW(raw_hwnd.0, WM_NCLBUTTONDOWN, HTCAPTION as usize, packed_position) == 0 {
+        if PostMessageW(
+            raw_hwnd.0,
+            WM_NCLBUTTONDOWN,
+            HTCAPTION as usize,
+            packed_position,
+        ) == 0
+        {
             return Err("O Windows não aceitou o início do arraste nativo.".into());
         }
     }
@@ -645,7 +675,9 @@ fn begin_native_resize(window: &WebviewWindow, direction: &str) -> Result<(), St
         _ => return Err("Direção de redimensionamento inválida.".into()),
     };
     if unsafe { GetAsyncKeyState(VK_LBUTTON as i32) } as u16 & 0x8000 == 0 {
-        return Err("Redimensionamento cancelado porque o botão esquerdo do mouse já foi solto.".into());
+        return Err(
+            "Redimensionamento cancelado porque o botão esquerdo do mouse já foi solto.".into(),
+        );
     }
     let raw_hwnd = window.hwnd().map_err(|error| error.to_string())?;
     let mut cursor: POINT = unsafe { std::mem::zeroed() };
@@ -655,20 +687,36 @@ fn begin_native_resize(window: &WebviewWindow, direction: &str) -> Result<(), St
     let packed_position = pack_lparam(cursor.x, cursor.y);
     unsafe {
         ReleaseCapture();
-        if PostMessageW(raw_hwnd.0, WM_NCLBUTTONDOWN, hit_test as usize, packed_position) == 0 {
+        if PostMessageW(
+            raw_hwnd.0,
+            WM_NCLBUTTONDOWN,
+            hit_test as usize,
+            packed_position,
+        ) == 0
+        {
             return Err("O Windows não aceitou o início do redimensionamento nativo.".into());
         }
     }
     Ok(())
 }
 #[cfg(not(windows))]
-fn begin_native_resize(_window: &WebviewWindow, _direction: &str) -> Result<(), String> { Ok(()) }
+fn begin_native_resize(_window: &WebviewWindow, _direction: &str) -> Result<(), String> {
+    Ok(())
+}
 
 fn close_login_and_reload(app: &AppHandle, label: &str, dir: &std::path::Path, reason: &str) {
-    crate::diagnostics::log(dir, "INFO", format!("Fechando a janela de autenticação ({reason})."));
+    crate::diagnostics::log(
+        dir,
+        "INFO",
+        format!("Fechando a janela de autenticação ({reason})."),
+    );
     if let Some(window) = app.get_webview_window(label) {
         if let Err(error) = window.close() {
-            crate::diagnostics::log(dir, "ERRO", format!("Não foi possível fechar a janela de autenticação: {error}"));
+            crate::diagnostics::log(
+                dir,
+                "ERRO",
+                format!("Não foi possível fechar a janela de autenticação: {error}"),
+            );
         }
     }
 }
@@ -683,23 +731,50 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
         .into_iter()
         .filter(|(label, _)| label.starts_with("login-"))
         .collect::<Vec<_>>();
-    let action = login_window_action(existing_logins.len(), LOGIN_LAST_OPEN_MS.load(Ordering::SeqCst), current_time_ms());
+    let action = login_window_action(
+        existing_logins.len(),
+        LOGIN_LAST_OPEN_MS.load(Ordering::SeqCst),
+        current_time_ms(),
+    );
     match action {
         LoginWindowAction::Reuse => {
-            let (label, existing) = existing_logins.into_iter().next().expect("reuse requires an existing login window");
+            let (label, existing) = existing_logins
+                .into_iter()
+                .next()
+                .expect("reuse requires an existing login window");
             let app_dir = app.state::<AppState>().app_dir.clone();
-            crate::diagnostics::log(&app_dir, "INFO", format!("Reutilizando a janela de autenticação existente ({label})."));
+            crate::diagnostics::log(
+                &app_dir,
+                "INFO",
+                format!("Reutilizando a janela de autenticação existente ({label})."),
+            );
             existing.navigate(url).map_err(|error| {
-                crate::diagnostics::log(&app_dir, "ERRO", format!("Não foi possível navegar na janela de autenticação existente: {error}"));
+                crate::diagnostics::log(
+                    &app_dir,
+                    "ERRO",
+                    format!(
+                        "Não foi possível navegar na janela de autenticação existente: {error}"
+                    ),
+                );
                 error
             })?;
             for (name, result) in [
-                ("restaurar", existing.unminimize().map_err(|error| error.to_string())),
+                (
+                    "restaurar",
+                    existing.unminimize().map_err(|error| error.to_string()),
+                ),
                 ("exibir", existing.show().map_err(|error| error.to_string())),
-                ("focar", existing.set_focus().map_err(|error| error.to_string())),
+                (
+                    "focar",
+                    existing.set_focus().map_err(|error| error.to_string()),
+                ),
             ] {
                 if let Err(error) = result {
-                    crate::diagnostics::log(&app_dir, "WARN", format!("Não foi possível {name} a janela de autenticação: {error}"));
+                    crate::diagnostics::log(
+                        &app_dir,
+                        "WARN",
+                        format!("Não foi possível {name} a janela de autenticação: {error}"),
+                    );
                 }
             }
             return Ok(());
@@ -720,13 +795,25 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
     let diag_dir = state.app_dir.clone();
     let initial_config = state.snapshot();
     let language = initial_config.language.clone();
-    let initially_authenticating = is_auth_page(url.host_str().unwrap_or(""), url.path(), &initial_config);
+    let initially_authenticating =
+        is_auth_page(url.host_str().unwrap_or(""), url.path(), &initial_config);
     let data_dir = state.app_dir.join("webview-data");
     if let Err(error) = std::fs::create_dir_all(&data_dir) {
-        crate::diagnostics::log(&diag_dir, "ERRO", format!("Não foi possível preparar os dados da janela de autenticação: {error}"));
+        crate::diagnostics::log(
+            &diag_dir,
+            "ERRO",
+            format!("Não foi possível preparar os dados da janela de autenticação: {error}"),
+        );
         return Err(error.into());
     }
-    crate::diagnostics::log(&diag_dir, "INFO", format!("Abrindo janela de autenticação (host={}).", url.host_str().unwrap_or("sem host")));
+    crate::diagnostics::log(
+        &diag_dir,
+        "INFO",
+        format!(
+            "Abrindo janela de autenticação (host={}).",
+            url.host_str().unwrap_or("sem host")
+        ),
+    );
 
     let nav = app.clone();
     let popup = app.clone();
@@ -831,7 +918,11 @@ pub fn open_login_from_tray(app: &AppHandle) {
     let config = app.state::<AppState>().snapshot();
     match Url::parse(&config.site_url) {
         Ok(url) => open_login_limited(app.clone(), url, app.state::<AppState>().app_dir.clone()),
-        Err(error) => crate::diagnostics::log(&app.state::<AppState>().app_dir, "ERRO", format!("A URL configurada não pôde ser usada para abrir a autenticação: {error}")),
+        Err(error) => crate::diagnostics::log(
+            &app.state::<AppState>().app_dir,
+            "ERRO",
+            format!("A URL configurada não pôde ser usada para abrir a autenticação: {error}"),
+        ),
     }
 }
 
@@ -881,17 +972,20 @@ fn restore_position(w: &WebviewWindow, c: &AppConfig) {
         let _ = w.center();
         return;
     };
-    let bounds = monitors.iter().map(|monitor| {
-        let position = monitor.position();
-        let size = monitor.size();
-        MonitorBounds {
-            x: i64::from(position.x),
-            y: i64::from(position.y),
-            width: i64::from(size.width),
-            height: i64::from(size.height),
-            scale_factor: monitor.scale_factor(),
-        }
-    }).collect::<Vec<_>>();
+    let bounds = monitors
+        .iter()
+        .map(|monitor| {
+            let position = monitor.position();
+            let size = monitor.size();
+            MonitorBounds {
+                x: i64::from(position.x),
+                y: i64::from(position.y),
+                width: i64::from(size.width),
+                height: i64::from(size.height),
+                scale_factor: monitor.scale_factor(),
+            }
+        })
+        .collect::<Vec<_>>();
     if is_placeable(x, y, c.width, c.height, &bounds) {
         let _ = w.set_position(PhysicalPosition::new(x, y));
     } else {
@@ -901,8 +995,14 @@ fn restore_position(w: &WebviewWindow, c: &AppConfig) {
 fn corner_region_dims(inner_w: u32, inner_h: u32, radius: u8, scale: f64) -> (i32, i32, i32) {
     let width = inner_w.min(i32::MAX as u32) as i32;
     let height = inner_h.min(i32::MAX as u32) as i32;
-    let effective_scale = if scale.is_finite() && scale > 0.0 { scale } else { 1.0 };
-    let scaled_radius = (radius as f64 * effective_scale).round().clamp(0.0, i32::MAX as f64) as i32;
+    let effective_scale = if scale.is_finite() && scale > 0.0 {
+        scale
+    } else {
+        1.0
+    };
+    let scaled_radius = (radius as f64 * effective_scale)
+        .round()
+        .clamp(0.0, i32::MAX as f64) as i32;
     let corner_radius = scaled_radius.clamp(0, width.min(height).max(0) / 2);
     (width, height, corner_radius)
 }
@@ -959,19 +1059,33 @@ enum ToggleAction {
 }
 
 fn toggle_action(visible: bool, minimized: bool, focused: bool) -> ToggleAction {
-    if !visible || minimized || !focused { ToggleAction::Show } else { ToggleAction::Hide }
+    if !visible || minimized || !focused {
+        ToggleAction::Show
+    } else {
+        ToggleAction::Hide
+    }
 }
 
 pub fn show_main(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let dir = app.state::<AppState>().app_dir.clone();
         for (name, result) in [
-            ("restaurar", window.unminimize().map_err(|error| error.to_string())),
+            (
+                "restaurar",
+                window.unminimize().map_err(|error| error.to_string()),
+            ),
             ("exibir", window.show().map_err(|error| error.to_string())),
-            ("focar", window.set_focus().map_err(|error| error.to_string())),
+            (
+                "focar",
+                window.set_focus().map_err(|error| error.to_string()),
+            ),
         ] {
             if let Err(error) = result {
-                crate::diagnostics::log(&dir, "WARN", format!("Não foi possível {name} a janela principal: {error}"));
+                crate::diagnostics::log(
+                    &dir,
+                    "WARN",
+                    format!("Não foi possível {name} a janela principal: {error}"),
+                );
             }
         }
         crate::diagnostics::set_window_visible(true);
@@ -986,7 +1100,11 @@ pub fn show_main(app: &AppHandle) {
 
 pub fn toggle_main_visibility(app: &AppHandle) {
     let Some(window) = app.get_webview_window("main") else {
-        crate::diagnostics::log(&app.state::<AppState>().app_dir, "ERRO", "A janela principal não existe; o alternador de visibilidade foi ignorado.");
+        crate::diagnostics::log(
+            &app.state::<AppState>().app_dir,
+            "ERRO",
+            "A janela principal não existe; o alternador de visibilidade foi ignorado.",
+        );
         return;
     };
     let visible = window.is_visible().unwrap_or(false);
@@ -996,7 +1114,11 @@ pub fn toggle_main_visibility(app: &AppHandle) {
         ToggleAction::Show => show_main(app),
         ToggleAction::Hide => {
             if let Err(error) = window.hide() {
-                crate::diagnostics::log(&app.state::<AppState>().app_dir, "WARN", format!("Não foi possível ocultar a janela principal: {error}"));
+                crate::diagnostics::log(
+                    &app.state::<AppState>().app_dir,
+                    "WARN",
+                    format!("Não foi possível ocultar a janela principal: {error}"),
+                );
             } else {
                 crate::diagnostics::set_window_visible(false);
             }
@@ -1027,17 +1149,30 @@ static SETTINGS_WINDOW_CREATING: AtomicBool = AtomicBool::new(false);
 pub fn open_settings(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("settings") {
         for (name, result) in [
-            ("restaurar", window.unminimize().map_err(|error| error.to_string())),
+            (
+                "restaurar",
+                window.unminimize().map_err(|error| error.to_string()),
+            ),
             ("exibir", window.show().map_err(|error| error.to_string())),
-            ("focar", window.set_focus().map_err(|error| error.to_string())),
+            (
+                "focar",
+                window.set_focus().map_err(|error| error.to_string()),
+            ),
         ] {
             if let Err(error) = result {
-                crate::diagnostics::log(&app.state::<AppState>().app_dir, "WARN", format!("Não foi possível {name} a janela de configurações: {error}"));
+                crate::diagnostics::log(
+                    &app.state::<AppState>().app_dir,
+                    "WARN",
+                    format!("Não foi possível {name} a janela de configurações: {error}"),
+                );
             }
         }
         return;
     }
-    if SETTINGS_WINDOW_CREATING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_err() {
+    if SETTINGS_WINDOW_CREATING
+        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+        .is_err()
+    {
         return;
     }
     let app = app.clone();
@@ -1047,20 +1182,28 @@ pub fn open_settings(app: &AppHandle) {
         let title = crate::i18n::settings_title(&language);
         let dir = app_dir.join("settings-data");
         let result = match std::fs::create_dir_all(&dir) {
-            Ok(()) => WebviewWindowBuilder::new(&app, "settings", WebviewUrl::App("settings.html".into()))
-                .title(title)
-                .inner_size(760.0, 850.0)
-                .min_inner_size(520.0, 550.0)
-                .resizable(true)
-                .data_directory(dir)
-                .build()
-                .map(|_| ())
-                .map_err(|error| error.to_string()),
-            Err(error) => Err(format!("não foi possível criar o diretório de dados das configurações: {error}")),
+            Ok(()) => {
+                WebviewWindowBuilder::new(&app, "settings", WebviewUrl::App("settings.html".into()))
+                    .title(title)
+                    .inner_size(760.0, 850.0)
+                    .min_inner_size(520.0, 550.0)
+                    .resizable(true)
+                    .data_directory(dir)
+                    .build()
+                    .map(|_| ())
+                    .map_err(|error| error.to_string())
+            }
+            Err(error) => Err(format!(
+                "não foi possível criar o diretório de dados das configurações: {error}"
+            )),
         };
         SETTINGS_WINDOW_CREATING.store(false, Ordering::SeqCst);
         if let Err(error) = result {
-            crate::diagnostics::log(&app_dir, "ERRO", format!("Não foi possível abrir a janela de configurações: {error}"));
+            crate::diagnostics::log(
+                &app_dir,
+                "ERRO",
+                format!("Não foi possível abrir a janela de configurações: {error}"),
+            );
         }
     });
 }
@@ -1161,7 +1304,6 @@ pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
     drop(c);
     schedule_debounced_config_save(app);
     let _ = app.emit("config-changed", &copy);
-
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 struct ReloadState {
@@ -1178,7 +1320,10 @@ fn next_reload_state(mut state: ReloadState, minutes: u32, visible: bool) -> (Re
         state.elapsed_seconds = 0;
         return (state, false);
     }
-    state.elapsed_seconds = state.elapsed_seconds.saturating_add(10).min(minutes.saturating_mul(60));
+    state.elapsed_seconds = state
+        .elapsed_seconds
+        .saturating_add(10)
+        .min(minutes.saturating_mul(60));
     if visible && state.elapsed_seconds >= minutes.saturating_mul(60) {
         state.elapsed_seconds = 0;
         (state, true)
@@ -1194,13 +1339,19 @@ pub fn start_auto_reload(app: AppHandle) {
             thread::sleep(Duration::from_secs(10));
             let minutes = app.state::<AppState>().snapshot().auto_reload_minutes as u32;
             let window = app.get_webview_window("main");
-            let visible = window.as_ref().is_some_and(|window| window.is_visible().unwrap_or(false));
+            let visible = window
+                .as_ref()
+                .is_some_and(|window| window.is_visible().unwrap_or(false));
             let (next, should_reload) = next_reload_state(state, minutes, visible);
             state = next;
             if should_reload {
                 if let Some(window) = window {
                     if let Err(error) = window.eval("location.reload()") {
-                        crate::diagnostics::log(&app.state::<AppState>().app_dir, "ERRO", format!("Falha ao recarregar automaticamente o site: {error}"));
+                        crate::diagnostics::log(
+                            &app.state::<AppState>().app_dir,
+                            "ERRO",
+                            format!("Falha ao recarregar automaticamente o site: {error}"),
+                        );
                     }
                 }
             }
@@ -1226,7 +1377,10 @@ mod navigation_policy_tests {
     use super::*;
 
     fn config(site_url: &str) -> AppConfig {
-        AppConfig { site_url: site_url.to_owned(), ..AppConfig::default() }
+        AppConfig {
+            site_url: site_url.to_owned(),
+            ..AppConfig::default()
+        }
     }
 
     #[test]
@@ -1252,38 +1406,88 @@ mod navigation_policy_tests {
 
     #[test]
     fn login_window_reuses_existing_window() {
-        assert_eq!(login_window_action(1, 10_000, 10_100), LoginWindowAction::Reuse);
+        assert_eq!(
+            login_window_action(1, 10_000, 10_100),
+            LoginWindowAction::Reuse
+        );
         assert_eq!(login_window_action(0, 0, 10_100), LoginWindowAction::Create);
     }
 
     #[test]
     fn login_window_rate_limits_popups() {
-        assert_eq!(login_window_action(0, 10_000, 10_500), LoginWindowAction::RateLimited);
-        assert_eq!(login_window_action(0, 10_000, 11_000), LoginWindowAction::Create);
+        assert_eq!(
+            login_window_action(0, 10_000, 10_500),
+            LoginWindowAction::RateLimited
+        );
+        assert_eq!(
+            login_window_action(0, 10_000, 11_000),
+            LoginWindowAction::Create
+        );
     }
 
     #[test]
     fn nav_policy_routes_non_provider_google_and_facebook_hosts_to_external_browser() {
         let cfg = config("https://br.investing.com/economic-calendar");
-        assert_eq!(decide_main(&Url::parse("https://accounts.google.com/signin").unwrap(), &cfg), NavAction::OpenLogin);
-        assert_eq!(decide_main(&Url::parse("https://www.google.com/aclk?x=1").unwrap(), &cfg), NavAction::External);
-        assert_eq!(decide_main(&Url::parse("https://adservice.google.com/x").unwrap(), &cfg), NavAction::External);
-        assert_eq!(decide_main(&Url::parse("https://www.facebook.com/sharer/share.php").unwrap(), &cfg), NavAction::External);
-        assert_eq!(decide_main(&Url::parse("https://www.facebook.com/login/").unwrap(), &cfg), NavAction::OpenLogin);
+        assert_eq!(
+            decide_main(
+                &Url::parse("https://accounts.google.com/signin").unwrap(),
+                &cfg
+            ),
+            NavAction::OpenLogin
+        );
+        assert_eq!(
+            decide_main(
+                &Url::parse("https://www.google.com/aclk?x=1").unwrap(),
+                &cfg
+            ),
+            NavAction::External
+        );
+        assert_eq!(
+            decide_main(&Url::parse("https://adservice.google.com/x").unwrap(), &cfg),
+            NavAction::External
+        );
+        assert_eq!(
+            decide_main(
+                &Url::parse("https://www.facebook.com/sharer/share.php").unwrap(),
+                &cfg
+            ),
+            NavAction::External
+        );
+        assert_eq!(
+            decide_main(
+                &Url::parse("https://www.facebook.com/login/").unwrap(),
+                &cfg
+            ),
+            NavAction::OpenLogin
+        );
     }
 
     #[test]
     fn nav_policy_does_not_hardcode_investing_when_site_changes() {
         let cfg = config("https://example.com/");
-        assert_eq!(decide_main(&Url::parse("https://www.investing.com/news").unwrap(), &cfg), NavAction::External);
-        assert_eq!(decide_main(&Url::parse("https://app.example.com/").unwrap(), &cfg), NavAction::Allow);
+        assert_eq!(
+            decide_main(&Url::parse("https://www.investing.com/news").unwrap(), &cfg),
+            NavAction::External
+        );
+        assert_eq!(
+            decide_main(&Url::parse("https://app.example.com/").unwrap(), &cfg),
+            NavAction::Allow
+        );
     }
 
     #[test]
     fn is_auth_page_matches_path_segments_not_substrings() {
         let cfg = config("https://br.investing.com/economic-calendar");
-        assert!(!is_auth_page("br.investing.com", "/news/authors/joao", &cfg));
-        assert!(!is_auth_page("br.investing.com", "/analysis/authority-x", &cfg));
+        assert!(!is_auth_page(
+            "br.investing.com",
+            "/news/authors/joao",
+            &cfg
+        ));
+        assert!(!is_auth_page(
+            "br.investing.com",
+            "/analysis/authority-x",
+            &cfg
+        ));
         assert!(!is_auth_page("br.investing.com", "/accounting-news", &cfg));
         assert!(is_auth_page("br.investing.com", "/login", &cfg));
         assert!(is_auth_page("br.investing.com", "/oauth/authorize", &cfg));
@@ -1293,24 +1497,57 @@ mod navigation_policy_tests {
     #[test]
     fn is_configured_page_accepts_site_root_after_login_redirect() {
         let cfg = config("https://br.investing.com/economic-calendar");
-        assert!(is_configured_page(&Url::parse("https://br.investing.com/").unwrap(), &cfg));
-        assert!(!is_configured_page(&Url::parse("https://br.investing.com/login").unwrap(), &cfg));
-        assert!(should_close_login(true, &Url::parse("https://br.investing.com/").unwrap(), &cfg));
-        assert!(!should_close_login(false, &Url::parse("https://br.investing.com/").unwrap(), &cfg));
+        assert!(is_configured_page(
+            &Url::parse("https://br.investing.com/").unwrap(),
+            &cfg
+        ));
+        assert!(!is_configured_page(
+            &Url::parse("https://br.investing.com/login").unwrap(),
+            &cfg
+        ));
+        assert!(should_close_login(
+            true,
+            &Url::parse("https://br.investing.com/").unwrap(),
+            &cfg
+        ));
+        assert!(!should_close_login(
+            false,
+            &Url::parse("https://br.investing.com/").unwrap(),
+            &cfg
+        ));
     }
 
     #[test]
     fn external_open_rate_limiter_drops_burst_and_duplicates() {
         let mut state = ExternalOpenState::default();
-        assert!(external_open_allowed(&mut state, "https://example.com/a", 1_000));
-        assert!(!external_open_allowed(&mut state, "https://example.com/b", 2_000));
-        assert!(!external_open_allowed(&mut state, "https://example.com/a", 2_500));
-        assert!(external_open_allowed(&mut state, "https://example.com/a", 12_000));
+        assert!(external_open_allowed(
+            &mut state,
+            "https://example.com/a",
+            1_000
+        ));
+        assert!(!external_open_allowed(
+            &mut state,
+            "https://example.com/b",
+            2_000
+        ));
+        assert!(!external_open_allowed(
+            &mut state,
+            "https://example.com/a",
+            2_500
+        ));
+        assert!(external_open_allowed(
+            &mut state,
+            "https://example.com/a",
+            12_000
+        ));
     }
 
     #[test]
     fn reload_counter_resets_when_interval_changes() {
-        let state = ReloadState { elapsed_seconds: 350, last_minutes: 60 };
+        let state = ReloadState {
+            elapsed_seconds: 350,
+            last_minutes: 60,
+        };
         let (next, reload) = next_reload_state(state, 5, true);
         assert_eq!(next.elapsed_seconds, 0);
         assert_eq!(next.last_minutes, 5);
@@ -1319,7 +1556,10 @@ mod navigation_policy_tests {
 
     #[test]
     fn reload_is_skipped_while_hidden_and_runs_when_visible_after_expiry() {
-        let state = ReloadState { elapsed_seconds: 290, last_minutes: 5 };
+        let state = ReloadState {
+            elapsed_seconds: 290,
+            last_minutes: 5,
+        };
         let (hidden, reload_hidden) = next_reload_state(state, 5, false);
         assert_eq!(hidden.elapsed_seconds, 300);
         assert!(!reload_hidden);
@@ -1390,8 +1630,12 @@ mod corner_geometry_tests {
 
     #[test]
     fn pack_lparam_preserves_negative_coordinates() {
-        fn unpack_x(value: isize) -> i16 { (value as u32 as u16) as i16 }
-        fn unpack_y(value: isize) -> i16 { ((value as u32 >> 16) as u16) as i16 }
+        fn unpack_x(value: isize) -> i16 {
+            (value as u32 as u16) as i16
+        }
+        fn unpack_y(value: isize) -> i16 {
+            ((value as u32 >> 16) as u16) as i16
+        }
         for (x, y) in [(-1920, 300), (2500, -1080), (-32768, 32767), (-1, -1)] {
             let packed = pack_lparam(x, y);
             assert_eq!(unpack_x(packed), x as i16);
@@ -1405,22 +1649,46 @@ mod geometry_tests {
     use super::*;
 
     fn monitor(x: i64, y: i64, width: i64, height: i64, scale_factor: f64) -> MonitorBounds {
-        MonitorBounds { x, y, width, height, scale_factor }
+        MonitorBounds {
+            x,
+            y,
+            width,
+            height,
+            scale_factor,
+        }
     }
 
     #[test]
     fn one_pixel_overlap_is_not_placeable() {
-        assert!(!is_placeable(-149, 0, 150, 100, &[monitor(0, 0, 1920, 1080, 1.0)]));
+        assert!(!is_placeable(
+            -149,
+            0,
+            150,
+            100,
+            &[monitor(0, 0, 1920, 1080, 1.0)]
+        ));
     }
 
     #[test]
     fn fully_visible_window_is_placeable_on_negative_coordinate_monitor() {
-        assert!(is_placeable(-1800, 100, 500, 700, &[monitor(-1920, 0, 1920, 1080, 1.0)]));
+        assert!(is_placeable(
+            -1800,
+            100,
+            500,
+            700,
+            &[monitor(-1920, 0, 1920, 1080, 1.0)]
+        ));
     }
 
     #[test]
     fn extreme_coordinates_do_not_overflow() {
-        assert!(!is_placeable(i32::MAX, i32::MAX, 2000, 1600, &[monitor(0, 0, 1920, 1080, 1.5)]));
+        assert!(!is_placeable(
+            i32::MAX,
+            i32::MAX,
+            2000,
+            1600,
+            &[monitor(0, 0, 1920, 1080, 1.5)]
+        ));
     }
 
     #[test]
