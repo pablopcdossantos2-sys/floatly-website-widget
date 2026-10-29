@@ -290,14 +290,14 @@ pub fn create_main(
     let _=window.eval(&script);
 })
 .on_navigation(move|u|{
-if is_internal_app_url(&u){
+if is_internal_app_url(u){
     if u.host_str()==Some("tauri.localhost"){
         crate::diagnostics::log(&diag_dir,"INFO","Origem interna do Tauri autorizada; carregando a interface local.");
     }
     return true;
 }
 if u.scheme()=="widget-action"{
-    let action=match authorized_widget_action(&u,&navigation_action_token) {
+    let action=match authorized_widget_action(u,&navigation_action_token) {
         Some(action)=>action,
         None=>{
             crate::diagnostics::log(&diag_dir,"WARN","Comando de janela ignorado: token ou ação inválida.");
@@ -332,7 +332,7 @@ if u.scheme()=="widget-action"{
     return false
 }
 if u.scheme()!="https"&&u.scheme()!="http"{crate::diagnostics::log(&diag_dir,"WARN",format!("Navegação bloqueada por esquema não HTTP(S): {}",u.scheme()));return false}
-crate::diagnostics::log_navigation(&diag_dir,&u);
+crate::diagnostics::log_navigation(&diag_dir,u);
 let cfg=nav_app.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();let host=u.host_str().unwrap_or("");let target=Url::parse(&cfg.site_url).ok().and_then(|v|v.host_str().map(str::to_owned)).unwrap_or_default();
 if host==target||host.ends_with(&format!(".{target}")){return true}
 if allowed(host,&cfg){crate::diagnostics::log(&diag_dir,"INFO",format!("Abrindo fluxo de autenticação em janela secundária (host={host})."));let a=nav_app.clone();let dest=u.clone();thread::spawn(move||{let _=open_login(&a,dest);});return false}
@@ -480,7 +480,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                 );
                 return false;
             }
-            crate::diagnostics::log_navigation(&diag_dir, &u);
+            crate::diagnostics::log_navigation(&diag_dir, u);
             let c = nav
                 .state::<AppState>()
                 .config
@@ -492,7 +492,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                 nav_seen_auth.store(true, Ordering::SeqCst);
                 return true;
             }
-            if nav_seen_auth.load(Ordering::SeqCst) && is_configured_page(&u, &c) {
+            if nav_seen_auth.load(Ordering::SeqCst) && is_configured_page(u, &c) {
                 let a = close_app.clone();
                 let label = close_label.clone();
                 thread::spawn(move || {
