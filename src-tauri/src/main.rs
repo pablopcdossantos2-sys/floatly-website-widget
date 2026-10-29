@@ -188,9 +188,7 @@ fn main() {
             if let Some(active) = active_shortcut {
                 if cfg.global_shortcut != active {
                     cfg.global_shortcut = active.clone();
-                    if let Ok(mut stored) = app.state::<AppState>().config.lock() {
-                        *stored = cfg.clone();
-                    }
+                    *app.state::<AppState>().lock_config() = cfg.clone();
                     if safe_to_persist {
                         if let Err(error) = config::save(&dir, &cfg) {
                             diagnostics::log(&dir, "ERRO", format!("Não foi possível salvar o atalho alternativo ativo: {error}"));
