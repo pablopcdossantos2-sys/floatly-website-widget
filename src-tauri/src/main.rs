@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 mod commands;
 mod config;
 mod diagnostics;
@@ -12,23 +14,40 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 #[cfg(windows)]
 fn webview2_runtime_present() -> bool {
-    let bases = ["ProgramFiles(x86)", "ProgramFiles", "LOCALAPPDATA"];
-    bases.iter().filter_map(std::env::var_os).any(|base| {
-        let folder = std::path::PathBuf::from(base)
-            .join("Microsoft")
-            .join("EdgeWebView")
-            .join("Application");
-        if folder.join("msedgewebview2.exe").is_file() {
-            return true;
-        }
-        std::fs::read_dir(folder)
-            .map(|entries| {
-                entries
-                    .flatten()
-                    .any(|entry| entry.path().join("msedgewebview2.exe").is_file())
-            })
-            .unwrap_or(false)
+    let candidates = webview2_runtime_candidate_dirs(
+        std::env::var_os("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER"),
+        std::env::var_os("ProgramFiles(x86)"),
+        std::env::var_os("ProgramFiles"),
+        std::env::var_os("LOCALAPPDATA"),
+    );
+    candidates.iter().any(|folder| {
+        folder.join("msedgewebview2.exe").is_file()
+            || std::fs::read_dir(folder).map(|entries| {
+                entries.flatten().any(|entry| entry.path().join("msedgewebview2.exe").is_file())
+            }).unwrap_or(false)
     })
+}
+
+#[cfg(windows)]
+fn webview2_runtime_candidate_dirs(
+    fixed_version: Option<std::ffi::OsString>,
+    program_files_x86: Option<std::ffi::OsString>,
+    program_files: Option<std::ffi::OsString>,
+    local_app_data: Option<std::ffi::OsString>,
+) -> Vec<std::path::PathBuf> {
+    let mut candidates = Vec::new();
+    if let Some(path) = fixed_version.filter(|value| !value.is_empty()) {
+        candidates.push(std::path::PathBuf::from(path));
+    }
+    for base in [program_files_x86, program_files, local_app_data].into_iter().flatten() {
+        candidates.push(
+            std::path::PathBuf::from(base)
+                .join("Microsoft")
+                .join("EdgeWebView")
+                .join("Application"),
+        );
+    }
+    candidates
 }
 
 #[cfg(windows)]
@@ -82,20 +101,15 @@ fn main() {
 
     #[cfg(windows)]
     {
-        if !webview2_runtime_present() {
+        if webview2_runtime_present() {
+            diagnostics::log(&app_dir, "INFO", "Microsoft Edge WebView2 Runtime detectado em um dos diretórios configurados.");
+        } else {
             diagnostics::log(
                 &app_dir,
-                "FATAL",
-                "Microsoft Edge WebView2 Runtime não encontrado nas pastas usuais.",
+                "WARN",
+                "Nenhum executável do WebView2 foi encontrado nos diretórios consultados; a inicialização do Tauri ainda será tentada.",
             );
-            show_webview2_missing_message();
-            return;
         }
-        diagnostics::log(
-            &app_dir,
-            "INFO",
-            "Microsoft Edge WebView2 Runtime detectado.",
-        );
     }
 
     let setup_dir = app_dir.clone();
@@ -219,7 +233,11 @@ fn main() {
                     api.prevent_close();
                     let _ = main_for_events.hide();
                 }
-                WindowEvent::Moved(_) | WindowEvent::Resized(_) => {
+                WindowEvent::Moved(_) => {
+                    window::save_window_state(&handle, event);
+                }
+                WindowEvent::Resized(_) => {
+                    window::refresh_native_corners(&handle);
                     window::save_window_state(&handle, event);
                 }
                 WindowEvent::ScaleFactorChanged { .. } => {
