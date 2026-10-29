@@ -214,6 +214,16 @@ pub fn sanitize_url(url: &url::Url) -> String {
     )
 }
 
+pub fn log_err<T, E: std::fmt::Display>(dir: &Path, context: &str, result: Result<T, E>) -> Option<T> {
+    match result {
+        Ok(value) => Some(value),
+        Err(error) => {
+            log(dir, "ERRO", format!("{context}: {error}"));
+            None
+        }
+    }
+}
+
 pub fn log_navigation(dir: &Path, url: &url::Url) {
     log(dir, "NAV", format!("Navegação solicitada: {}", sanitize_url(url)));
 }
@@ -492,6 +502,30 @@ mod tests {
         assert_eq!(summary, "scheme=https host=example.com path=/login");
         assert!(!summary.contains("secret-value"));
         assert!(!summary.contains("private-fragment"));
+    }
+
+    #[test]
+    fn log_err_writes_error_line_with_context() {
+        let dir = std::env::temp_dir().join(format!(
+            "widget-website-log-error-test-{}-{}",
+            std::process::id(),
+            now_ms()
+        ));
+        let result: Result<(), &str> = Err("simulated failure");
+        assert!(log_err(&dir, "Falha simulada no teste", result).is_none());
+        let contents = fs::read_to_string(log_path(&dir)).unwrap();
+        assert!(contents.contains("[ERRO] Falha simulada no teste: simulated failure"));
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn log_truncates_long_messages_and_strips_control_characters() {
+        let message = format!("start\n\r\t{}", "x".repeat(4_000));
+        let safe = sanitize_log_message(&message);
+        assert!(!safe.contains('\n'));
+        assert!(!safe.contains('\r'));
+        assert!(!safe.contains('\t'));
+        assert!(safe.chars().count() <= MAX_LOG_LINE_CHARS);
     }
 
     #[test]
