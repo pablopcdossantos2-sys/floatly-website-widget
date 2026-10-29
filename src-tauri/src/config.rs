@@ -164,6 +164,7 @@ impl AppState {
         match self.config.lock() {
             Ok(config) => config.clone(),
             Err(poisoned) => {
+                self.config.clear_poison();
                 if !CONFIG_POISON_WARNING_LOGGED.swap(true, Ordering::Relaxed) {
                     crate::diagnostics::log(
                         &self.app_dir,
@@ -181,6 +182,7 @@ impl AppState {
         let config = match self.config.lock() {
             Ok(config) => config,
             Err(poisoned) => {
+                self.config.clear_poison();
                 if !CONFIG_POISON_WARNING_LOGGED.swap(true, Ordering::Relaxed) {
                     crate::diagnostics::log(
                         &self.app_dir,
