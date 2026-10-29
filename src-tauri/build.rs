@@ -6,6 +6,7 @@ fn main() {
                 "save_config",
                 "close_settings",
                 "heartbeat",
+                "heartbeat",
             ]),
         ),
     )
