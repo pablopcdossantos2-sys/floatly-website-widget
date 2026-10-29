@@ -36,6 +36,7 @@ jobs:
       - name: Test configuration and diagnostics
         run: cargo test --manifest-path src-tauri/Cargo.toml
       - name: Prepare Windows code-signing certificate
+        if: github.event_name != 'pull_request'
         shell: pwsh
         env:
           WINDOWS_PFX_BASE64: ${{ secrets.WINDOWS_PFX_BASE64 }}
