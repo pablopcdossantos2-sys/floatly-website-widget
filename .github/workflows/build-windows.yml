@@ -14,15 +14,15 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
       - name: Cache Rust dependencies and build output
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -37,7 +37,7 @@ jobs:
         run: cargo test --manifest-path src-tauri/Cargo.toml
       - name: Compile Windows app and NSIS installer
         run: npm run tauri build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: widget-website-windows-x64
           path: |
