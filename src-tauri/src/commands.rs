@@ -24,7 +24,7 @@ pub fn heartbeat(token: String, state: State<'_, AppState>) -> Result<(), String
 
 #[tauri::command]
 pub fn get_config(app: AppHandle, state: State<'_, AppState>) -> AppConfig {
-    let mut c = state.config.lock().map(|v| v.clone()).unwrap_or_default();
+    let mut c = state.snapshot();
     if let Ok(v) = app.autolaunch().is_enabled() {
         c.autostart = v
     }
