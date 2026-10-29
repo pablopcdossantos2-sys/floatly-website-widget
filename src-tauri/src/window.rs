@@ -770,8 +770,7 @@ fn schedule_debounced_config_save(app: &AppHandle) {
         if state.geometry_save_revision.load(Ordering::SeqCst) != revision {
             continue;
         }
-        let config = state.snapshot();
-        if let Err(error) = crate::config::save(&state.app_dir, &config) {
+        if let Err(error) = state.persist_current() {
             crate::diagnostics::log(
                 &state.app_dir,
                 "ERRO",
@@ -791,8 +790,7 @@ fn schedule_debounced_config_save(app: &AppHandle) {
 /// Flush the most recent state before an explicit Quit action.
 pub fn flush_pending_config(app: &AppHandle) {
     let state = app.state::<AppState>();
-    let config = state.snapshot();
-    if let Err(error) = crate::config::save(&state.app_dir, &config) {
+    if let Err(error) = state.persist_current() {
         crate::diagnostics::log(
             &state.app_dir,
             "ERRO",
