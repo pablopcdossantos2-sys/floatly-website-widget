@@ -47,17 +47,17 @@ pub fn save_config(
     c.x = old.x;
     c.y = old.y;
     let requested = c.clone();
+    let active_shortcut = state
+        .registered_shortcut
+        .lock()
+        .map_err(|_| "config.write_failed".to_owned())?
+        .clone();
 
     // Persist the candidate before registering hotkeys or changing Windows startup.
     config::save(&state.app_dir, &requested)
         .map_err(|_| "config.disk_write_failed".to_owned())?;
 
     let mut warns = Vec::new();
-    let active_shortcut = state
-        .registered_shortcut
-        .lock()
-        .map_err(|_| "config.write_failed".to_owned())?
-        .clone();
     let previous_active_shortcut = active_shortcut.clone();
     let mut shortcut_changed = false;
     if c.global_shortcut != active_shortcut {
@@ -239,8 +239,16 @@ pub fn toggle_locked(app: &AppHandle) {
             Ok(v) => v,
             Err(_) => return,
         };
+        let previous = c.locked;
         c.locked = !c.locked;
-        let _ = config::save(&s.app_dir, &c);
+        if let Err(error) = config::save(&s.app_dir, &c) {
+            c.locked = previous;
+            crate::diagnostics::log(
+                &s.app_dir,
+                "ERRO",
+                format!("Falha ao persistir a opção de travamento: {error}"),
+            );
+        }
         c.clone()
     };
     window::apply_config(app, &next, false);
@@ -254,8 +262,16 @@ pub fn toggle_topmost(app: &AppHandle) {
             Ok(v) => v,
             Err(_) => return,
         };
+        let previous = c.always_on_top;
         c.always_on_top = !c.always_on_top;
-        let _ = config::save(&s.app_dir, &c);
+        if let Err(error) = config::save(&s.app_dir, &c) {
+            c.always_on_top = previous;
+            crate::diagnostics::log(
+                &s.app_dir,
+                "ERRO",
+                format!("Falha ao persistir a opção Sempre no topo: {error}"),
+            );
+        }
         c.clone()
     };
     window::apply_config(app, &next, false);
