@@ -3,6 +3,7 @@
 mod commands;
 mod config;
 mod diagnostics;
+mod i18n;
 mod tray;
 mod window;
 
