@@ -20,39 +20,41 @@ jobs:
         with:
           toolchain: stable
           targets: x86_64-pc-windows-msvc
-      - name: Generate and commit lockfiles only when missing
+          components: rustfmt, clippy
+      - name: Format Rust and bootstrap lockfiles
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if ((Test-Path package-lock.json) -and (Test-Path src-tauri/Cargo.lock)) {
-            Write-Host "Both dependency lockfiles already exist; no changes are needed."
-            exit 0
+          cargo fmt --manifest-path src-tauri/Cargo.toml --all
+          if ($LASTEXITCODE -ne 0) { throw "cargo fmt failed." }
+
+          if (!(Test-Path package-lock.json)) {
+            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+            if ($LASTEXITCODE -ne 0) { throw "Could not generate package-lock.json." }
           }
-
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          if ($LASTEXITCODE -ne 0) { throw "Could not generate package-lock.json." }
-
-          cargo generate-lockfile --manifest-path src-tauri/Cargo.toml
-          if ($LASTEXITCODE -ne 0) { throw "Could not generate Cargo.lock." }
+          if (!(Test-Path src-tauri/Cargo.lock)) {
+            cargo generate-lockfile --manifest-path src-tauri/Cargo.toml
+            if ($LASTEXITCODE -ne 0) { throw "Could not generate Cargo.lock." }
+          }
 
           if (!(Test-Path package-lock.json) -or !(Test-Path src-tauri/Cargo.lock)) {
             throw "One or both lockfiles are missing after generation."
           }
 
-          git add package-lock.json src-tauri/Cargo.lock
+          git add src-tauri/src package-lock.json src-tauri/Cargo.lock
           git diff --cached --quiet
           if ($LASTEXITCODE -eq 0) {
-            Write-Host "No lockfile changes to commit."
+            Write-Host "Rust formatting and lockfiles are already up to date."
             exit 0
           }
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Add reproducible npm and Cargo lockfiles"
-          if ($LASTEXITCODE -ne 0) { throw "Could not create the lockfile commit." }
+          git commit -m "Format Rust sources and lock dependencies"
+          if ($LASTEXITCODE -ne 0) { throw "Could not create the formatting/lockfile commit." }
 
           $tokenBytes = [System.Text.Encoding]::ASCII.GetBytes("x-access-token:$env:GITHUB_TOKEN")
           $basic = [Convert]::ToBase64String($tokenBytes)
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $basic" push origin HEAD:main
-          if ($LASTEXITCODE -ne 0) { throw "Could not push generated lockfiles to main." }
+          if ($LASTEXITCODE -ne 0) { throw "Could not push the formatting/lockfile commit to main." }
