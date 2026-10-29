@@ -82,12 +82,7 @@ pub fn update_language(app: &AppHandle, language: &str) {
 }
 
 pub fn setup(app: &AppHandle) -> tauri::Result<()> {
-    let language = app
-        .state::<AppState>()
-        .config
-        .lock()
-        .map(|config| config.language.clone())
-        .unwrap_or_else(|_| "pt-BR".to_owned());
+    let language = app.state::<AppState>().snapshot().language;
     let menu = create_menu(app, &language)?;
     let text = labels(&language, false);
     let mut builder = TrayIconBuilder::with_id("widget-website-tray")
