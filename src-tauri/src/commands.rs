@@ -31,7 +31,7 @@ pub fn save_config(
     let old = state
         .config
         .lock()
-        .map_err(|_| "Falha ao ler a configuração.".to_owned())?
+        .map_err(|_| "config.read_failed".to_owned())?
         .clone();
     c.x = old.x;
     c.y = old.y;
@@ -62,12 +62,12 @@ pub fn save_config(
         c.autostart = app.autolaunch().is_enabled().unwrap_or(false);
         warns.push("autostart_disable_failed".into());
     }
-    config::save(&state.app_dir, &c)?;
+    config::save(&state.app_dir, &c).map_err(|_| "config.disk_write_failed".to_owned())?;
     {
         let mut stored = state
             .config
             .lock()
-            .map_err(|_| "Falha ao salvar configuração.".to_owned())?;
+            .map_err(|_| "config.write_failed".to_owned())?;
         *stored = c.clone();
     }
     window::apply_config(&app, &c);
