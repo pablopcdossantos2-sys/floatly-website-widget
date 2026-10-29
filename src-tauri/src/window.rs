@@ -401,6 +401,7 @@ fn external_open_allowed(state: &mut ExternalOpenState, url: &str, now_ms: u64) 
 static EXTERNAL_OPEN_STATE: std::sync::OnceLock<Mutex<ExternalOpenState>> = std::sync::OnceLock::new();
 static LOGIN_WINDOW_LOCK: Mutex<()> = Mutex::new(());
 static LOGIN_LAST_OPEN_MS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static LOGIN_POPUP_LAST_MS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum LoginWindowAction {
@@ -430,11 +431,11 @@ fn current_time_ms() -> u64 {
 fn allow_login_popup() -> bool {
     let now = current_time_ms();
     loop {
-        let previous = LOGIN_LAST_OPEN_MS.load(Ordering::SeqCst);
+        let previous = LOGIN_POPUP_LAST_MS.load(Ordering::SeqCst);
         if previous != 0 && now.saturating_sub(previous) < 1_000 {
             return false;
         }
-        if LOGIN_LAST_OPEN_MS
+        if LOGIN_POPUP_LAST_MS
             .compare_exchange(previous, now, Ordering::SeqCst, Ordering::SeqCst)
             .is_ok()
         {
