@@ -45,7 +45,7 @@ jobs:
             Write-Warning "Building an unsigned artifact. Windows SmartScreen may display an unknown-publisher warning."
             exit 0
           }
-          $bytes = [Convert]::FromBase64String(($env:WINDOWS_PFX_BASE64 -replace '\\s', ''))
+          $bytes = [Convert]::FromBase64String(($env:WINDOWS_PFX_BASE64 -replace '\s', ''))
           $pfxPath = Join-Path $env:RUNNER_TEMP "widget-website-codesign.pfx"
           [System.IO.File]::WriteAllBytes($pfxPath, $bytes)
           $securePassword = ConvertTo-SecureString -String $env:WINDOWS_PFX_PASSWORD -AsPlainText -Force
