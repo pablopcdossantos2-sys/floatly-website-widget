@@ -253,24 +253,29 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
     }
     let mut config = serde_json::from_value::<AppConfig>(merged).unwrap_or_default();
     let before_normalize = config.clone();
-    if let Err(error) = config.normalize() {
-        let field = if error.starts_with("config.site_url") {
-            config.site_url = AppConfig::default().site_url;
-            "site_url"
-        } else if error.starts_with("config.shortcut") {
-            config.global_shortcut = AppConfig::default().global_shortcut;
-            "global_shortcut"
-        } else {
-            warnings.push(format!("Configuração normalizada com valores padrão: {error}"));
-            config = AppConfig::default();
-            ""
-        };
-        if !field.is_empty() {
-            warnings.push(format!("Campo inválido em config.json: {field}; usando o valor padrão."));
+    let mut normalization_retries = 0;
+    loop {
+        match config.normalize() {
+            Ok(()) => break,
+            Err(error) if error.starts_with("config.site_url") => {
+                config.site_url = AppConfig::default().site_url;
+                warnings.push("Campo inválido em config.json: site_url; usando o valor padrão.".into());
+            }
+            Err(error) if error.starts_with("config.shortcut") => {
+                config.global_shortcut = AppConfig::default().global_shortcut;
+                warnings.push("Campo inválido em config.json: global_shortcut; usando o valor padrão.".into());
+            }
+            Err(error) => {
+                warnings.push(format!("Configuração inválida; recuperando padrões: {error}"));
+                config = AppConfig::default();
+                break;
+            }
         }
-        if let Err(second_error) = config.normalize() {
-            warnings.push(format!("A configuração ainda era inválida após recuperação: {second_error}"));
+        normalization_retries += 1;
+        if normalization_retries >= 3 {
+            warnings.push("A configuração permaneceu inválida após várias tentativas; usando os padrões.".into());
             config = AppConfig::default();
+            break;
         }
     }
     if before_normalize.opacity != config.opacity { warnings.push("Valor de opacity ajustado aos limites suportados.".into()); }
@@ -328,8 +333,8 @@ mod tests {
     fn defaults_match_widget_requirements() {
         let config = AppConfig::default();
         assert_eq!(config.site_url, DEFAULT_SITE);
-        assert_eq!(config.width, 500);
-        assert_eq!(config.height, 700);
+        assert_eq!(config.width, DEFAULT_WIDTH);
+        assert_eq!(config.height, DEFAULT_HEIGHT);
         assert_eq!(config.zoom, 100);
         assert_eq!(config.opacity, 100);
         assert_eq!(config.global_shortcut, "CTRL+ALT+C");
@@ -514,6 +519,46 @@ mod tests {
         };
         reversed.normalize().unwrap();
         assert_eq!(reversed.global_shortcut, "CTRL+ALT+C");
+    }
+
+    #[test]
+    fn load_recovers_multiple_invalid_fields_without_losing_valid_preferences() {
+        let dir = std::env::temp_dir().join(format!("widget-website-multiple-invalid-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(
+            dir.join("config.json"),
+            r#"{"site_url":"file:///invalid","global_shortcut":"SHIFT+A","width":920,"language":"en"}"#,
+        ).unwrap();
+        let (config, warnings, _) = load_with_warnings(&dir);
+        assert_eq!(config.site_url, DEFAULT_SITE);
+        assert_eq!(config.global_shortcut, "CTRL+ALT+C");
+        assert_eq!(config.width, 920);
+        assert_eq!(config.language, "en");
+        assert!(warnings.iter().any(|warning| warning.contains("site_url")));
+        assert!(warnings.iter().any(|warning| warning.contains("global_shortcut")));
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn snapshot_recovers_config_from_a_poisoned_mutex() {
+        let dir = std::env::temp_dir().join(format!("widget-website-poisoned-state-{}", std::process::id()));
+        let state = AppState {
+            config: Mutex::new(AppConfig { width: 777, ..AppConfig::default() }),
+            app_dir: dir.clone(),
+            registered_shortcut: Mutex::new(String::new()),
+            geometry_save_revision: AtomicU64::new(0),
+            geometry_save_worker_running: AtomicBool::new(false),
+            heartbeat_token: "test-token".into(),
+        };
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let mut config = state.config.lock().unwrap();
+            config.width = 888;
+            panic!("intentionally poison the test mutex");
+        }));
+        assert!(result.is_err());
+        assert_eq!(state.snapshot().width, 888);
+        let _ = fs::remove_dir_all(dir);
     }
 
     #[test]
