@@ -23,7 +23,7 @@ jobs:
           package-manager-cache: false
       - uses: dtolnay/rust-toolchain@b004a9e513613d286f06c426a2fda62016c6fe9e # pinned rust-toolchain action
         with:
-          toolchain: stable
+          toolchain: 1.90.0
           targets: x86_64-pc-windows-msvc
           components: rustfmt, clippy
       - name: Cache Cargo registry only
