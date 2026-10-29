@@ -14,8 +14,14 @@ use tauri::{AppHandle, Manager};
 const HEARTBEAT_TIMEOUT_MS: u64 = 20_000;
 const REPEAT_WARNING_MS: u64 = 60_000;
 const MAX_LOG_BYTES: u64 = 1_048_576;
+const MAX_LOG_HARD_BYTES: u64 = MAX_LOG_BYTES * 4;
+const MAX_LOG_LINE_CHARS: usize = 1_024;
+const MAX_LOG_LINES_PER_SECOND: u32 = 20;
+const MAX_LOG_BACKUPS: usize = 3;
 
 static LOG_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+static LOG_RATE_LOCK: OnceLock<Mutex<(u64, u32)>> = OnceLock::new();
+static WATCHDOG_STATE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 static LAST_HEARTBEAT_MS: AtomicU64 = AtomicU64::new(0);
 static LAST_WARNING_MS: AtomicU64 = AtomicU64::new(0);
 static HEARTBEAT_SEEN: AtomicBool = AtomicBool::new(false);
@@ -69,60 +75,150 @@ pub fn log_path(dir: &Path) -> PathBuf {
     dir.join("diagnostics.log")
 }
 
-pub fn log(dir: &Path, level: &str, message: impl AsRef<str>) {
-    let timestamp = utc_timestamp();
-    let line = format!("[{timestamp}][{level}] {}\n", message.as_ref());
+fn sanitize_log_message(message: &str) -> String {
+    message
+        .chars()
+        .map(|character| if character.is_control() { ' ' } else { character })
+        .take(MAX_LOG_LINE_CHARS)
+        .collect()
+}
 
-    // Logging should never crash the widget, even when the profile directory is unavailable.
-    if let Ok(lock) = LOG_LOCK.get_or_init(|| Mutex::new(())).lock() {
-        let path = log_path(dir);
-        if fs::create_dir_all(dir).is_ok() {
-            if fs::metadata(&path)
-                .map(|m| m.len() >= MAX_LOG_BYTES)
-                .unwrap_or(false)
-            {
-                let backup = dir.join("diagnostics.log.1");
-                let _ = fs::remove_file(&backup);
-                let _ = fs::rename(&path, &backup);
+fn should_mirror_to_stdout() -> bool {
+    cfg!(debug_assertions)
+}
+
+fn allow_log_line(level: &str) -> bool {
+    if matches!(level, "ERRO" | "FATAL" | "PANIC") {
+        return true;
+    }
+    let second = now_ms() / 1_000;
+    let mut state = LOG_RATE_LOCK
+        .get_or_init(|| Mutex::new((0, 0)))
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if state.0 != second {
+        *state = (second, 0);
+    }
+    if state.1 >= MAX_LOG_LINES_PER_SECOND {
+        return false;
+    }
+    state.1 += 1;
+    true
+}
+
+fn prune_log_backups(dir: &Path) {
+    let mut backups = fs::read_dir(dir)
+        .ok()
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter_map(|entry| {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            let suffix = name.strip_prefix("diagnostics.log.")?;
+            if suffix.is_empty() || !suffix.chars().all(|c| c.is_ascii_digit() || c == '.') {
+                return None;
             }
-            if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&path) {
-                let _ = file.write_all(line.as_bytes());
-                let _ = file.flush();
+            Some((name, entry.path()))
+        })
+        .collect::<Vec<_>>();
+    backups.sort_by(|left, right| left.0.cmp(&right.0));
+    let excess = backups.len().saturating_sub(MAX_LOG_BACKUPS);
+    for (_, path) in backups.into_iter().take(excess) {
+        let _ = fs::remove_file(path);
+    }
+}
+
+/// Returns false only when the file is beyond its hard cap and cannot be safely reset.
+fn rotate_log_if_needed(dir: &Path, path: &Path) -> bool {
+    let size = match fs::metadata(path) {
+        Ok(metadata) => metadata.len(),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return true,
+        Err(_) => return true,
+    };
+    if size < MAX_LOG_BYTES {
+        return true;
+    }
+    let backup = dir.join(format!("diagnostics.log.{}.{}", now_ms(), std::process::id()));
+    match fs::rename(path, &backup) {
+        Ok(()) => {
+            prune_log_backups(dir);
+            true
+        }
+        Err(error) if size >= MAX_LOG_HARD_BYTES => {
+            if let Ok(mut file) = OpenOptions::new().write(true).truncate(true).open(path) {
+                let warning = format!(
+                    "[{}][WARN] A rotação do log falhou ({error}); o log atual foi reiniciado para respeitar o limite máximo.\n",
+                    utc_timestamp()
+                );
+                if file.write_all(warning.as_bytes()).is_ok() {
+                    let _ = file.flush();
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
             }
         }
-        drop(lock);
+        Err(_) => true,
     }
+}
 
-    // This is visible when the app is started from a console-attached process.
-    // The file above remains the reliable source for GUI-subsystem builds.
-    let stdout = std::io::stdout();
-    let mut output = stdout.lock();
-    let _ = output.write_all(line.as_bytes());
-    let _ = output.flush();
+pub fn log(dir: &Path, level: &str, message: impl AsRef<str>) {
+    if !allow_log_line(level) {
+        return;
+    }
+    let timestamp = utc_timestamp();
+    let safe_message = sanitize_log_message(message.as_ref());
+    let line = format!("[{timestamp}][{level}] {safe_message}\n");
+
+    // Logging should never crash the widget, even when the profile directory is unavailable.
+    let lock = LOG_LOCK
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let path = log_path(dir);
+    if fs::create_dir_all(dir).is_ok() && rotate_log_if_needed(dir, &path) {
+        if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&path) {
+            let _ = file.write_all(line.as_bytes());
+            let _ = file.flush();
+        }
+    }
+    drop(lock);
+
+    if should_mirror_to_stdout() {
+        let stdout = std::io::stdout();
+        let mut output = stdout.lock();
+        let _ = output.write_all(line.as_bytes());
+        let _ = output.flush();
+    }
+}
+
+pub fn sanitize_url(url: &url::Url) -> String {
+    // Never include credentials, query strings, fragments, or an unbounded path.
+    let path: String = url.path().chars().take(96).collect();
+    let path = if url.path().chars().count() > 96 {
+        format!("{path}…")
+    } else {
+        path
+    };
+    let port = url.port().map(|port| format!(":{port}")).unwrap_or_default();
+    format!(
+        "scheme={} host={}{} path={}",
+        url.scheme(),
+        url.host_str().unwrap_or("(sem host)"),
+        port,
+        sanitize_log_message(&path)
+    )
 }
 
 pub fn log_navigation(dir: &Path, url: &url::Url) {
-    // Do not write query strings or fragments: they can contain session or auth tokens.
-    log(
-        dir,
-        "NAV",
-        format!(
-            "Navegação solicitada: scheme={} host={} path={}",
-            url.scheme(),
-            url.host_str().unwrap_or("(sem host)"),
-            url.path()
-        ),
-    );
+    log(dir, "NAV", format!("Navegação solicitada: {}", sanitize_url(url)));
 }
 
 pub fn safe_url_summary(raw_url: &str) -> String {
     match url::Url::parse(raw_url) {
-        Ok(url) => format!(
-            "scheme={} host={} path={}",
-            url.scheme(),
-            url.host_str().unwrap_or("(sem host)"),
-            url.path()
-        ),
+        Ok(url) => sanitize_url(&url),
         Err(_) => "(URL inválida; detalhes omitidos)".to_owned(),
     }
 }
