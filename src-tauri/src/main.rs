@@ -126,8 +126,7 @@ fn main() {
             commands::close_settings,
             commands::toggle_main_visibility,
             commands::reload_site,
-            commands::quit_app,
-            commands::start_window_drag
+            commands::quit_app
         ])
         .setup(move |app| {
             let dir = setup_dir.clone();
