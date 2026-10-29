@@ -14,6 +14,35 @@ config::save(&state.app_dir,&c)?;{let mut stored=state.config.lock().map_err(|_|
 #[tauri::command]pub fn toggle_main_visibility(app:AppHandle){if let Some(w)=app.get_webview_window("main"){if w.is_visible().unwrap_or(false){let _=w.hide();}else{let _=w.show();}}}
 #[tauri::command]pub fn reload_site(app:AppHandle){if let Some(w)=app.get_webview_window("main"){let _=w.eval("location.reload()");}}
 #[tauri::command]pub fn quit_app(app:AppHandle){app.exit(0)}
+#[tauri::command]
+pub fn start_window_drag(app: AppHandle) -> Result<(), String> {
+    let state = app.state::<AppState>();
+    let (locked, app_dir) = {
+        let config = state.config.lock().map_err(|_| "Não foi possível consultar as configurações da janela.".to_owned())?;
+        (config.locked, state.app_dir.clone())
+    };
+    if locked {
+        crate::diagnostics::log(&app_dir, "WARN", "Arraste pela borda recusado: mover/redimensionar está travado.");
+        return Err("Desative a opção \"Travar mover e redimensionar\" para movimentar o widget.".into());
+    }
+    let window = app.get_webview_window("main")
+        .ok_or_else(|| "A janela principal não está disponível.".to_owned())?;
+    crate::diagnostics::log(&app_dir, "INFO", "Borda de arraste acionada; enviando comando nativo diretamente pelo IPC.");
+    match window::begin_native_drag(&window) {
+        Ok(()) => {
+            crate::diagnostics::log(&app_dir, "INFO", "Comando nativo de movimentação concluído.");
+            Ok(())
+        }
+        Err(native_error) => {
+            crate::diagnostics::log(&app_dir, "WARN", format!("A mensagem nativa de movimentação falhou: {native_error}. Tentando o mecanismo do Tauri."));
+            window.start_dragging().map_err(|error| {
+                crate::diagnostics::log(&app_dir, "ERRO", format!("A movimentação falhou pelos dois métodos: {error}"));
+                error.to_string()
+            })
+        }
+    }
+}
+
 pub fn toggle_locked(app:&AppHandle){let s=app.state::<AppState>();let next={let mut c=match s.config.lock(){Ok(v)=>v,Err(_)=>return};c.locked=!c.locked;let _=config::save(&s.app_dir,&c);c.clone()};window::apply_config(app,&next);crate::tray::update_language(app,&next.language)}
 pub fn toggle_topmost(app:&AppHandle){let s=app.state::<AppState>();let next={let mut c=match s.config.lock(){Ok(v)=>v,Err(_)=>return};c.always_on_top=!c.always_on_top;let _=config::save(&s.app_dir,&c);c.clone()};window::apply_config(app,&next)}
 pub fn show_settings(app:&AppHandle){window::open_settings(app)}pub fn show_login(app:&AppHandle){window::open_login_from_tray(app)}
