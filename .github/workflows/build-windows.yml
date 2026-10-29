@@ -35,8 +35,47 @@ jobs:
       - run: npm run icons
       - name: Test configuration and diagnostics
         run: cargo test --manifest-path src-tauri/Cargo.toml
+      - name: Prepare Windows code-signing certificate
+        if: ${{ secrets.WINDOWS_PFX_BASE64 != '' && secrets.WINDOWS_PFX_PASSWORD != '' }}
+        shell: pwsh
+        env:
+          WINDOWS_PFX_BASE64: ${{ secrets.WINDOWS_PFX_BASE64 }}
+          WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+        run: |
+          $bytes = [Convert]::FromBase64String(($env:WINDOWS_PFX_BASE64 -replace '\\s', ''))
+          $pfxPath = Join-Path $env:RUNNER_TEMP "widget-website-codesign.pfx"
+          [System.IO.File]::WriteAllBytes($pfxPath, $bytes)
+          $securePassword = ConvertTo-SecureString -String $env:WINDOWS_PFX_PASSWORD -AsPlainText -Force
+          $certificates = Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My -Password $securePassword
+          $certificate = $certificates | Where-Object { $_.HasPrivateKey } | Select-Object -First 1
+          if ($null -eq $certificate) { throw "The PFX did not provide a certificate with a private key." }
+          $configPath = Join-Path $env:RUNNER_TEMP "widget-website-signing.json"
+          $config = @{
+            bundle = @{
+              windows = @{
+                certificateThumbprint = $certificate.Thumbprint
+                digestAlgorithm = "sha256"
+                timestampUrl = "http://timestamp.digicert.com"
+              }
+            }
+          } | ConvertTo-Json -Depth 5
+          [System.IO.File]::WriteAllText($configPath, $config, [System.Text.UTF8Encoding]::new($false))
+          "TAURI_WINDOWS_SIGNING_CONFIG=$configPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Remove-Item $pfxPath -Force
+          Write-Host "A trusted code-signing certificate is installed for this build."
+      - name: Warn when code signing is not configured
+        if: ${{ secrets.WINDOWS_PFX_BASE64 == '' || secrets.WINDOWS_PFX_PASSWORD == '' }}
+        shell: pwsh
+        run: |
+          Write-Warning "Building an unsigned artifact. Windows SmartScreen may display an unknown-publisher warning."
       - name: Compile Windows app and NSIS installer
-        run: npm run tauri build
+        shell: pwsh
+        run: |
+          if ($env:TAURI_WINDOWS_SIGNING_CONFIG) {
+            npm run tauri build -- --config "$env:TAURI_WINDOWS_SIGNING_CONFIG"
+          } else {
+            npm run tauri build
+          }
       - uses: actions/upload-artifact@v7
         with:
           name: widget-website-windows-x64
