@@ -8,7 +8,7 @@ Widget desktop para manter o calendário econômico do Investing.com aberto em u
 - Janela sem barra de título, bandeja do sistema, instância única e atalho global padrão CTRL+ALT+C. Fechar pela tecla/ botão de fechar esconde o widget na bandeja; use Sair para encerrar o processo.
 - Sessão WebView2 persistente em %APPDATA%\WidgetWebsite\webview-data; configuração em %APPDATA%\WidgetWebsite\config.json.
 - Interface em português do Brasil, inglês ou espanhol, selecionável nas configurações.
-- Arraste pela alça visível no topo ou segure `Alt` enquanto arrasta para mover a janela; as opções de tamanho e posição também ficam nas configurações.
+- Uma borda azul discreta ao redor do conteúdo permite arrastar a janela pelos quatro lados; a alça no topo e `Alt` + arrastar também ficam disponíveis. As opções de tamanho e posição estão nas configurações.
 - URL, tamanho, posição, travamento, sempre no topo, barra de tarefas, opacidade, zoom, cantos e recarga automática configuráveis.
 - Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária com uma barra de endereço simples e a pasta de dados compartilhada do WebView2. A janela tenta fechar quando o fluxo retorna ao endereço configurado após a autenticação.
 - Workflow de compilação Windows x64 e instalador NSIS.
