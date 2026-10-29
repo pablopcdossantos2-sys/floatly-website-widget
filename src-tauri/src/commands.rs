@@ -122,7 +122,6 @@ pub fn save_config(
         let old = stored.clone();
         let mut requested = patch.apply_to(old.clone());
         requested.normalize()?;
-        let requested = requested;
         *stored = requested.clone();
 
         // Hold the state lock while persisting so the debounced geometry writer
