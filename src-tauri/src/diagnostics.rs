@@ -77,7 +77,10 @@ pub fn log(dir: &Path, level: &str, message: impl AsRef<str>) {
     if let Some(lock) = LOG_LOCK.get_or_init(|| Mutex::new(())).lock().ok() {
         let path = log_path(dir);
         if fs::create_dir_all(dir).is_ok() {
-            if fs::metadata(&path).map(|m| m.len() >= MAX_LOG_BYTES).unwrap_or(false) {
+            if fs::metadata(&path)
+                .map(|m| m.len() >= MAX_LOG_BYTES)
+                .unwrap_or(false)
+            {
                 let backup = dir.join("diagnostics.log.1");
                 let _ = fs::remove_file(&backup);
                 let _ = fs::rename(&path, &backup);
@@ -309,9 +312,7 @@ fn webview2_descendant_process_status(app_pid: u32) -> String {
         .count();
 
     if count > 0 {
-        format!(
-            "Foram encontrados {count} processo(s) msedgewebview2.exe na árvore do widget"
-        )
+        format!("Foram encontrados {count} processo(s) msedgewebview2.exe na árvore do widget")
     } else {
         "Nenhum msedgewebview2.exe descendente do widget foi encontrado; isso pode indicar que o processo WebView2 terminou ou foi bloqueado".to_owned()
     }
@@ -329,10 +330,7 @@ mod tests {
 
     #[test]
     fn formats_utc_timestamp_from_unix_epoch() {
-        assert_eq!(
-            format_utc_timestamp(0, 123),
-            "1970-01-01T00:00:00.123Z"
-        );
+        assert_eq!(format_utc_timestamp(0, 123), "1970-01-01T00:00:00.123Z");
     }
 
     #[test]
@@ -362,9 +360,8 @@ mod tests {
 
     #[test]
     fn configured_url_summary_omits_query_and_fragment() {
-        let summary = safe_url_summary(
-            "https://example.com/login?token=secret-value#private-fragment",
-        );
+        let summary =
+            safe_url_summary("https://example.com/login?token=secret-value#private-fragment");
         assert_eq!(summary, "scheme=https host=example.com path=/login");
         assert!(!summary.contains("secret-value"));
         assert!(!summary.contains("private-fragment"));
@@ -377,10 +374,8 @@ mod tests {
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&dir);
-        let url = url::Url::parse(
-            "https://example.com/login?token=secret-value#private-fragment",
-        )
-        .unwrap();
+        let url = url::Url::parse("https://example.com/login?token=secret-value#private-fragment")
+            .unwrap();
         log_navigation(&dir, &url);
         let contents = fs::read_to_string(log_path(&dir)).unwrap();
         assert!(contents.contains("host=example.com path=/login"));

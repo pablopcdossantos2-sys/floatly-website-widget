@@ -36,9 +36,7 @@ fn webview2_runtime_present() -> bool {
 
 #[cfg(windows)]
 fn show_message(title: &str, message: &str) {
-    use windows_sys::Win32::UI::WindowsAndMessaging::{
-        MessageBoxW, MB_ICONERROR, MB_OK,
-    };
+    use windows_sys::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_ICONERROR, MB_OK};
     let text: Vec<u16> = message.encode_utf16().chain(std::iter::once(0)).collect();
     let caption: Vec<u16> = title.encode_utf16().chain(std::iter::once(0)).collect();
     unsafe {
@@ -96,7 +94,11 @@ fn main() {
             show_webview2_missing_message();
             return;
         }
-        diagnostics::log(&app_dir, "INFO", "Microsoft Edge WebView2 Runtime detectado.");
+        diagnostics::log(
+            &app_dir,
+            "INFO",
+            "Microsoft Edge WebView2 Runtime detectado.",
+        );
     }
 
     let setup_dir = app_dir.clone();
@@ -109,7 +111,10 @@ fn main() {
             );
             show_existing_instance(app);
         }))
-        .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, None))
+        .plugin(tauri_plugin_autostart::init(
+            MacosLauncher::LaunchAgent,
+            None,
+        ))
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, _, event| {
@@ -145,11 +150,7 @@ fn main() {
             let registered = Shortcut::from_str(&shortcut_text)
                 .ok()
                 .is_some_and(|shortcut| app.global_shortcut().register(shortcut).is_ok());
-            if let Ok(mut current) = app
-                .state::<AppState>()
-                .registered_shortcut
-                .lock()
-            {
+            if let Ok(mut current) = app.state::<AppState>().registered_shortcut.lock() {
                 *current = if registered {
                     shortcut_text
                 } else {

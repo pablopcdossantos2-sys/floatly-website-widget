@@ -1,18 +1,157 @@
-use crate::{config::{self,AppConfig,AppState},window};
+use crate::{
+    config::{self, AppConfig, AppState},
+    window,
+};
 use serde::Serialize;
 use std::str::FromStr;
-use tauri::{AppHandle,Emitter,Manager,State};
+use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_autostart::ManagerExt;
-use tauri_plugin_global_shortcut::{GlobalShortcutExt,Shortcut};
-#[derive(Serialize)]pub struct SaveResult{pub config:AppConfig,pub warning:Option<String>}
-#[tauri::command]pub fn get_config(app:AppHandle,state:State<'_,AppState>)->AppConfig{let mut c=state.config.lock().map(|v|v.clone()).unwrap_or_default();if let Ok(v)=app.autolaunch().is_enabled(){c.autostart=v}c}
-#[tauri::command]pub fn save_config(app:AppHandle,state:State<'_,AppState>,config:AppConfig)->Result<SaveResult,String>{let mut c=config;c.normalize()?;let old=state.config.lock().map_err(|_|"Falha ao ler a configuração.".to_owned())?.clone();c.x=old.x;c.y=old.y;let mut warns=Vec::new();if c.global_shortcut!=old.global_shortcut{let result=match Shortcut::from_str(&c.global_shortcut){Ok(s)=>app.global_shortcut().register(s).map_err(|e|e.to_string()),Err(e)=>Err(e.to_string())};if result.is_ok(){if let Ok(s)=Shortcut::from_str(&old.global_shortcut){let _=app.global_shortcut().unregister(s);}if let Ok(mut r)=state.registered_shortcut.lock(){*r=c.global_shortcut.clone();}}else{c.global_shortcut=old.global_shortcut.clone();warns.push("shortcut_conflict".to_owned());}}
-if c.autostart{if app.autolaunch().enable().is_err(){c.autostart=app.autolaunch().is_enabled().unwrap_or(false);warns.push("autostart_enable_failed".into());}}else if app.autolaunch().disable().is_err(){c.autostart=app.autolaunch().is_enabled().unwrap_or(false);warns.push("autostart_disable_failed".into());}
-config::save(&state.app_dir,&c)?;{let mut stored=state.config.lock().map_err(|_|"Falha ao salvar configuração.".to_owned())?;*stored=c.clone();}window::apply_config(&app,&c);crate::tray::update_language(&app,&c.language);let _=app.emit("config-changed",&c);if let Some(settings)=app.get_webview_window("settings"){let title=match c.language.as_str(){"en"=>"Settings — Widget Website","es"=>"Configuración — Widget Website",_=>"Configurações — Widget Website"};let _=settings.set_title(title);}if old.site_url!=c.site_url{if let(Some(main),Ok(url))=(app.get_webview_window("main"),url::Url::parse(&c.site_url)){let _=main.navigate(url);}}Ok(SaveResult{config:c,warning:if warns.is_empty(){None}else{Some(warns.join(" "))}})}
-#[tauri::command]pub fn close_settings(app:AppHandle){if let Some(w)=app.get_webview_window("settings"){let _=w.close();}}
-pub fn toggle_main_visibility(app:AppHandle){if let Some(w)=app.get_webview_window("main"){if w.is_visible().unwrap_or(false){let _=w.hide();}else{let _=w.show();}}}
-pub fn reload_site(app:AppHandle){if let Some(w)=app.get_webview_window("main"){let _=w.eval("location.reload()");}}
-pub fn quit_app(app:AppHandle){app.exit(0)}
-pub fn toggle_locked(app:&AppHandle){let s=app.state::<AppState>();let next={let mut c=match s.config.lock(){Ok(v)=>v,Err(_)=>return};c.locked=!c.locked;let _=config::save(&s.app_dir,&c);c.clone()};window::apply_config(app,&next);crate::tray::update_language(app,&next.language);let _=app.emit("config-changed",&next);}
-pub fn toggle_topmost(app:&AppHandle){let s=app.state::<AppState>();let next={let mut c=match s.config.lock(){Ok(v)=>v,Err(_)=>return};c.always_on_top=!c.always_on_top;let _=config::save(&s.app_dir,&c);c.clone()};window::apply_config(app,&next);let _=app.emit("config-changed",&next);}
-pub fn show_settings(app:&AppHandle){window::open_settings(app)}pub fn show_login(app:&AppHandle){window::open_login_from_tray(app)}
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
+#[derive(Serialize)]
+pub struct SaveResult {
+    pub config: AppConfig,
+    pub warning: Option<String>,
+}
+#[tauri::command]
+pub fn get_config(app: AppHandle, state: State<'_, AppState>) -> AppConfig {
+    let mut c = state.config.lock().map(|v| v.clone()).unwrap_or_default();
+    if let Ok(v) = app.autolaunch().is_enabled() {
+        c.autostart = v
+    }
+    c
+}
+#[tauri::command]
+pub fn save_config(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    config: AppConfig,
+) -> Result<SaveResult, String> {
+    let mut c = config;
+    c.normalize()?;
+    let old = state
+        .config
+        .lock()
+        .map_err(|_| "Falha ao ler a configuração.".to_owned())?
+        .clone();
+    c.x = old.x;
+    c.y = old.y;
+    let mut warns = Vec::new();
+    if c.global_shortcut != old.global_shortcut {
+        let result = match Shortcut::from_str(&c.global_shortcut) {
+            Ok(s) => app.global_shortcut().register(s).map_err(|e| e.to_string()),
+            Err(e) => Err(e.to_string()),
+        };
+        if result.is_ok() {
+            if let Ok(s) = Shortcut::from_str(&old.global_shortcut) {
+                let _ = app.global_shortcut().unregister(s);
+            }
+            if let Ok(mut r) = state.registered_shortcut.lock() {
+                *r = c.global_shortcut.clone();
+            }
+        } else {
+            c.global_shortcut = old.global_shortcut.clone();
+            warns.push("shortcut_conflict".to_owned());
+        }
+    }
+    if c.autostart {
+        if app.autolaunch().enable().is_err() {
+            c.autostart = app.autolaunch().is_enabled().unwrap_or(false);
+            warns.push("autostart_enable_failed".into());
+        }
+    } else if app.autolaunch().disable().is_err() {
+        c.autostart = app.autolaunch().is_enabled().unwrap_or(false);
+        warns.push("autostart_disable_failed".into());
+    }
+    config::save(&state.app_dir, &c)?;
+    {
+        let mut stored = state
+            .config
+            .lock()
+            .map_err(|_| "Falha ao salvar configuração.".to_owned())?;
+        *stored = c.clone();
+    }
+    window::apply_config(&app, &c);
+    crate::tray::update_language(&app, &c.language);
+    let _ = app.emit("config-changed", &c);
+    if let Some(settings) = app.get_webview_window("settings") {
+        let title = match c.language.as_str() {
+            "en" => "Settings — Widget Website",
+            "es" => "Configuración — Widget Website",
+            _ => "Configurações — Widget Website",
+        };
+        let _ = settings.set_title(title);
+    }
+    if old.site_url != c.site_url {
+        if let (Some(main), Ok(url)) =
+            (app.get_webview_window("main"), url::Url::parse(&c.site_url))
+        {
+            let _ = main.navigate(url);
+        }
+    }
+    Ok(SaveResult {
+        config: c,
+        warning: if warns.is_empty() {
+            None
+        } else {
+            Some(warns.join(" "))
+        },
+    })
+}
+#[tauri::command]
+pub fn close_settings(app: AppHandle) {
+    if let Some(w) = app.get_webview_window("settings") {
+        let _ = w.close();
+    }
+}
+pub fn toggle_main_visibility(app: AppHandle) {
+    if let Some(w) = app.get_webview_window("main") {
+        if w.is_visible().unwrap_or(false) {
+            let _ = w.hide();
+        } else {
+            let _ = w.show();
+        }
+    }
+}
+pub fn reload_site(app: AppHandle) {
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.eval("location.reload()");
+    }
+}
+pub fn quit_app(app: AppHandle) {
+    app.exit(0)
+}
+pub fn toggle_locked(app: &AppHandle) {
+    let s = app.state::<AppState>();
+    let next = {
+        let mut c = match s.config.lock() {
+            Ok(v) => v,
+            Err(_) => return,
+        };
+        c.locked = !c.locked;
+        let _ = config::save(&s.app_dir, &c);
+        c.clone()
+    };
+    window::apply_config(app, &next);
+    crate::tray::update_language(app, &next.language);
+    let _ = app.emit("config-changed", &next);
+}
+pub fn toggle_topmost(app: &AppHandle) {
+    let s = app.state::<AppState>();
+    let next = {
+        let mut c = match s.config.lock() {
+            Ok(v) => v,
+            Err(_) => return,
+        };
+        c.always_on_top = !c.always_on_top;
+        let _ = config::save(&s.app_dir, &c);
+        c.clone()
+    };
+    window::apply_config(app, &next);
+    let _ = app.emit("config-changed", &next);
+}
+pub fn show_settings(app: &AppHandle) {
+    window::open_settings(app)
+}
+pub fn show_login(app: &AppHandle) {
+    window::open_login_from_tray(app)
+}

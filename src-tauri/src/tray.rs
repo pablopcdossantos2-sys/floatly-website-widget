@@ -11,7 +11,11 @@ fn labels(language: &str, locked: bool) -> [&'static str; 8] {
             "Show / hide",
             "Reload page",
             "Settings",
-            if locked { "Unlock moving / resizing" } else { "Lock moving / resizing" },
+            if locked {
+                "Unlock moving / resizing"
+            } else {
+                "Lock moving / resizing"
+            },
             "Toggle always on top",
             "Sign in / login window",
             "Quit",
@@ -21,7 +25,11 @@ fn labels(language: &str, locked: bool) -> [&'static str; 8] {
             "Mostrar / ocultar",
             "Actualizar página",
             "Configuración",
-            if locked { "Desbloquear movimiento / tamaño" } else { "Bloquear movimiento / tamaño" },
+            if locked {
+                "Desbloquear movimiento / tamaño"
+            } else {
+                "Bloquear movimiento / tamaño"
+            },
             "Alternar siempre visible",
             "Iniciar sesión",
             "Salir",
@@ -31,7 +39,11 @@ fn labels(language: &str, locked: bool) -> [&'static str; 8] {
             "Mostrar / ocultar",
             "Recarregar página",
             "Configurações",
-            if locked { "Travar / destravar (travado)" } else { "Travar / destravar (destravado)" },
+            if locked {
+                "Travar / destravar (travado)"
+            } else {
+                "Travar / destravar (destravado)"
+            },
             "Alternar sempre no topo",
             "Entrar / mostrar janela de login",
             "Sair",
@@ -58,7 +70,9 @@ fn create_menu(app: &AppHandle, language: &str) -> tauri::Result<Menu<tauri::Wry
     let quit = MenuItem::with_id(app, "quit", text[6], true, None::<&str>)?;
     Menu::with_items(
         app,
-        &[&toggle, &reload, &settings, &separator, &lock, &top, &login, &quit],
+        &[
+            &toggle, &reload, &settings, &separator, &lock, &top, &login, &quit,
+        ],
     )
 }
 

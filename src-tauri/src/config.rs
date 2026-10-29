@@ -201,16 +201,17 @@ mod tests {
         ] {
             let mut config = AppConfig::default();
             config.site_url = invalid.into();
-            assert!(config.normalize().is_err(), "accepted invalid URL: {invalid}");
+            assert!(
+                config.normalize().is_err(),
+                "accepted invalid URL: {invalid}"
+            );
         }
     }
 
     #[test]
     fn corrupt_config_recovers_to_defaults() {
-        let dir = std::env::temp_dir().join(format!(
-            "widget-website-config-test-{}",
-            std::process::id()
-        ));
+        let dir =
+            std::env::temp_dir().join(format!("widget-website-config-test-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         fs::write(dir.join("config.json"), b"{ this is not valid json").unwrap();

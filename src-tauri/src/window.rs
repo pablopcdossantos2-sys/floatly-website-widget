@@ -1,9 +1,20 @@
-use crate::config::{AppConfig,AppState};
-use std::{sync::{atomic::{AtomicBool,AtomicU64,Ordering},Arc},thread};
-use tauri::{utils::config::WebviewUrl,webview::{NewWindowResponse,PageLoadEvent,WebviewWindowBuilder},AppHandle,Emitter,Listener,LogicalSize,Manager,PhysicalPosition,PhysicalSize,WebviewWindow,WindowEvent};
+use crate::config::{AppConfig, AppState};
+use std::{
+    sync::{
+        atomic::{AtomicBool, AtomicU64, Ordering},
+        Arc,
+    },
+    thread,
+};
+use tauri::{
+    utils::config::WebviewUrl,
+    webview::{NewWindowResponse, PageLoadEvent, WebviewWindowBuilder},
+    AppHandle, Emitter, Listener, LogicalSize, Manager, PhysicalPosition, PhysicalSize,
+    WebviewWindow, WindowEvent,
+};
 use url::Url;
-static LOGIN_ID:AtomicU64=AtomicU64::new(1);
-const INIT:&str=r#"(function boot(){
+static LOGIN_ID: AtomicU64 = AtomicU64::new(1);
+const INIT: &str = r#"(function boot(){
 if(!/^https?:$/.test(location.protocol)||window.top!==window)return;
 if(!document.documentElement){document.addEventListener('DOMContentLoaded',boot,{once:true});return;}
 let UI_LANGUAGE='__WIDGET_LANGUAGE__';
@@ -111,7 +122,7 @@ function heartbeat(){try{const events=window.__TAURI__&&window.__TAURI__.event;i
 setTimeout(heartbeat,1000);
 setInterval(heartbeat,5000)
 })();"#;
-const LOGIN_INIT:&str=r#"(function(){
+const LOGIN_INIT: &str = r#"(function(){
 if(window.top!==window||!/^https?:$/.test(location.protocol))return;
 const UI_LANGUAGE='__WIDGET_LANGUAGE__';
 const CLOSE_TOKEN='__WIDGET_LOGIN_CLOSE_TOKEN__';
@@ -143,33 +154,80 @@ function addToolbar(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addToolbar,{once:true});else addToolbar();
 })();"#;
 
-fn allowed(host:&str,c:&AppConfig)->bool{let target=Url::parse(&c.site_url).ok().and_then(|u|u.host_str().map(str::to_ascii_lowercase));let h=host.to_ascii_lowercase();let site=target.as_ref().is_some_and(|t|h==*t||h.ends_with(&format!(".{t}")));let auth=h=="accounts.google.com"||h=="appleid.apple.com"||h=="login.microsoftonline.com"||h=="facebook.com"||h.ends_with(".facebook.com")||h=="google.com"||h.ends_with(".google.com")||h=="investing.com"||h.ends_with(".investing.com");site||auth}
-fn is_auth_page(host:&str,path:&str,c:&AppConfig)->bool{
- let h=host.to_ascii_lowercase();let p=path.to_ascii_lowercase();
- let configured=Url::parse(&c.site_url).ok().and_then(|u|u.host_str().map(str::to_ascii_lowercase));
- let same_site=configured.as_ref().is_some_and(|t|h==*t||h.ends_with(&format!(".{t}")));
- let provider=h=="accounts.google.com"||h=="google.com"||h.ends_with(".google.com")||h=="facebook.com"||h.ends_with(".facebook.com")||h=="appleid.apple.com"||h=="login.microsoftonline.com"||h=="login.live.com";
- let investing_auth=(h=="investing.com"||h.ends_with(".investing.com"))&&!same_site;
- let login_path=["/login","/log-in","/signin","/sign-in","/account","/accounts","/auth","/oauth","/callback"].iter().any(|part|p.contains(part));
- provider||investing_auth||(same_site&&login_path)
+fn allowed(host: &str, c: &AppConfig) -> bool {
+    let target = Url::parse(&c.site_url)
+        .ok()
+        .and_then(|u| u.host_str().map(str::to_ascii_lowercase));
+    let h = host.to_ascii_lowercase();
+    let site = target
+        .as_ref()
+        .is_some_and(|t| h == *t || h.ends_with(&format!(".{t}")));
+    let auth = h == "accounts.google.com"
+        || h == "appleid.apple.com"
+        || h == "login.microsoftonline.com"
+        || h == "facebook.com"
+        || h.ends_with(".facebook.com")
+        || h == "google.com"
+        || h.ends_with(".google.com")
+        || h == "investing.com"
+        || h.ends_with(".investing.com");
+    site || auth
 }
-fn is_internal_app_url(url:&Url)->bool{
-    if url.scheme()=="tauri" {
+fn is_auth_page(host: &str, path: &str, c: &AppConfig) -> bool {
+    let h = host.to_ascii_lowercase();
+    let p = path.to_ascii_lowercase();
+    let configured = Url::parse(&c.site_url)
+        .ok()
+        .and_then(|u| u.host_str().map(str::to_ascii_lowercase));
+    let same_site = configured
+        .as_ref()
+        .is_some_and(|t| h == *t || h.ends_with(&format!(".{t}")));
+    let provider = h == "accounts.google.com"
+        || h == "google.com"
+        || h.ends_with(".google.com")
+        || h == "facebook.com"
+        || h.ends_with(".facebook.com")
+        || h == "appleid.apple.com"
+        || h == "login.microsoftonline.com"
+        || h == "login.live.com";
+    let investing_auth = (h == "investing.com" || h.ends_with(".investing.com")) && !same_site;
+    let login_path = [
+        "/login",
+        "/log-in",
+        "/signin",
+        "/sign-in",
+        "/account",
+        "/accounts",
+        "/auth",
+        "/oauth",
+        "/callback",
+    ]
+    .iter()
+    .any(|part| p.contains(part));
+    provider || investing_auth || (same_site && login_path)
+}
+fn is_internal_app_url(url: &Url) -> bool {
+    if url.scheme() == "tauri" {
         return true;
     }
-    let host=url.host_str().unwrap_or("");
-    (url.scheme()=="http" && host=="tauri.localhost")
-        || (cfg!(debug_assertions) && host=="127.0.0.1")
+    let host = url.host_str().unwrap_or("");
+    (url.scheme() == "http" && host == "tauri.localhost")
+        || (cfg!(debug_assertions) && host == "127.0.0.1")
 }
 
-fn is_configured_page(url:&Url,c:&AppConfig)->bool{
- let Ok(target)=Url::parse(&c.site_url) else{return false};
- let host=url.host_str().unwrap_or("").to_ascii_lowercase();
- let target_host=target.host_str().unwrap_or("").to_ascii_lowercase();
- let same=host==target_host||host.ends_with(&format!(".{target_host}"));
- let target_path=target.path().trim_end_matches('/');
- let current_path=url.path().trim_end_matches('/');
- same&&(target_path.is_empty()||target_path=="/"||current_path==target_path||current_path.starts_with(&format!("{target_path}/")))
+fn is_configured_page(url: &Url, c: &AppConfig) -> bool {
+    let Ok(target) = Url::parse(&c.site_url) else {
+        return false;
+    };
+    let host = url.host_str().unwrap_or("").to_ascii_lowercase();
+    let target_host = target.host_str().unwrap_or("").to_ascii_lowercase();
+    let same = host == target_host || host.ends_with(&format!(".{target_host}"));
+    let target_path = target.path().trim_end_matches('/');
+    let current_path = url.path().trim_end_matches('/');
+    same && (target_path.is_empty()
+        || target_path == "/"
+        || current_path == target_path
+        || current_path.starts_with(&format!("{target_path}/")))
 }
 fn authorized_widget_action<'a>(url: &'a Url, expected_token: &str) -> Option<&'a str> {
     if url.scheme() != "widget-action"
@@ -185,28 +243,50 @@ fn authorized_widget_action<'a>(url: &'a Url, expected_token: &str) -> Option<&'
     }
     let direction = action.strip_prefix("resize/")?;
     [
-        "north", "south", "east", "west",
-        "north-east", "north-west", "south-east", "south-west",
+        "north",
+        "south",
+        "east",
+        "west",
+        "north-east",
+        "north-west",
+        "south-east",
+        "south-west",
     ]
     .contains(&direction)
     .then_some(action)
 }
 
-pub fn create_main(app:&AppHandle,c:&AppConfig,dir:&std::path::Path)->tauri::Result<WebviewWindow>{
-let data=dir.join("webview-data");std::fs::create_dir_all(&data).ok();let diag_dir=dir.to_path_buf();let build_diag_dir=dir.to_path_buf();let popup_diag_dir=dir.to_path_buf();let nav_app=app.clone();let popup_app=app.clone();
-let action_token=uuid::Uuid::new_v4().simple().to_string();
-let heartbeat_token=uuid::Uuid::new_v4().simple().to_string();
-let init_script=INIT.replace("__WIDGET_LANGUAGE__",&c.language).replace("__WIDGET_LOCKED__",&c.locked.to_string()).replace("__WIDGET_ACTION_TOKEN__",&action_token).replace("__WIDGET_HEARTBEAT_TOKEN__",&heartbeat_token);
-let navigation_action_token=action_token.clone();
-let heartbeat_token=heartbeat_token.clone();
-let heartbeat_dir=dir.to_path_buf();
-let _heartbeat_listener=app.listen("widget-heartbeat",move|event|{
-    let payload=event.payload();
-    let value=serde_json::from_str::<String>(payload).unwrap_or_else(|_|payload.to_owned());
-    if value==heartbeat_token{crate::diagnostics::record_heartbeat(&heartbeat_dir);}
-});
-let page_load_app=app.clone();
-let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(init_script)
+pub fn create_main(
+    app: &AppHandle,
+    c: &AppConfig,
+    dir: &std::path::Path,
+) -> tauri::Result<WebviewWindow> {
+    let data = dir.join("webview-data");
+    std::fs::create_dir_all(&data).ok();
+    let diag_dir = dir.to_path_buf();
+    let build_diag_dir = dir.to_path_buf();
+    let popup_diag_dir = dir.to_path_buf();
+    let nav_app = app.clone();
+    let popup_app = app.clone();
+    let action_token = uuid::Uuid::new_v4().simple().to_string();
+    let heartbeat_token = uuid::Uuid::new_v4().simple().to_string();
+    let init_script = INIT
+        .replace("__WIDGET_LANGUAGE__", &c.language)
+        .replace("__WIDGET_LOCKED__", &c.locked.to_string())
+        .replace("__WIDGET_ACTION_TOKEN__", &action_token)
+        .replace("__WIDGET_HEARTBEAT_TOKEN__", &heartbeat_token);
+    let navigation_action_token = action_token.clone();
+    let heartbeat_token = heartbeat_token.clone();
+    let heartbeat_dir = dir.to_path_buf();
+    let _heartbeat_listener = app.listen("widget-heartbeat", move |event| {
+        let payload = event.payload();
+        let value = serde_json::from_str::<String>(payload).unwrap_or_else(|_| payload.to_owned());
+        if value == heartbeat_token {
+            crate::diagnostics::record_heartbeat(&heartbeat_dir);
+        }
+    });
+    let page_load_app = app.clone();
+    let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(init_script)
 .on_page_load(move|window,payload|{
     if payload.event()!=PageLoadEvent::Finished{return;}
     let url=payload.url();
@@ -266,7 +346,9 @@ if allowed(host,&cfg){crate::diagnostics::log(&diag_dir,"INFO",format!("Abrindo 
 crate::diagnostics::log(&diag_dir,"INFO",format!("Encaminhando link externo ao navegador padrão (host={host})."));let _=open::that(u.as_str());false
 })
 .on_new_window(move|u,_|{if u.scheme()=="http"||u.scheme()=="https"{crate::diagnostics::log_navigation(&popup_diag_dir,&u);let cfg=popup_app.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();if allowed(u.host_str().unwrap_or(""),&cfg){let a=popup_app.clone();thread::spawn(move||{let _=open_login(&a,u);});}else{let _=open::that(u.as_str());}}NewWindowResponse::Deny}).build().map_err(|error|{crate::diagnostics::log(&build_diag_dir,"ERRO",format!("Falha ao criar a janela WebView2 principal: {error}"));error})?;
-restore_position(&w,c);apply_config(app,c);Ok(w)
+    restore_position(&w, c);
+    apply_config(app, c);
+    Ok(w)
 }
 #[cfg(windows)]
 fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
@@ -281,8 +363,7 @@ fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
     if unsafe { GetCursorPos(&mut cursor) } == 0 {
         return Err("Não foi possível obter a posição do ponteiro do mouse.".into());
     }
-    let packed_position = ((cursor.x as u16 as u32)
-        | ((cursor.y as u16 as u32) << 16)) as isize;
+    let packed_position = ((cursor.x as u16 as u32) | ((cursor.y as u16 as u32) << 16)) as isize;
 
     unsafe {
         ReleaseCapture();
@@ -302,11 +383,11 @@ fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
 }
 
 #[cfg(windows)]
-fn begin_native_resize(window:&WebviewWindow, direction:&str) {
+fn begin_native_resize(window: &WebviewWindow, direction: &str) {
     use windows_sys::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        SendMessageW, WM_NCLBUTTONDOWN, HTBOTTOM, HTBOTTOMLEFT,
-        HTBOTTOMRIGHT, HTLEFT, HTRIGHT, HTTOP, HTTOPLEFT, HTTOPRIGHT,
+        SendMessageW, HTBOTTOM, HTBOTTOMLEFT, HTBOTTOMRIGHT, HTLEFT, HTRIGHT, HTTOP, HTTOPLEFT,
+        HTTOPRIGHT, WM_NCLBUTTONDOWN,
     };
     let hit_test = match direction {
         "north" => HTTOP,
@@ -328,68 +409,199 @@ fn begin_native_resize(window:&WebviewWindow, direction:&str) {
     }
 }
 #[cfg(not(windows))]
-fn begin_native_resize(_window:&WebviewWindow, _direction:&str) {}
+fn begin_native_resize(_window: &WebviewWindow, _direction: &str) {}
 
-fn open_login(app:&AppHandle,url:Url)->tauri::Result<()>{
- let id=LOGIN_ID.fetch_add(1,Ordering::Relaxed);let label=format!("login-{id}");let close_label=label.clone();let close_token=uuid::Uuid::new_v4().simple().to_string();let navigation_close_token=close_token.clone();
- let state=app.state::<AppState>();let diag_dir=state.app_dir.clone();let language=state.config.lock().map(|config|config.language.clone()).unwrap_or_else(|_|"pt-BR".to_owned());let dir=state.app_dir.join("webview-data");std::fs::create_dir_all(&dir).ok();
- crate::diagnostics::log(&diag_dir,"INFO",format!("Abrindo janela de autenticação (host={}).",url.host_str().unwrap_or("sem host")));
- let nav=app.clone();let pop=app.clone();let close_app=app.clone();let nav_seen_auth=Arc::new(AtomicBool::new(false));let popup_seen_auth=Arc::clone(&nav_seen_auth);
- let host=url.host_str().unwrap_or("Login").to_owned();let login_title=match language.as_str(){"en"=>"Sign in","es"=>"Iniciar sesión",_=>"Entrar"};
- WebviewWindowBuilder::new(app,label,WebviewUrl::External(url)).title(format!("{login_title} — {host}")).inner_size(960.0,760.0).min_inner_size(600.0,450.0).decorations(true).resizable(true).skip_taskbar(false).data_directory(dir).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(LOGIN_INIT.replace("__WIDGET_LANGUAGE__",&language).replace("__WIDGET_LOGIN_CLOSE_TOKEN__",&close_token))
- .on_navigation(move|u|{
-   if u.scheme()=="widget-login-action"{
-     if u.host_str()==Some(navigation_close_token.as_str())&&u.path()=="/close"&&u.query().is_none()&&u.fragment().is_none(){
-       if let Some(w)=nav.get_webview_window(&close_label){let _=w.close();}
-     }else{
-       crate::diagnostics::log(&diag_dir,"WARN","Pedido de fechamento de login ignorado: token ou ação inválida.");
-     }
-     return false
-   }
-   if u.scheme()!="http"&&u.scheme()!="https"{crate::diagnostics::log(&diag_dir,"WARN",format!("Navegação de login bloqueada por esquema: {}",u.scheme()));return false}
-   crate::diagnostics::log_navigation(&diag_dir,&u);
-   let c=nav.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();
-   let host=u.host_str().unwrap_or("");
-   if is_auth_page(host,u.path(),&c){nav_seen_auth.store(true,Ordering::SeqCst);return true}
-   if nav_seen_auth.load(Ordering::SeqCst)&&is_configured_page(&u,&c){
-     let a=close_app.clone();let label=close_label.clone();thread::spawn(move||{if let Some(w)=a.get_webview_window(&label){let _=w.close();}});
-     return false
-   }
-   if allowed(host,&c){true}else{let _=open::that(u.as_str());false}
- })
- .on_new_window(move|u,_|{
-   if u.scheme()=="http"||u.scheme()=="https"{
-     let c=pop.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();
-     if allowed(u.host_str().unwrap_or(""),&c){
-       if is_auth_page(u.host_str().unwrap_or(""),u.path(),&c){popup_seen_auth.store(true,Ordering::SeqCst);}
-       let a=pop.clone();thread::spawn(move||{let _=open_login(&a,u);});
-     }else{let _=open::that(u.as_str());}
-   }
-   NewWindowResponse::Deny
- }).build()?;Ok(())
+fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
+    let id = LOGIN_ID.fetch_add(1, Ordering::Relaxed);
+    let label = format!("login-{id}");
+    let close_label = label.clone();
+    let close_token = uuid::Uuid::new_v4().simple().to_string();
+    let navigation_close_token = close_token.clone();
+    let state = app.state::<AppState>();
+    let diag_dir = state.app_dir.clone();
+    let language = state
+        .config
+        .lock()
+        .map(|config| config.language.clone())
+        .unwrap_or_else(|_| "pt-BR".to_owned());
+    let dir = state.app_dir.join("webview-data");
+    std::fs::create_dir_all(&dir).ok();
+    crate::diagnostics::log(
+        &diag_dir,
+        "INFO",
+        format!(
+            "Abrindo janela de autenticação (host={}).",
+            url.host_str().unwrap_or("sem host")
+        ),
+    );
+    let nav = app.clone();
+    let pop = app.clone();
+    let close_app = app.clone();
+    let nav_seen_auth = Arc::new(AtomicBool::new(false));
+    let popup_seen_auth = Arc::clone(&nav_seen_auth);
+    let host = url.host_str().unwrap_or("Login").to_owned();
+    let login_title = match language.as_str() {
+        "en" => "Sign in",
+        "es" => "Iniciar sesión",
+        _ => "Entrar",
+    };
+    WebviewWindowBuilder::new(app, label, WebviewUrl::External(url))
+        .title(format!("{login_title} — {host}"))
+        .inner_size(960.0, 760.0)
+        .min_inner_size(600.0, 450.0)
+        .decorations(true)
+        .resizable(true)
+        .skip_taskbar(false)
+        .data_directory(dir)
+        .devtools(cfg!(debug_assertions))
+        .zoom_hotkeys_enabled(false)
+        .initialization_script(
+            LOGIN_INIT
+                .replace("__WIDGET_LANGUAGE__", &language)
+                .replace("__WIDGET_LOGIN_CLOSE_TOKEN__", &close_token),
+        )
+        .on_navigation(move |u| {
+            if u.scheme() == "widget-login-action" {
+                if u.host_str() == Some(navigation_close_token.as_str())
+                    && u.path() == "/close"
+                    && u.query().is_none()
+                    && u.fragment().is_none()
+                {
+                    if let Some(w) = nav.get_webview_window(&close_label) {
+                        let _ = w.close();
+                    }
+                } else {
+                    crate::diagnostics::log(
+                        &diag_dir,
+                        "WARN",
+                        "Pedido de fechamento de login ignorado: token ou ação inválida.",
+                    );
+                }
+                return false;
+            }
+            if u.scheme() != "http" && u.scheme() != "https" {
+                crate::diagnostics::log(
+                    &diag_dir,
+                    "WARN",
+                    format!("Navegação de login bloqueada por esquema: {}", u.scheme()),
+                );
+                return false;
+            }
+            crate::diagnostics::log_navigation(&diag_dir, &u);
+            let c = nav
+                .state::<AppState>()
+                .config
+                .lock()
+                .map(|v| v.clone())
+                .unwrap_or_default();
+            let host = u.host_str().unwrap_or("");
+            if is_auth_page(host, u.path(), &c) {
+                nav_seen_auth.store(true, Ordering::SeqCst);
+                return true;
+            }
+            if nav_seen_auth.load(Ordering::SeqCst) && is_configured_page(&u, &c) {
+                let a = close_app.clone();
+                let label = close_label.clone();
+                thread::spawn(move || {
+                    if let Some(w) = a.get_webview_window(&label) {
+                        let _ = w.close();
+                    }
+                });
+                return false;
+            }
+            if allowed(host, &c) {
+                true
+            } else {
+                let _ = open::that(u.as_str());
+                false
+            }
+        })
+        .on_new_window(move |u, _| {
+            if u.scheme() == "http" || u.scheme() == "https" {
+                let c = pop
+                    .state::<AppState>()
+                    .config
+                    .lock()
+                    .map(|v| v.clone())
+                    .unwrap_or_default();
+                if allowed(u.host_str().unwrap_or(""), &c) {
+                    if is_auth_page(u.host_str().unwrap_or(""), u.path(), &c) {
+                        popup_seen_auth.store(true, Ordering::SeqCst);
+                    }
+                    let a = pop.clone();
+                    thread::spawn(move || {
+                        let _ = open_login(&a, u);
+                    });
+                } else {
+                    let _ = open::that(u.as_str());
+                }
+            }
+            NewWindowResponse::Deny
+        })
+        .build()?;
+    Ok(())
 }
-fn restore_position(w:&WebviewWindow,c:&AppConfig){if !c.remember_position{let _=w.center();return}let(Some(x),Some(y))=(c.x,c.y)else{let _=w.center();return};let Ok(monitors)=w.available_monitors()else{let _=w.center();return};let scale=w.scale_factor().unwrap_or(1.0);let s=PhysicalSize::new((c.width as f64*scale)as u32,(c.height as f64*scale)as u32);let visible=monitors.iter().any(|m|{let p=m.position();let z=m.size();(x+s.width as i32).min(p.x+z.width as i32)>x.max(p.x)&&(y+s.height as i32).min(p.y+z.height as i32)>y.max(p.y)});if visible{let _=w.set_position(PhysicalPosition::new(x,y));}else{let _=w.center();}}
+fn restore_position(w: &WebviewWindow, c: &AppConfig) {
+    if !c.remember_position {
+        let _ = w.center();
+        return;
+    }
+    let (Some(x), Some(y)) = (c.x, c.y) else {
+        let _ = w.center();
+        return;
+    };
+    let Ok(monitors) = w.available_monitors() else {
+        let _ = w.center();
+        return;
+    };
+    let scale = w.scale_factor().unwrap_or(1.0);
+    let s = PhysicalSize::new(
+        (c.width as f64 * scale) as u32,
+        (c.height as f64 * scale) as u32,
+    );
+    let visible = monitors.iter().any(|m| {
+        let p = m.position();
+        let z = m.size();
+        (x + s.width as i32).min(p.x + z.width as i32) > x.max(p.x)
+            && (y + s.height as i32).min(p.y + z.height as i32) > y.max(p.y)
+    });
+    if visible {
+        let _ = w.set_position(PhysicalPosition::new(x, y));
+    } else {
+        let _ = w.center();
+    }
+}
 #[cfg(windows)]
-fn apply_native_corners(window:&WebviewWindow, radius:u8) {
+fn apply_native_corners(window: &WebviewWindow, radius: u8) {
     use std::ffi::c_void;
-    use windows_sys::Win32::Graphics::Dwm::{DwmSetWindowAttribute,DWMWA_WINDOW_CORNER_PREFERENCE};
-    use windows_sys::Win32::Graphics::Gdi::{CreateRoundRectRgn,DeleteObject,SetWindowRgn};
-    if let Ok(raw_hwnd)=window.hwnd() {
-        let hwnd=raw_hwnd.0;
-        let preference:u32=if radius==0 {1} else {2};
-        unsafe { let _=DwmSetWindowAttribute(hwnd,DWMWA_WINDOW_CORNER_PREFERENCE as u32,&preference as *const u32 as *const c_void,std::mem::size_of::<u32>() as u32); }
-        if let Ok(size)=window.inner_size() {
-            let scale=window.scale_factor().unwrap_or(1.0);
-            let w=size.width.min(i32::MAX as u32) as i32;
-            let h=size.height.min(i32::MAX as u32) as i32;
-            let r=((radius as f64*scale).round() as i32).clamp(0,w.min(h)/2);
+    use windows_sys::Win32::Graphics::Dwm::{
+        DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE,
+    };
+    use windows_sys::Win32::Graphics::Gdi::{CreateRoundRectRgn, DeleteObject, SetWindowRgn};
+    if let Ok(raw_hwnd) = window.hwnd() {
+        let hwnd = raw_hwnd.0;
+        let preference: u32 = if radius == 0 { 1 } else { 2 };
+        unsafe {
+            let _ = DwmSetWindowAttribute(
+                hwnd,
+                DWMWA_WINDOW_CORNER_PREFERENCE as u32,
+                &preference as *const u32 as *const c_void,
+                std::mem::size_of::<u32>() as u32,
+            );
+        }
+        if let Ok(size) = window.inner_size() {
+            let scale = window.scale_factor().unwrap_or(1.0);
+            let w = size.width.min(i32::MAX as u32) as i32;
+            let h = size.height.min(i32::MAX as u32) as i32;
+            let r = ((radius as f64 * scale).round() as i32).clamp(0, w.min(h) / 2);
             unsafe {
-                if r==0 { let _=SetWindowRgn(hwnd,std::ptr::null_mut(),1); }
-                else {
-                    let region=CreateRoundRectRgn(0,0,w+1,h+1,r*2,r*2);
-                    if !region.is_null() && SetWindowRgn(hwnd,region,1)==0 {
+                if r == 0 {
+                    let _ = SetWindowRgn(hwnd, std::ptr::null_mut(), 1);
+                } else {
+                    let region = CreateRoundRectRgn(0, 0, w + 1, h + 1, r * 2, r * 2);
+                    if !region.is_null() && SetWindowRgn(hwnd, region, 1) == 0 {
                         // SetWindowRgn takes ownership only when it succeeds.
-                        let _=DeleteObject(region);
+                        let _ = DeleteObject(region);
                     }
                 }
             }
@@ -397,19 +609,136 @@ fn apply_native_corners(window:&WebviewWindow, radius:u8) {
     }
 }
 #[cfg(not(windows))]
-fn apply_native_corners(_window:&WebviewWindow,_radius:u8) {}
+fn apply_native_corners(_window: &WebviewWindow, _radius: u8) {}
 
-pub fn refresh_native_corners(app:&AppHandle){
-    if let Some(window)=app.get_webview_window("main"){
-        let radius=app.state::<AppState>().config.lock().map(|c|c.corner_radius).unwrap_or(12);
-        apply_native_corners(&window,radius);
+pub fn refresh_native_corners(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let radius = app
+            .state::<AppState>()
+            .config
+            .lock()
+            .map(|c| c.corner_radius)
+            .unwrap_or(12);
+        apply_native_corners(&window, radius);
     }
 }
-pub fn apply_config(app:&AppHandle,c:&AppConfig){if let Some(w)=app.get_webview_window("main"){let _=w.set_always_on_top(c.always_on_top);let _=w.set_skip_taskbar(!c.show_in_taskbar);let _=w.set_resizable(!c.locked);let _=w.set_min_size(Some(LogicalSize::new(150.0,100.0)));let _=w.set_size(LogicalSize::new(c.width as f64,c.height as f64));let _=w.set_zoom(c.zoom as f64/100.0);let language=serde_json::to_string(&c.language).unwrap_or_else(|_|"\"pt-BR\"".to_owned());let script=format!("document.documentElement.style.opacity='{}';document.documentElement.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});",c.opacity as f64/100.0,c.corner_radius,language,c.locked);let _=w.eval(&script);let _=w.set_shadow(c.corner_radius>0);apply_native_corners(&w,c.corner_radius);}}
-pub fn open_settings(app:&AppHandle){if let Some(w)=app.get_webview_window("settings"){let _=w.show();let _=w.set_focus();return}let a=app.clone();thread::spawn(move||{let language=a.state::<AppState>().config.lock().map(|config|config.language.clone()).unwrap_or_else(|_|"pt-BR".to_owned());let title=match language.as_str(){"en"=>"Settings — Widget Website","es"=>"Configuración — Widget Website",_=>"Configurações — Widget Website"};let dir=a.state::<AppState>().app_dir.join("settings-data");std::fs::create_dir_all(&dir).ok();let _=WebviewWindowBuilder::new(&a,"settings",WebviewUrl::App("settings.html".into())).title(title).inner_size(760.0,850.0).min_inner_size(520.0,550.0).resizable(true).data_directory(dir).build();});}
-pub fn open_login_from_tray(app:&AppHandle){let text=app.state::<AppState>().config.lock().map(|c|c.site_url.clone()).unwrap_or_else(|_|crate::config::DEFAULT_SITE.to_owned());if let Ok(url)=Url::parse(&text){let a=app.clone();thread::spawn(move||{let _=open_login(&a,url);});}}
-pub fn save_window_state(app:&AppHandle,e:&WindowEvent){let state=app.state::<AppState>();let scale=app.get_webview_window("main").and_then(|w|w.scale_factor().ok()).unwrap_or(1.0);let mut c=match state.config.lock(){Ok(v)=>v,Err(_)=>return};if !c.remember_position{return}match e{WindowEvent::Moved(p)=>{c.x=Some(p.x);c.y=Some(p.y)},WindowEvent::Resized(z)=>{c.width=((z.width as f64/scale).round() as u32).clamp(150,2000);c.height=((z.height as f64/scale).round() as u32).clamp(100,1600)},_=>return}let copy=c.clone();drop(c);let _=crate::config::save(&state.app_dir,&copy);let _=app.emit("config-changed",&copy);if let Some(window)=app.get_webview_window("main"){apply_native_corners(&window,copy.corner_radius);}}
-pub fn start_auto_reload(app:AppHandle){thread::spawn(move||{let mut seconds:u32=0;loop{thread::sleep(std::time::Duration::from_secs(10));let mins=app.state::<AppState>().config.lock().map(|c|c.auto_reload_minutes).unwrap_or(0)as u32;if mins==0{seconds=0;continue}seconds+=10;if seconds>=mins*60{seconds=0;if let Some(w)=app.get_webview_window("main"){let _=w.eval("location.reload()");}}}});}
+pub fn apply_config(app: &AppHandle, c: &AppConfig) {
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.set_always_on_top(c.always_on_top);
+        let _ = w.set_skip_taskbar(!c.show_in_taskbar);
+        let _ = w.set_resizable(!c.locked);
+        let _ = w.set_min_size(Some(LogicalSize::new(150.0, 100.0)));
+        let _ = w.set_size(LogicalSize::new(c.width as f64, c.height as f64));
+        let _ = w.set_zoom(c.zoom as f64 / 100.0);
+        let language =
+            serde_json::to_string(&c.language).unwrap_or_else(|_| "\"pt-BR\"".to_owned());
+        let script=format!("document.documentElement.style.opacity='{}';document.documentElement.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});",c.opacity as f64/100.0,c.corner_radius,language,c.locked);
+        let _ = w.eval(&script);
+        let _ = w.set_shadow(c.corner_radius > 0);
+        apply_native_corners(&w, c.corner_radius);
+    }
+}
+pub fn open_settings(app: &AppHandle) {
+    if let Some(w) = app.get_webview_window("settings") {
+        let _ = w.show();
+        let _ = w.set_focus();
+        return;
+    }
+    let a = app.clone();
+    thread::spawn(move || {
+        let language = a
+            .state::<AppState>()
+            .config
+            .lock()
+            .map(|config| config.language.clone())
+            .unwrap_or_else(|_| "pt-BR".to_owned());
+        let title = match language.as_str() {
+            "en" => "Settings — Widget Website",
+            "es" => "Configuración — Widget Website",
+            _ => "Configurações — Widget Website",
+        };
+        let dir = a.state::<AppState>().app_dir.join("settings-data");
+        std::fs::create_dir_all(&dir).ok();
+        let _ = WebviewWindowBuilder::new(&a, "settings", WebviewUrl::App("settings.html".into()))
+            .title(title)
+            .inner_size(760.0, 850.0)
+            .min_inner_size(520.0, 550.0)
+            .resizable(true)
+            .data_directory(dir)
+            .build();
+    });
+}
+pub fn open_login_from_tray(app: &AppHandle) {
+    let text = app
+        .state::<AppState>()
+        .config
+        .lock()
+        .map(|c| c.site_url.clone())
+        .unwrap_or_else(|_| crate::config::DEFAULT_SITE.to_owned());
+    if let Ok(url) = Url::parse(&text) {
+        let a = app.clone();
+        thread::spawn(move || {
+            let _ = open_login(&a, url);
+        });
+    }
+}
+pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
+    let state = app.state::<AppState>();
+    let scale = app
+        .get_webview_window("main")
+        .and_then(|w| w.scale_factor().ok())
+        .unwrap_or(1.0);
+    let mut c = match state.config.lock() {
+        Ok(v) => v,
+        Err(_) => return,
+    };
+    if !c.remember_position {
+        return;
+    }
+    match e {
+        WindowEvent::Moved(p) => {
+            c.x = Some(p.x);
+            c.y = Some(p.y)
+        }
+        WindowEvent::Resized(z) => {
+            c.width = ((z.width as f64 / scale).round() as u32).clamp(150, 2000);
+            c.height = ((z.height as f64 / scale).round() as u32).clamp(100, 1600)
+        }
+        _ => return,
+    }
+    let copy = c.clone();
+    drop(c);
+    let _ = crate::config::save(&state.app_dir, &copy);
+    let _ = app.emit("config-changed", &copy);
+    if let Some(window) = app.get_webview_window("main") {
+        apply_native_corners(&window, copy.corner_radius);
+    }
+}
+pub fn start_auto_reload(app: AppHandle) {
+    thread::spawn(move || {
+        let mut seconds: u32 = 0;
+        loop {
+            thread::sleep(std::time::Duration::from_secs(10));
+            let mins = app
+                .state::<AppState>()
+                .config
+                .lock()
+                .map(|c| c.auto_reload_minutes)
+                .unwrap_or(0) as u32;
+            if mins == 0 {
+                seconds = 0;
+                continue;
+            }
+            seconds += 10;
+            if seconds >= mins * 60 {
+                seconds = 0;
+                if let Some(w) = app.get_webview_window("main") {
+                    let _ = w.eval("location.reload()");
+                }
+            }
+        }
+    });
+}
 #[cfg(test)]
 mod internal_app_navigation_tests {
     use super::*;
@@ -430,7 +759,10 @@ mod internal_app_navigation_tests {
         let valid = Url::parse(&format!("widget-action://{token}/resize/north-west")).unwrap();
         let invalid = Url::parse(&format!("widget-action://{token}/resize/center")).unwrap();
         let query = Url::parse(&format!("widget-action://{token}/drag?bypass=true")).unwrap();
-        assert_eq!(authorized_widget_action(&valid, token), Some("resize/north-west"));
+        assert_eq!(
+            authorized_widget_action(&valid, token),
+            Some("resize/north-west")
+        );
         assert_eq!(authorized_widget_action(&invalid, token), None);
         assert_eq!(authorized_widget_action(&query, token), None);
     }
