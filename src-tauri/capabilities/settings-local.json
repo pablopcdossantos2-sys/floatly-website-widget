@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "settings-local",
+  "description": "Permissões restritas à interface local de configurações.",
+  "windows": [
+    "settings"
+  ],
+  "permissions": [
+    "core:default",
+    "app:allow-get-config",
+    "app:allow-save-config",
+    "app:allow-close-settings"
+  ]
+}
