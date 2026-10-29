@@ -80,7 +80,13 @@ pub fn log_path(dir: &Path) -> PathBuf {
 fn sanitize_log_message(message: &str) -> String {
     message
         .chars()
-        .map(|character| if character.is_control() { ' ' } else { character })
+        .map(|character| {
+            if character.is_control() {
+                ' '
+            } else {
+                character
+            }
+        })
         .take(MAX_LOG_LINE_CHARS)
         .collect()
 }
@@ -140,7 +146,11 @@ fn rotate_log_if_needed(dir: &Path, path: &Path) -> bool {
     if size < MAX_LOG_BYTES {
         return true;
     }
-    let backup = dir.join(format!("diagnostics.log.{}.{}", now_ms(), std::process::id()));
+    let backup = dir.join(format!(
+        "diagnostics.log.{}.{}",
+        now_ms(),
+        std::process::id()
+    ));
     match fs::rename(path, &backup) {
         Ok(()) => {
             prune_log_backups(dir);
@@ -204,7 +214,10 @@ pub fn sanitize_url(url: &url::Url) -> String {
     } else {
         path
     };
-    let port = url.port().map(|port| format!(":{port}")).unwrap_or_default();
+    let port = url
+        .port()
+        .map(|port| format!(":{port}"))
+        .unwrap_or_default();
     format!(
         "scheme={} host={}{} path={}",
         url.scheme(),
@@ -214,7 +227,11 @@ pub fn sanitize_url(url: &url::Url) -> String {
     )
 }
 
-pub fn log_err<T, E: std::fmt::Display>(dir: &Path, context: &str, result: Result<T, E>) -> Option<T> {
+pub fn log_err<T, E: std::fmt::Display>(
+    dir: &Path,
+    context: &str,
+    result: Result<T, E>,
+) -> Option<T> {
     match result {
         Ok(value) => Some(value),
         Err(error) => {
@@ -225,7 +242,11 @@ pub fn log_err<T, E: std::fmt::Display>(dir: &Path, context: &str, result: Resul
 }
 
 pub fn log_navigation(dir: &Path, url: &url::Url) {
-    log(dir, "NAV", format!("Navegação solicitada: {}", sanitize_url(url)));
+    log(
+        dir,
+        "NAV",
+        format!("Navegação solicitada: {}", sanitize_url(url)),
+    );
 }
 
 pub fn safe_url_summary(raw_url: &str) -> String {
@@ -384,7 +405,10 @@ fn native_window_status() -> String {
             "A janela nativa está oculta e ainda responde às mensagens do Windows".to_owned()
         }
     };
-    format!("{window_status}. {}", webview2_descendant_process_status(std::process::id()))
+    format!(
+        "{window_status}. {}",
+        webview2_descendant_process_status(std::process::id())
+    )
 }
 
 #[cfg(windows)]
