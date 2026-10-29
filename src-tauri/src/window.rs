@@ -9,8 +9,8 @@ use std::{
 use tauri::{
     utils::config::WebviewUrl,
     webview::{NewWindowResponse, PageLoadEvent, WebviewWindowBuilder},
-    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, PhysicalSize,
-    WebviewWindow, WindowEvent,
+    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, PhysicalSize, WebviewWindow,
+    WindowEvent,
 };
 use url::Url;
 static LOGIN_ID: AtomicU64 = AtomicU64::new(1);
