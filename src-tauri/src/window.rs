@@ -9,6 +9,7 @@ if(!document.documentElement){document.addEventListener('DOMContentLoaded',boot,
 let UI_LANGUAGE='__WIDGET_LANGUAGE__';
 let DRAG_LOCKED='__WIDGET_LOCKED__'==='true';
 const ACTION_TOKEN='__WIDGET_ACTION_TOKEN__';
+const HEARTBEAT_TOKEN='__WIDGET_HEARTBEAT_TOKEN__';
 const UI_COPY={
  'pt-BR':{dragTitle:'Arraste a borda azul para mover o widget.',dragLabel:'Mover o widget pela borda azul',offlineTitle:'Sem conexão com o calendário',offlineMessage:'O site não respondeu. Verifique a internet e tente novamente.',retry:'Tentar novamente'},
  en:{dragTitle:'Drag the blue border to move the widget.',dragLabel:'Move the widget using the blue border',offlineTitle:'Calendar connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
@@ -106,7 +107,7 @@ async function check(){try{const c=new AbortController(),t=setTimeout(()=>c.abor
 }
 addEventListener('offline',check);
 setInterval(check,30000);
-function heartbeat(){try{const events=window.__TAURI__&&window.__TAURI__.event;if(events&&typeof events.emit==='function')events.emit('widget-heartbeat',ACTION_TOKEN).catch(()=>{})}catch(_){}}
+function heartbeat(){try{const events=window.__TAURI__&&window.__TAURI__.event;if(events&&typeof events.emit==='function')events.emit('widget-heartbeat',HEARTBEAT_TOKEN).catch(()=>{})}catch(_){}}
 setTimeout(heartbeat,1000);
 setInterval(heartbeat,5000)
 })();"#;
@@ -169,12 +170,34 @@ fn is_configured_page(url:&Url,c:&AppConfig)->bool{
  let current_path=url.path().trim_end_matches('/');
  same&&(target_path.is_empty()||target_path=="/"||current_path==target_path||current_path.starts_with(&format!("{target_path}/")))
 }
+fn authorized_widget_action<'a>(url: &'a Url, expected_token: &str) -> Option<&'a str> {
+    if url.scheme() != "widget-action"
+        || url.host_str() != Some(expected_token)
+        || url.query().is_some()
+        || url.fragment().is_some()
+    {
+        return None;
+    }
+    let action = url.path().trim_matches('/');
+    if action == "drag" {
+        return Some(action);
+    }
+    let direction = action.strip_prefix("resize/")?;
+    [
+        "north", "south", "east", "west",
+        "north-east", "north-west", "south-east", "south-west",
+    ]
+    .contains(&direction)
+    .then_some(action)
+}
+
 pub fn create_main(app:&AppHandle,c:&AppConfig,dir:&std::path::Path)->tauri::Result<WebviewWindow>{
 let data=dir.join("webview-data");std::fs::create_dir_all(&data).ok();let diag_dir=dir.to_path_buf();let build_diag_dir=dir.to_path_buf();let popup_diag_dir=dir.to_path_buf();let nav_app=app.clone();let popup_app=app.clone();
 let action_token=uuid::Uuid::new_v4().simple().to_string();
-let init_script=INIT.replace("__WIDGET_LANGUAGE__",&c.language).replace("__WIDGET_LOCKED__",&c.locked.to_string()).replace("__WIDGET_ACTION_TOKEN__",&action_token);
+let heartbeat_token=uuid::Uuid::new_v4().simple().to_string();
+let init_script=INIT.replace("__WIDGET_LANGUAGE__",&c.language).replace("__WIDGET_LOCKED__",&c.locked.to_string()).replace("__WIDGET_ACTION_TOKEN__",&action_token).replace("__WIDGET_HEARTBEAT_TOKEN__",&heartbeat_token);
 let navigation_action_token=action_token.clone();
-let heartbeat_token=action_token.clone();
+let heartbeat_token=heartbeat_token.clone();
 let heartbeat_dir=dir.to_path_buf();
 let _heartbeat_listener=app.listen("widget-heartbeat",move|event|{
     let payload=event.payload();
@@ -200,12 +223,13 @@ if u.scheme()=="widget-action"{
     return true;
 }
 if u.scheme()=="widget-action"{
-    let supplied_token=u.host_str().unwrap_or("");
-    let action=u.path().trim_matches('/');
-    if supplied_token!=navigation_action_token {
-        crate::diagnostics::log(&diag_dir,"WARN","Comando de janela ignorado: token inválido.");
-        return false;
-    }
+    let action=match authorized_widget_action(&u,&navigation_action_token) {
+        Some(action)=>action,
+        None=>{
+            crate::diagnostics::log(&diag_dir,"WARN","Comando de janela ignorado: token ou ação inválida.");
+            return false;
+        }
+    };
     let state=nav_app.state::<AppState>();
     let locked=state.config.lock().map(|config|config.locked).unwrap_or(true);
     if locked {
@@ -381,6 +405,27 @@ pub fn start_auto_reload(app:AppHandle){thread::spawn(move||{let mut seconds:u32
 #[cfg(test)]
 mod internal_app_navigation_tests {
     use super::*;
+
+    #[test]
+    fn widget_action_requires_the_current_random_token() {
+        let token = "7f9a12345678";
+        let valid = Url::parse(&format!("widget-action://{token}/drag")).unwrap();
+        let invalid = Url::parse("widget-action://drag").unwrap();
+        assert_eq!(authorized_widget_action(&valid, token), Some("drag"));
+        assert_eq!(authorized_widget_action(&invalid, token), None);
+        assert_eq!(authorized_widget_action(&valid, "different-token"), None);
+    }
+
+    #[test]
+    fn widget_action_accepts_only_known_resize_directions() {
+        let token = "7f9a12345678";
+        let valid = Url::parse(&format!("widget-action://{token}/resize/north-west")).unwrap();
+        let invalid = Url::parse(&format!("widget-action://{token}/resize/center")).unwrap();
+        let query = Url::parse(&format!("widget-action://{token}/drag?bypass=true")).unwrap();
+        assert_eq!(authorized_widget_action(&valid, token), Some("resize/north-west"));
+        assert_eq!(authorized_widget_action(&invalid, token), None);
+        assert_eq!(authorized_widget_action(&query, token), None);
+    }
 
     #[test]
     fn allows_tauri_windows_asset_origin() {
