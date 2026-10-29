@@ -209,6 +209,7 @@ pub fn app_directory() -> PathBuf {
         .join("WidgetWebsite")
 }
 
+#[cfg(test)]
 pub fn load(dir: &Path) -> AppConfig {
     load_with_warnings(dir).0
 }
