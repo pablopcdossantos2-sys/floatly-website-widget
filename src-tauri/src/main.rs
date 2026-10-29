@@ -165,6 +165,7 @@ fn main() {
                 geometry_save_revision: std::sync::atomic::AtomicU64::new(0),
                 geometry_save_worker_running: std::sync::atomic::AtomicBool::new(false),
                 heartbeat_token: uuid::Uuid::new_v4().simple().to_string(),
+                shutdown_requested: std::sync::atomic::AtomicBool::new(false),
             });
 
             let shortcut_text = cfg.global_shortcut.clone();
@@ -251,11 +252,17 @@ fn main() {
                 }
                 WindowEvent::Destroyed => {
                     window::flush_pending_config(&handle);
-                    diagnostics::log(
-                        &event_diag_dir,
-                        "WARN",
-                        "A janela principal foi destruída enquanto o processo estava ativo; configuração pendente descarregada.",
-                    );
+                    if handle.state::<AppState>().shutdown_requested.load(std::sync::atomic::Ordering::SeqCst) {
+                        diagnostics::log(&event_diag_dir, "INFO", "A janela principal foi destruída durante o encerramento solicitado.");
+                    } else {
+                        diagnostics::log(&event_diag_dir, "FATAL", "A janela principal foi destruída inesperadamente; o processo será encerrado para evitar que a bandeja fique sem uma janela funcional.");
+                        #[cfg(windows)]
+                        show_message(
+                            "Widget Website — falha da janela",
+                            &format!("A janela principal foi encerrada inesperadamente. O aplicativo será fechado.\n\nConsulte o diagnóstico em: {}", diagnostics::log_path(&event_diag_dir).display()),
+                        );
+                        handle.exit(1);
+                    }
                 }
                 _ => {}
             });
