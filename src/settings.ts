@@ -231,11 +231,33 @@ function read(): C {
   };
 }
 
+type ConfigPatch = Partial<Omit<C, "x" | "y">>;
+function readPatch(): ConfigPatch {
+  if (!current) throw new Error("CONFIG_NOT_LOADED");
+  const candidate = read();
+  const patch: ConfigPatch = {};
+  if (candidate.site_url !== current.site_url) patch.site_url = candidate.site_url;
+  if (candidate.width !== current.width) patch.width = candidate.width;
+  if (candidate.height !== current.height) patch.height = candidate.height;
+  if (candidate.remember_position !== current.remember_position) patch.remember_position = candidate.remember_position;
+  if (candidate.autostart !== current.autostart) patch.autostart = candidate.autostart;
+  if (candidate.always_on_top !== current.always_on_top) patch.always_on_top = candidate.always_on_top;
+  if (candidate.opacity !== current.opacity) patch.opacity = candidate.opacity;
+  if (candidate.zoom !== current.zoom) patch.zoom = candidate.zoom;
+  if (candidate.auto_reload_minutes !== current.auto_reload_minutes) patch.auto_reload_minutes = candidate.auto_reload_minutes;
+  if (candidate.show_in_taskbar !== current.show_in_taskbar) patch.show_in_taskbar = candidate.show_in_taskbar;
+  if (candidate.locked !== current.locked) patch.locked = candidate.locked;
+  if (candidate.global_shortcut !== current.global_shortcut) patch.global_shortcut = candidate.global_shortcut;
+  if (candidate.corner_radius !== current.corner_radius) patch.corner_radius = candidate.corner_radius;
+  if (candidate.language !== current.language) patch.language = candidate.language;
+  return patch;
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   say(t("saving"));
   try {
-    const result = await invoke<S>("save_config", { config: read(), forceResize: forceResizeOnSave });
+    const result = await invoke<S>("save_config", { config: readPatch(), forceResize: forceResizeOnSave });
     current = result.config;
     forceResizeOnSave = false;
     dirtyFields.clear();
@@ -255,6 +277,7 @@ form.addEventListener("submit", async (event) => {
     const message = error instanceof Error ? error.message : String(error);
     if (message === "FIELD_REQUIRED") say(t("fieldRequired"), "error");
     else if (message === "FIELD_RANGE") say(t("fieldRange"), "error");
+    else if (message === "CONFIG_NOT_LOADED") say(t("loadFailed") + t("configReadFailed"), "error");
     else {
       const key = backendErrorKeys[message];
       say(key ? t(key) : t("invalidConfig") + translateBackendError(error), "error");
