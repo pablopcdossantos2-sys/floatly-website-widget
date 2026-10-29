@@ -9,7 +9,7 @@ A small Windows desktop widget that keeps the Investing.com economic calendar op
 - System tray, single-instance behavior and a global shortcut (default: CTRL+ALT+C). Closing the window hides it in the tray; use **Quit** to exit the app.
 - Persistent WebView2 session in %APPDATA%\WidgetWebsite\webview-data; settings in %APPDATA%\WidgetWebsite\config.json.
 - Interface available in Brazilian Portuguese, English and Spanish. Change it under **Settings → Language**.
-- Move the widget by dragging the visible handle at the top, or hold Alt while dragging any area. Window size and position are also configurable.
+- Drag the widget using the thin blue border around the content (top, bottom or either side). The top handle and Alt + drag are also available. Window size and position are configurable.
 - Configurable website URL, size, position, movement lock, always-on-top behavior, taskbar visibility, opacity, zoom, corner radius and automatic reload.
 - External links open in the default browser. Recognized sign-in domains open in a secondary window with a simple address bar and shared WebView2 data folder; the window attempts to close when sign-in returns to the configured website.
 - Windows x64 build workflow and NSIS installer.
