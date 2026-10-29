@@ -52,23 +52,29 @@ setInterval(heartbeat,5000)
 })();"#;
 const LOGIN_INIT:&str=r#"(function(){
 if(window.top!==window||!/^https?:$/.test(location.protocol))return;
+const UI_LANGUAGE='__WIDGET_LANGUAGE__';
+const TEXT=UI_LANGUAGE==='en'
+?{login:'Sign in',back:'Back',reload:'Reload',address:'Website address',go:'Go',close:'Close'}
+:UI_LANGUAGE==='es'
+?{login:'Iniciar sesión',back:'Volver',reload:'Actualizar',address:'Dirección del sitio',go:'Ir',close:'Cerrar'}
+:{login:'Login',back:'Voltar',reload:'Recarregar',address:'Endereço do site',go:'Ir',close:'Fechar'};
 function addToolbar(){
  if(!document.documentElement||document.getElementById('__widget_login_bar'))return;
  const style=document.createElement('style');
  style.textContent='#__widget_login_bar{position:fixed;z-index:2147483647;left:0;right:0;top:0;height:46px;display:flex;align-items:center;gap:6px;padding:6px 9px;background:#edf2f8;border-bottom:1px solid #cad5e3;box-shadow:0 2px 8px #152b451a;font:12px Segoe UI,Arial,sans-serif;color:#213247}#__widget_login_bar button{flex:none;border:1px solid #d0d9e5;background:#fff;color:#23364d;border-radius:6px;padding:6px 9px;font:600 12px Segoe UI,Arial,sans-serif;cursor:pointer}#__widget_login_bar input{flex:1;min-width:30px;border:1px solid #cbd6e3;border-radius:6px;padding:7px 9px;background:#fff;color:#24364a;font:12px Segoe UI,Arial,sans-serif;outline:none}#__widget_login_bar .label{font-weight:700;white-space:nowrap}';
  (document.head||document.documentElement).appendChild(style);
  const bar=document.createElement('div');bar.id='__widget_login_bar';
- const label=document.createElement('span');label.className='label';label.textContent='Login';
- const back=document.createElement('button');back.type='button';back.textContent='←';back.title='Voltar';back.setAttribute('aria-label','Voltar');
+ const label=document.createElement('span');label.className='label';label.textContent=TEXT.login;
+ const back=document.createElement('button');back.type='button';back.textContent='←';back.title=TEXT.back;back.setAttribute('aria-label',TEXT.back);
  back.addEventListener('click',function(){history.back()});
- const reload=document.createElement('button');reload.type='button';reload.textContent='↻';reload.title='Recarregar';
+ const reload=document.createElement('button');reload.type='button';reload.textContent='↻';reload.title=TEXT.reload;
  reload.addEventListener('click',function(){location.reload()});
- const address=document.createElement('input');address.type='text';address.value=location.href;address.setAttribute('aria-label','Endereço do site');
+ const address=document.createElement('input');address.type='text';address.value=location.href;address.setAttribute('aria-label',TEXT.address);
  address.addEventListener('focus',function(){address.select()});
  function go(){let v=address.value.trim();try{const u=new URL(v.includes('://')?v:'https://'+v);if(u.protocol!=='https:'&&u.protocol!=='http:')throw new Error('scheme');location.href=u.href}catch(_){address.setCustomValidity('Informe um endereço HTTP ou HTTPS válido.');address.reportValidity();address.setCustomValidity('')}}
  address.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();go()}});
- const button=document.createElement('button');button.type='button';button.textContent='Ir';button.addEventListener('click',go);
- const close=document.createElement('button');close.type='button';close.textContent='Fechar';close.addEventListener('click',function(){location.href='widget-login-action://close'});
+ const button=document.createElement('button');button.type='button';button.textContent=TEXT.go;button.addEventListener('click',go);
+ const close=document.createElement('button');close.type='button';close.textContent=TEXT.close;close.addEventListener('click',function(){location.href='widget-login-action://close'});
  bar.append(label,back,address,button,reload,close);document.documentElement.appendChild(bar);
  document.documentElement.style.setProperty('padding-top','46px','important');document.documentElement.style.setProperty('scroll-padding-top','50px','important');
 }
@@ -211,11 +217,11 @@ fn begin_native_resize(_window:&WebviewWindow, _direction:&str) {}
 
 fn open_login(app:&AppHandle,url:Url)->tauri::Result<()>{
  let id=LOGIN_ID.fetch_add(1,Ordering::Relaxed);let label=format!("login-{id}");let close_label=label.clone();
- let state=app.state::<AppState>();let diag_dir=state.app_dir.clone();let dir=state.app_dir.join("webview-data");std::fs::create_dir_all(&dir).ok();
+ let state=app.state::<AppState>();let diag_dir=state.app_dir.clone();let language=state.config.lock().map(|config|config.language.clone()).unwrap_or_else(|_|"pt-BR".to_owned());let dir=state.app_dir.join("webview-data");std::fs::create_dir_all(&dir).ok();
  crate::diagnostics::log(&diag_dir,"INFO",format!("Abrindo janela de autenticação (host={}).",url.host_str().unwrap_or("sem host")));
  let nav=app.clone();let pop=app.clone();let close_app=app.clone();let nav_seen_auth=Arc::new(AtomicBool::new(false));let popup_seen_auth=Arc::clone(&nav_seen_auth);
  let host=url.host_str().unwrap_or("Login").to_owned();
- WebviewWindowBuilder::new(app,label,WebviewUrl::External(url)).title(format!("Entrar — {host}")).inner_size(960.0,760.0).min_inner_size(600.0,450.0).decorations(true).resizable(true).skip_taskbar(false).data_directory(dir).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(LOGIN_INIT)
+ WebviewWindowBuilder::new(app,label,WebviewUrl::External(url)).title(format!("Entrar — {host}")).inner_size(960.0,760.0).min_inner_size(600.0,450.0).decorations(true).resizable(true).skip_taskbar(false).data_directory(dir).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(LOGIN_INIT.replace("__WIDGET_LANGUAGE__",&language))
  .on_navigation(move|u|{
    if u.scheme()=="widget-login-action"{if let Some(w)=nav.get_webview_window(&close_label){let _=w.close();}return false}
    if u.scheme()!="http"&&u.scheme()!="https"{crate::diagnostics::log(&diag_dir,"WARN",format!("Navegação de login bloqueada por esquema: {}",u.scheme()));return false}
