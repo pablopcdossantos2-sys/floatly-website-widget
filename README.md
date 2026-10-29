@@ -16,8 +16,9 @@ Widget desktop para manter o calendário econômico do Investing.com aberto em u
 - Para compilar localmente: Visual Studio Build Tools com Desenvolvimento para desktop com C++ e Windows SDK.
 
 ## Desenvolvimento
-Execute no PowerShell:
+Execute no PowerShell (a geração dos ícones é necessária na primeira compilação):
     npm install
+    npm run icons
     npm run tauri dev
 
 ## Instalar / empacotar
