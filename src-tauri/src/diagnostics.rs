@@ -33,13 +33,16 @@ fn utc_timestamp() -> String {
     let elapsed = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default();
-    let seconds = elapsed.as_secs();
+    format_utc_timestamp(elapsed.as_secs(), elapsed.subsec_millis())
+}
+
+fn format_utc_timestamp(seconds: u64, millis: u32) -> String {
     let days = (seconds / 86_400) as i64;
     let day_seconds = (seconds % 86_400) as i64;
 
-    // Convert the Unix day count to a Gregorian date without adding a dependency.
+    // Convert Unix days to a Gregorian date (Howard Hinnant's civil_from_days).
     let z = days + 719_468;
-    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let era = (if z >= 0 { z } else { z - 146_096 }) / 146_097;
     let day_of_era = z - era * 146_097;
     let year_of_era =
         (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
@@ -51,11 +54,10 @@ fn utc_timestamp() -> String {
     year += if month <= 2 { 1 } else { 0 };
 
     format!(
-        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}.{:03}Z",
+        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}.{millis:03}Z",
         day_seconds / 3_600,
         (day_seconds % 3_600) / 60,
-        day_seconds % 60,
-        elapsed.subsec_millis()
+        day_seconds % 60
     )
 }
 
@@ -308,6 +310,26 @@ fn native_window_status(_app: &AppHandle) -> String {
 mod tests {
     use super::*;
     use std::fs;
+
+    #[test]
+    fn formats_utc_timestamp_from_unix_epoch() {
+        assert_eq!(
+            format_utc_timestamp(0, 123),
+            "1970-01-01T00:00:00.123Z"
+        );
+    }
+
+    #[test]
+    fn formats_leap_day_and_modern_year_correctly() {
+        assert_eq!(
+            format_utc_timestamp(951_782_400, 0),
+            "2000-02-29T00:00:00.000Z"
+        );
+        assert_eq!(
+            format_utc_timestamp(1_793_291_247, 251),
+            "2026-10-29T16:27:27.251Z"
+        );
+    }
 
     #[test]
     fn writes_a_persistent_diagnostic_line() {
