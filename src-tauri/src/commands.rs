@@ -12,6 +12,16 @@ pub struct SaveResult {
     pub config: AppConfig,
     pub warning: Option<String>,
 }
+/// The remote calendar can only use this command to report liveness.
+#[tauri::command]
+pub fn heartbeat(token: String, state: State<'_, AppState>) -> Result<(), String> {
+    if token != state.heartbeat_token {
+        return Err("heartbeat.invalid_token".to_owned());
+    }
+    crate::diagnostics::record_heartbeat(&state.app_dir);
+    Ok(())
+}
+
 #[tauri::command]
 pub fn get_config(app: AppHandle, state: State<'_, AppState>) -> AppConfig {
     let mut c = state.config.lock().map(|v| v.clone()).unwrap_or_default();
