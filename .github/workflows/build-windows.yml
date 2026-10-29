@@ -42,6 +42,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Tauri dependency versions are inconsistent." }
           npm run check:acl
           if ($LASTEXITCODE -ne 0) { throw "Tauri capability/command ACL check failed." }
+      - name: Check drag overlay fallback styling
+        run: npm run check:drag-overlay
       - name: TypeScript type check
         run: npm run typecheck
       - name: Check light/dark theme contrast
