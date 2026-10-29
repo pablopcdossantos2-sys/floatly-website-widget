@@ -34,7 +34,7 @@ const translations: Record<Language, Record<string, string>> = {
     alwaysOnTop: "Sempre no topo", alwaysOnTopHelp: "Mantém o widget acima de outras janelas.",
     taskbar: "Mostrar na barra de tarefas", taskbarHelp: "Se desativado, use o ícone da bandeja para reabrir.",
     locked: "Travar mover e redimensionar",
-    lockedHelp: "Ative para bloquear o movimento e o redimensionamento. Desative para habilitar o arraste pela borda azul ao redor do widget.",
+    lockedHelp: "Ative para bloquear o movimento e o redimensionamento. Desative para mover o widget pela aba superior; as bordas transparentes também aceitam arraste.",
     autostart: "Iniciar com o Windows", autostartHelp: "Usa o registro do usuário atual, sem exigir administrador.",
     appearanceSection: "Aparência e atualização", opacity: "Opacidade",
     zoom: "Zoom do navegador embutido",
@@ -64,7 +64,7 @@ const translations: Record<Language, Record<string, string>> = {
     alwaysOnTop: "Always on top", alwaysOnTopHelp: "Keeps the widget above other windows.",
     taskbar: "Show in taskbar", taskbarHelp: "When disabled, use the system tray icon to show the widget again.",
     locked: "Lock moving and resizing",
-    lockedHelp: "Enable this option to lock movement and resizing. Turn it off to move the widget using its blue border.",
+    lockedHelp: "Enable this option to lock movement and resizing. Turn it off to move the widget using the top handle; the transparent edges also remain draggable.",
     autostart: "Start with Windows", autostartHelp: "Uses the current user's startup settings; administrator rights are not required.",
     appearanceSection: "Appearance and refresh", opacity: "Opacity",
     zoom: "Embedded browser zoom",
@@ -94,7 +94,7 @@ const translations: Record<Language, Record<string, string>> = {
     alwaysOnTop: "Siempre visible", alwaysOnTopHelp: "Mantiene el widget por encima de otras ventanas.",
     taskbar: "Mostrar en la barra de tareas", taskbarHelp: "Si está desactivado, usa el icono de la bandeja para volver a mostrarlo.",
     locked: "Bloquear movimiento y cambio de tamaño",
-    lockedHelp: "Activa esta opción para bloquear el movimiento y el cambio de tamaño. Desactívala para mover el widget desde el borde azul.",
+    lockedHelp: "Activa esta opción para bloquear el movimiento y el cambio de tamaño. Desactívala para mover el widget desde el tirador superior; los bordes transparentes también permiten arrastrarlo.",
     autostart: "Iniciar con Windows", autostartHelp: "Usa la configuración de inicio del usuario actual, sin permisos de administrador.",
     appearanceSection: "Apariencia y actualización", opacity: "Opacidad",
     zoom: "Zoom del navegador integrado",
@@ -126,8 +126,8 @@ let current: C | null = null;
 let activeLanguage: Language = "pt-BR";
 let forceResizeOnSave = false;
 const dirtyFields = new Set<string>();
-const DEFAULT_WIDGET_WIDTH = 500;
-const DEFAULT_WIDGET_HEIGHT = 700;
+const DEFAULT_WIDGET_WIDTH = 350;
+const DEFAULT_WIDGET_HEIGHT = 550;
 type SettingsTheme = "light" | "dark";
 const themePreferenceKey = "widget-website-settings-theme";
 
