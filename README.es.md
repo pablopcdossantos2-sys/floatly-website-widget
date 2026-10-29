@@ -16,7 +16,7 @@ Widget compacto para Windows que muestra el calendario económico de Investing.c
 
 ## Requisitos
 
-- Windows 10/11 x64, Node.js y npm.
+- Windows 10/11 x64, Node.js 22 o posterior (LTS) y npm.
 - Rust estable 1.90 o posterior.
 - Microsoft Edge WebView2 Runtime: https://developer.microsoft.com/microsoft-edge/webview2/
 - Para compilar localmente: Visual Studio Build Tools con Desarrollo para escritorio con C++ y Windows SDK.
@@ -25,13 +25,13 @@ Widget compacto para Windows que muestra el calendario económico de Investing.c
 
 Ejecuta estos comandos en PowerShell (es necesario generar los iconos antes de la primera compilación):
 
-    npm install
+    npm ci
     npm run icons
     npm run tauri dev
 
 ## Compilar / empaquetar
 
-    npm install
+    npm ci
     npm run icons
     npm run tauri build
 
@@ -48,7 +48,7 @@ El flujo de GitHub Actions admite firma Authenticode opcional. Para activarla, c
 - WINDOWS_PFX_BASE64: archivo de certificado PFX codificado en Base64.
 - WINDOWS_PFX_PASSWORD: contraseña del archivo PFX.
 
-No guardes una clave privada en el repositorio ni en este README. Durante la compilación, el flujo importa el certificado, firma con SHA-256 y una marca de tiempo y elimina el archivo PFX temporal. Sin ambos secretos, CI avisa que el artefacto no está firmado y continúa la compilación.
+No guardes una clave privada en el repositorio ni en este README. La compilación se ejecuta sin acceso al certificado de firma. Un trabajo independiente usa `signtool` para firmar y verificar el instalador NSIS y el ejecutable publicado por separado con SHA-256 y una marca de tiempo; luego elimina el PFX temporal. El ejecutable publicado por separado está firmado, pero la copia que ya está incluida dentro del instalador se empaquetó sin firma. Sin ambos secretos, los artefactos se publican sin firma.
 
 **Importante:** una firma válida no garantiza que Microsoft Defender SmartScreen nunca muestre un aviso. Las aplicaciones o los archivos nuevos pueden mostrar advertencias hasta que se establezca la reputación del editor y del archivo. Publicar en Microsoft Store es la forma más directa de evitar avisos de descarga de SmartScreen. Consulta la [guía de reputación de SmartScreen de Microsoft](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) y la [guía de firma de Tauri para Windows](https://tauri.app/distribute/sign/windows/).
 
@@ -73,11 +73,15 @@ La aplicación no lee, copia ni almacena contraseñas. Se conserva el agente de 
 
 - Sin telemetría. La navegación principal se limita al sitio configurado y a recursos de autenticación reconocidos; los demás enlaces HTTP/HTTPS se abren en el navegador predeterminado.
 - Si el archivo de configuración está dañado, se reemplaza por valores predeterminados. **Restaurar tamaño predeterminado** solo cambia las dimensiones a 500 × 700 px; conserva las demás preferencias.
-- CI ejecuta pruebas automáticas de valores predeterminados, normalización, validación de URL, compatibilidad con configuraciones antiguas sin idioma y recuperación de archivos dañados; también compila el instalador de Windows.
+- CI comprueba la alineación de versiones de Tauri, el manifiesto de comandos y las capabilities; ejecuta `npm ci`, la verificación de tipos, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` y `cargo test`, y después compila el instalador de Windows.
 - La ventana secundaria de inicio de sesión comparte la carpeta de datos de WebView2 e incluye una barra de direcciones inyectada. Los dominios no autorizados se abren en el navegador predeterminado. El cierre automático depende de que el proveedor vuelva al sitio configurado; algunos inicios de sesión sociales pueden requerir cerrar la ventana manualmente.
 - El zoom usa el control nativo de WebView2. La opacidad y las esquinas redondeadas usan CSS/recorte nativo; el aspecto de las esquinas puede variar en Windows 10.
 - Las comprobaciones de red muestran un panel propio antes de la navegación principal y supervisan la conectividad mientras el sitio está abierto. El envoltorio predeterminado de Tauri no puede reemplazar todos los errores de navegación de Chromium en todos los escenarios.
 - Es necesario probar el inicio de sesión real, los filtros guardados, los conflictos de atajos, escalas del 125 %/150 %, varios monitores, cambios de DPI y consumo de memoria en hardware Windows.
+
+## Desinstalación y datos guardados
+
+El desinstalador NSIS ofrece la casilla **Delete the application data**. Si se marca, elimina `%APPDATA%\\WidgetWebsite` (configuración, registros y sesión de WebView2) y `%LOCALAPPDATA%\\WidgetWebsite` si existe. Si se deja desmarcada, estos datos se conservan para una reinstalación posterior. La entrada de inicio automático de Windows siempre se elimina al desinstalar la aplicación.
 
 ## Estructura
 
