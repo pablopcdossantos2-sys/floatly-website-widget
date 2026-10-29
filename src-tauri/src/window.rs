@@ -393,29 +393,34 @@ crate::diagnostics::log(&diag_dir,"INFO",format!("Encaminhando link externo ao n
     apply_config(app, c, true);
     Ok(w)
 }
+fn pack_lparam(x: i32, y: i32) -> isize {
+    ((x as u16 as u32) | ((y as u16 as u32) << 16)) as isize
+}
+
 #[cfg(windows)]
 fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
     use windows_sys::Win32::Foundation::POINT;
-    use windows_sys::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
+        GetAsyncKeyState, ReleaseCapture, VK_LBUTTON,
+    };
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        GetCursorPos, SendMessageW, HTCAPTION, WM_NCLBUTTONDOWN,
+        GetCursorPos, PostMessageW, HTCAPTION, WM_NCLBUTTONDOWN,
     };
 
+    if unsafe { GetAsyncKeyState(VK_LBUTTON as i32) } as u16 & 0x8000 == 0 {
+        return Err("Arraste cancelado porque o botão esquerdo do mouse já foi solto.".into());
+    }
     let raw_hwnd = window.hwnd().map_err(|error| error.to_string())?;
     let mut cursor: POINT = unsafe { std::mem::zeroed() };
     if unsafe { GetCursorPos(&mut cursor) } == 0 {
         return Err("Não foi possível obter a posição do ponteiro do mouse.".into());
     }
-    let packed_position = ((cursor.x as u16 as u32) | ((cursor.y as u16 as u32) << 16)) as isize;
-
+    let packed_position = pack_lparam(cursor.x, cursor.y);
     unsafe {
         ReleaseCapture();
-        SendMessageW(
-            raw_hwnd.0,
-            WM_NCLBUTTONDOWN,
-            HTCAPTION as usize,
-            packed_position,
-        );
+        if PostMessageW(raw_hwnd.0, WM_NCLBUTTONDOWN, HTCAPTION as usize, packed_position) == 0 {
+            return Err("O Windows não aceitou o início do arraste nativo.".into());
+        }
     }
     Ok(())
 }
@@ -426,11 +431,14 @@ fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
 }
 
 #[cfg(windows)]
-fn begin_native_resize(window: &WebviewWindow, direction: &str) {
-    use windows_sys::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
+fn begin_native_resize(window: &WebviewWindow, direction: &str) -> Result<(), String> {
+    use windows_sys::Win32::Foundation::POINT;
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
+        GetAsyncKeyState, ReleaseCapture, VK_LBUTTON,
+    };
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        SendMessageW, HTBOTTOM, HTBOTTOMLEFT, HTBOTTOMRIGHT, HTLEFT, HTRIGHT, HTTOP, HTTOPLEFT,
-        HTTOPRIGHT, WM_NCLBUTTONDOWN,
+        GetCursorPos, PostMessageW, HTBOTTOM, HTBOTTOMLEFT, HTBOTTOMRIGHT, HTLEFT, HTRIGHT, HTTOP,
+        HTTOPLEFT, HTTOPRIGHT, WM_NCLBUTTONDOWN,
     };
     let hit_test = match direction {
         "north" => HTTOP,
@@ -441,18 +449,27 @@ fn begin_native_resize(window: &WebviewWindow, direction: &str) {
         "north-west" => HTTOPLEFT,
         "south-east" => HTBOTTOMRIGHT,
         "south-west" => HTBOTTOMLEFT,
-        _ => return,
+        _ => return Err("Direção de redimensionamento inválida.".into()),
     };
-    if let Ok(raw_hwnd) = window.hwnd() {
-        let hwnd = raw_hwnd.0;
-        unsafe {
-            ReleaseCapture();
-            SendMessageW(hwnd, WM_NCLBUTTONDOWN, hit_test as usize, 0);
+    if unsafe { GetAsyncKeyState(VK_LBUTTON as i32) } as u16 & 0x8000 == 0 {
+        return Err("Redimensionamento cancelado porque o botão esquerdo do mouse já foi solto.".into());
+    }
+    let raw_hwnd = window.hwnd().map_err(|error| error.to_string())?;
+    let mut cursor: POINT = unsafe { std::mem::zeroed() };
+    if unsafe { GetCursorPos(&mut cursor) } == 0 {
+        return Err("Não foi possível obter a posição do ponteiro do mouse.".into());
+    }
+    let packed_position = pack_lparam(cursor.x, cursor.y);
+    unsafe {
+        ReleaseCapture();
+        if PostMessageW(raw_hwnd.0, WM_NCLBUTTONDOWN, hit_test as usize, packed_position) == 0 {
+            return Err("O Windows não aceitou o início do redimensionamento nativo.".into());
         }
     }
+    Ok(())
 }
 #[cfg(not(windows))]
-fn begin_native_resize(_window: &WebviewWindow, _direction: &str) {}
+fn begin_native_resize(_window: &WebviewWindow, _direction: &str) -> Result<(), String> { Ok(()) }
 
 fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
     let id = LOGIN_ID.fetch_add(1, Ordering::Relaxed);
@@ -633,6 +650,15 @@ fn restore_position(w: &WebviewWindow, c: &AppConfig) {
         let _ = w.center();
     }
 }
+fn corner_region_dims(inner_w: u32, inner_h: u32, radius: u8, scale: f64) -> (i32, i32, i32) {
+    let width = inner_w.min(i32::MAX as u32) as i32;
+    let height = inner_h.min(i32::MAX as u32) as i32;
+    let effective_scale = if scale.is_finite() && scale > 0.0 { scale } else { 1.0 };
+    let scaled_radius = (radius as f64 * effective_scale).round().clamp(0.0, i32::MAX as f64) as i32;
+    let corner_radius = scaled_radius.clamp(0, width.min(height).max(0) / 2);
+    (width, height, corner_radius)
+}
+
 #[cfg(windows)]
 fn apply_native_corners(window: &WebviewWindow, radius: u8) {
     use std::ffi::c_void;
@@ -642,7 +668,8 @@ fn apply_native_corners(window: &WebviewWindow, radius: u8) {
     use windows_sys::Win32::Graphics::Gdi::{CreateRoundRectRgn, DeleteObject, SetWindowRgn};
     if let Ok(raw_hwnd) = window.hwnd() {
         let hwnd = raw_hwnd.0;
-        let preference: u32 = if radius == 0 { 1 } else { 2 };
+        // The custom HRGN below owns the corner radius; disable DWM rounding to avoid double clipping.
+        let preference: u32 = 1;
         unsafe {
             let _ = DwmSetWindowAttribute(
                 hwnd,
@@ -653,9 +680,7 @@ fn apply_native_corners(window: &WebviewWindow, radius: u8) {
         }
         if let Ok(size) = window.inner_size() {
             let scale = window.scale_factor().unwrap_or(1.0);
-            let w = size.width.min(i32::MAX as u32) as i32;
-            let h = size.height.min(i32::MAX as u32) as i32;
-            let r = ((radius as f64 * scale).round() as i32).clamp(0, w.min(h) / 2);
+            let (w, h, r) = corner_region_dims(size.width, size.height, radius, scale);
             unsafe {
                 if r == 0 {
                     let _ = SetWindowRgn(hwnd, std::ptr::null_mut(), 1);
@@ -675,12 +700,7 @@ fn apply_native_corners(_window: &WebviewWindow, _radius: u8) {}
 
 pub fn refresh_native_corners(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
-        let radius = app
-            .state::<AppState>()
-            .config
-            .lock()
-            .map(|c| c.corner_radius)
-            .unwrap_or(12);
+        let radius = app.state::<AppState>().snapshot().corner_radius;
         apply_native_corners(&window, radius);
     }
 }
@@ -842,9 +862,7 @@ pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
     drop(c);
     schedule_debounced_config_save(app);
     let _ = app.emit("config-changed", &copy);
-    if let Some(window) = app.get_webview_window("main") {
-        apply_native_corners(&window, copy.corner_radius);
-    }
+
 }
 pub fn start_auto_reload(app: AppHandle) {
     thread::spawn(move || {
@@ -915,6 +933,30 @@ mod internal_app_navigation_tests {
     fn allows_tauri_protocol() {
         let url = Url::parse("tauri://localhost/").unwrap();
         assert!(is_internal_app_url(&url));
+    }
+}
+
+#[cfg(test)]
+mod corner_geometry_tests {
+    use super::*;
+
+    #[test]
+    fn corner_region_dims_follow_inner_size_and_clamp_radius() {
+        assert_eq!(corner_region_dims(300, 200, 12, 1.0), (300, 200, 12));
+        assert_eq!(corner_region_dims(0, 0, 12, 1.0), (0, 0, 0));
+        assert_eq!(corner_region_dims(40, 40, 64, 1.0), (40, 40, 20));
+        assert_eq!(corner_region_dims(300, 200, 12, 1.5), (300, 200, 18));
+    }
+
+    #[test]
+    fn pack_lparam_preserves_negative_coordinates() {
+        fn unpack_x(value: isize) -> i16 { (value as u32 as u16) as i16 }
+        fn unpack_y(value: isize) -> i16 { ((value as u32 >> 16) as u16) as i16 }
+        for (x, y) in [(-1920, 300), (2500, -1080), (-32768, 32767), (-1, -1)] {
+            let packed = pack_lparam(x, y);
+            assert_eq!(unpack_x(packed), x as i16);
+            assert_eq!(unpack_y(packed), y as i16);
+        }
     }
 }
 
