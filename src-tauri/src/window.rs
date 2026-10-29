@@ -823,10 +823,7 @@ pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
         .get_webview_window("main")
         .and_then(|w| w.scale_factor().ok())
         .unwrap_or(1.0);
-    let mut c = match state.config.lock() {
-        Ok(v) => v,
-        Err(_) => return,
-    };
+    let mut c = state.lock_config();
     if !c.remember_position {
         return;
     }
