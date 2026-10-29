@@ -39,6 +39,15 @@ fn is_auth_page(host:&str,path:&str,c:&AppConfig)->bool{
  let login_path=["/login","/log-in","/signin","/sign-in","/account","/accounts","/auth","/oauth","/callback"].iter().any(|part|p.contains(part));
  provider||investing_auth||(same_site&&login_path)
 }
+fn is_internal_app_url(url:&Url)->bool{
+    if url.scheme()=="tauri" {
+        return true;
+    }
+    let host=url.host_str().unwrap_or("");
+    (url.scheme()=="http" && host=="tauri.localhost")
+        || (cfg!(debug_assertions) && host=="127.0.0.1")
+}
+
 fn is_configured_page(url:&Url,c:&AppConfig)->bool{
  let Ok(target)=Url::parse(&c.site_url) else{return false};
  let host=url.host_str().unwrap_or("").to_ascii_lowercase();
@@ -53,7 +62,12 @@ let data=dir.join("webview-data");std::fs::create_dir_all(&data).ok();let diag_d
 let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(INIT)
 .on_navigation(move|u|{
 if u.scheme()=="widget-diagnostic"{crate::diagnostics::record_heartbeat(&diag_dir);return false}
-if u.scheme()=="tauri"||(cfg!(debug_assertions)&&u.host_str()==Some("127.0.0.1")){return true}
+if is_internal_app_url(&u){
+    if u.host_str()==Some("tauri.localhost"){
+        crate::diagnostics::log(&diag_dir,"INFO","Origem interna do Tauri autorizada; carregando a interface local.");
+    }
+    return true;
+}
 if u.scheme()=="widget-action"{let state=nav_app.state::<AppState>();let locked=state.config.lock().map(|v|v.locked).unwrap_or(true);if !locked{if let Some(w)=nav_app.get_webview_window("main"){let host=u.host_str().unwrap_or("");if host=="drag"{let _=w.start_dragging();}else if host=="resize"{begin_native_resize(&w,u.path().trim_matches('/'));}}}return false}
 if u.scheme()!="https"&&u.scheme()!="http"{crate::diagnostics::log(&diag_dir,"WARN",format!("Navegação bloqueada por esquema não HTTP(S): {}",u.scheme()));return false}
 crate::diagnostics::log_navigation(&diag_dir,&u);
@@ -167,3 +181,25 @@ pub fn open_settings(app:&AppHandle){if let Some(w)=app.get_webview_window("sett
 pub fn open_login_from_tray(app:&AppHandle){let text=app.state::<AppState>().config.lock().map(|c|c.site_url.clone()).unwrap_or_else(|_|crate::config::DEFAULT_SITE.to_owned());if let Ok(url)=Url::parse(&text){let a=app.clone();thread::spawn(move||{let _=open_login(&a,url);});}}
 pub fn save_window_state(app:&AppHandle,e:&WindowEvent){let state=app.state::<AppState>();let scale=app.get_webview_window("main").and_then(|w|w.scale_factor().ok()).unwrap_or(1.0);let mut c=match state.config.lock(){Ok(v)=>v,Err(_)=>return};if !c.remember_position{return}match e{WindowEvent::Moved(p)=>{c.x=Some(p.x);c.y=Some(p.y)},WindowEvent::Resized(z)=>{c.width=((z.width as f64/scale).round() as u32).clamp(150,2000);c.height=((z.height as f64/scale).round() as u32).clamp(100,1600)},_=>return}let copy=c.clone();drop(c);let _=crate::config::save(&state.app_dir,&copy);if let Some(window)=app.get_webview_window("main"){apply_native_corners(&window,copy.corner_radius);}}
 pub fn start_auto_reload(app:AppHandle){thread::spawn(move||{let mut seconds:u32=0;loop{thread::sleep(std::time::Duration::from_secs(10));let mins=app.state::<AppState>().config.lock().map(|c|c.auto_reload_minutes).unwrap_or(0)as u32;if mins==0{seconds=0;continue}seconds+=10;if seconds>=mins*60{seconds=0;if let Some(w)=app.get_webview_window("main"){let _=w.eval("location.reload()");}}}});}
+#[cfg(test)]
+mod internal_app_navigation_tests {
+    use super::*;
+
+    #[test]
+    fn allows_tauri_windows_asset_origin() {
+        let url = Url::parse("http://tauri.localhost/").unwrap();
+        assert!(is_internal_app_url(&url));
+    }
+
+    #[test]
+    fn does_not_treat_investing_as_an_internal_app_origin() {
+        let url = Url::parse("https://br.investing.com/economic-calendar").unwrap();
+        assert!(!is_internal_app_url(&url));
+    }
+
+    #[test]
+    fn allows_tauri_protocol() {
+        let url = Url::parse("tauri://localhost/").unwrap();
+        assert!(is_internal_app_url(&url));
+    }
+}
