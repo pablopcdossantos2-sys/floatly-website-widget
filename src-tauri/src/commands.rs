@@ -115,10 +115,7 @@ pub fn save_config(
         .clone();
     let previous_active_shortcut = active_shortcut.clone();
     let (old, requested) = {
-        let mut stored = state
-            .config
-            .lock()
-            .map_err(|_| "config.read_failed".to_owned())?;
+        let mut stored = state.lock_config();
         let old = stored.clone();
         let mut requested = patch.apply_to(old.clone());
         requested.normalize()?;
@@ -218,10 +215,7 @@ pub fn save_config(
     let corrected = c.global_shortcut != requested.global_shortcut || c.autostart != requested.autostart;
     if corrected {
         let correction_result = {
-            let mut stored = state
-                .config
-                .lock()
-                .map_err(|_| "config.write_failed".to_owned())?;
+            let mut stored = state.lock_config();
             *stored = c.clone();
             match config::save(&state.app_dir, &stored) {
                 Ok(()) => Ok(()),
@@ -326,10 +320,7 @@ pub fn quit_app(app: AppHandle) {
 pub fn toggle_locked(app: &AppHandle) {
     let s = app.state::<AppState>();
     let next = {
-        let mut c = match s.config.lock() {
-            Ok(v) => v,
-            Err(_) => return,
-        };
+        let mut c = s.lock_config();
         let previous = c.locked;
         c.locked = !c.locked;
         if let Err(error) = config::save(&s.app_dir, &c) {
@@ -349,10 +340,7 @@ pub fn toggle_locked(app: &AppHandle) {
 pub fn toggle_topmost(app: &AppHandle) {
     let s = app.state::<AppState>();
     let next = {
-        let mut c = match s.config.lock() {
-            Ok(v) => v,
-            Err(_) => return,
-        };
+        let mut c = s.lock_config();
         let previous = c.always_on_top;
         c.always_on_top = !c.always_on_top;
         if let Err(error) = config::save(&s.app_dir, &c) {
