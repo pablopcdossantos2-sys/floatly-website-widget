@@ -110,24 +110,33 @@ jobs:
             Write-Warning "Publishing unsigned artifacts because signing secrets are not configured."
           } else {
             $pfxPath = Join-Path $env:RUNNER_TEMP "widget-website-codesign.pfx"
-            try {
-              $bytes = [Convert]::FromBase64String(($env:WINDOWS_PFX_BASE64 -replace '\s', ''))
-              [System.IO.File]::WriteAllBytes($pfxPath, $bytes)
-              $sdkBin = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
-              $signtool = Get-ChildItem $sdkBin -Recurse -Filter "signtool.exe" -File -ErrorAction SilentlyContinue | Where-Object { $_.Directory.Name -eq "x64" } | Sort-Object { try { [version]$_.Directory.Parent.Name } catch { [version]"0.0" } } -Descending | Select-Object -First 1
-              if ($null -eq $signtool) { throw "Windows SDK signtool.exe was not found." }
-              foreach ($file in @($appBinary, $installers[0].FullName)) {
-                & $signtool.FullName sign /f $pfxPath /p $env:WINDOWS_PFX_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $file
-                if ($LASTEXITCODE -ne 0) { throw "signtool could not sign $file." }
-                & $signtool.FullName verify /pa /v $file
-                if ($LASTEXITCODE -ne 0) { throw "The Authenticode signature did not verify for $file." }
-              }
-              Write-Host "The application executable and installer were signed and verified."
-            } finally {
-              Remove-Item $pfxPath -Force -ErrorAction SilentlyContinue
-              Remove-Item Env:WINDOWS_PFX_BASE64 -ErrorAction SilentlyContinue
-              Remove-Item Env:WINDOWS_PFX_PASSWORD -ErrorAction SilentlyContinue
+          $existingThumbprints = @(Get-ChildItem Cert:\CurrentUser\My | ForEach-Object Thumbprint)
+          try {
+            $bytes = [Convert]::FromBase64String(($env:WINDOWS_PFX_BASE64 -replace '\s', ''))
+            [System.IO.File]::WriteAllBytes($pfxPath, $bytes)
+            $securePassword = ConvertTo-SecureString -String $env:WINDOWS_PFX_PASSWORD -AsPlainText -Force
+            $certificates = Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My -Password $securePassword
+            $certificate = $certificates | Where-Object { $_.HasPrivateKey } | Select-Object -First 1
+            if ($null -eq $certificate) { throw "The PFX did not provide a certificate with a private key." }
+            $thumbprint = $certificate.Thumbprint
+            $sdkBin = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
+            $signtool = Get-ChildItem $sdkBin -Recurse -Filter "signtool.exe" -File -ErrorAction SilentlyContinue | Where-Object { $_.Directory.Name -eq "x64" } | Sort-Object { try { [version]$_.Directory.Parent.Name } catch { [version]"0.0" } } -Descending | Select-Object -First 1
+            if ($null -eq $signtool) { throw "Windows SDK signtool.exe was not found." }
+            foreach ($file in @($appBinary, $installers[0].FullName)) {
+              & $signtool.FullName sign /s My /sha1 $thumbprint /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $file
+              if ($LASTEXITCODE -ne 0) { throw "signtool could not sign $file." }
+              & $signtool.FullName verify /pa /v $file
+              if ($LASTEXITCODE -ne 0) { throw "The Authenticode signature did not verify for $file." }
             }
+            Write-Host "The application executable and installer were signed and verified."
+          } finally {
+            Get-ChildItem Cert:\CurrentUser\My | Where-Object { $existingThumbprints -notcontains $_.Thumbprint } | ForEach-Object {
+              Remove-Item ("Cert:\CurrentUser\My\" + $_.Thumbprint) -Force -ErrorAction SilentlyContinue
+            }
+            Remove-Item $pfxPath -Force -ErrorAction SilentlyContinue
+            Remove-Item Env:WINDOWS_PFX_BASE64 -ErrorAction SilentlyContinue
+            Remove-Item Env:WINDOWS_PFX_PASSWORD -ErrorAction SilentlyContinue
+          }
           }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # actions/upload-artifact v7.0.2
         with:
