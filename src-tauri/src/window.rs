@@ -266,7 +266,10 @@ fn is_auth_provider(host: &str, path: &str) -> bool {
 fn is_login_path(path: &str) -> bool {
     path.split('/')
         .filter(|segment| !segment.is_empty())
-        .any(|segment| LOGIN_SEGMENTS.contains(&segment.to_ascii_lowercase().as_str()))
+        .any(|segment| {
+            let normalized = segment.to_ascii_lowercase();
+            LOGIN_SEGMENTS.contains(&normalized.as_str())
+        })
 }
 
 fn is_auth_page(host: &str, path: &str, c: &AppConfig) -> bool {
@@ -567,7 +570,13 @@ match decide_main(u,&cfg) {
     crate::diagnostics::log_navigation(&popup_diag_dir,&u);
     let cfg=popup_app.state::<AppState>().snapshot();
     match decide_main(&u,&cfg) {
-        NavAction::OpenLogin => open_login_limited(popup_app.clone(),u,popup_diag_dir.clone()),
+        NavAction::OpenLogin => {
+            if allow_login_popup() {
+                open_login_limited(popup_app.clone(),u,popup_diag_dir.clone());
+            } else {
+                crate::diagnostics::log(&popup_diag_dir,"WARN","Pop-up de autenticação da janela principal descartado pelo limite de uma abertura por segundo.");
+            }
+        },
         NavAction::Allow | NavAction::External => open_external_limited(popup_diag_dir.clone(),u.as_str().to_owned()),
         NavAction::Block => crate::diagnostics::log(&popup_diag_dir,"WARN","Pop-up bloqueado por esquema não HTTP(S)."),
     }
