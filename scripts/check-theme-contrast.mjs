@@ -4,7 +4,13 @@ function variables(selector) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const block = new RegExp(escaped + "\\s*\\{([^}]+)\\}").exec(css)?.[1];
   if (!block) throw new Error("Missing theme block: " + selector);
-  return Object.fromEntries([...block.matchAll(/--([a-z-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)].map((m) => [m[1], m[2]]));
+  return Object.fromEntries([...block.matchAll(/--([a-z-]+):\s*(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}))\s*;/g)].map((m) => {
+    const color = m[2];
+    const normalized = color.length === 4
+      ? "#" + [...color.slice(1)].map((digit) => digit + digit).join("")
+      : color;
+    return [m[1], normalized];
+  }));
 }
 function luminance(hex) {
   const channels = hex.slice(1).match(/../g).map((s) => parseInt(s, 16) / 255);
