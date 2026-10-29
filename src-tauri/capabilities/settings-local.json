@@ -8,8 +8,8 @@
   "permissions": [
     "core:event:allow-listen",
     "core:event:allow-unlisten",
-    "app:allow-get-config",
-    "app:allow-save-config",
-    "app:allow-close-settings"
+    "allow-get-config",
+    "allow-save-config",
+    "allow-close-settings"
   ]
 }
