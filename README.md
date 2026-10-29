@@ -37,6 +37,14 @@ O instalador aparece em src-tauri/target/release/bundle/nsis e o executável em 
 
 O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é preservado.
 
+## Diagnóstico de congelamentos
+
+- O aplicativo grava registros persistentes em `%APPDATA%\\WidgetWebsite\\diagnostics.log` (normalmente, `C:\\Users\\<usuário>\\AppData\\Roaming\\WidgetWebsite\\diagnostics.log`). O arquivo anterior é rotacionado para `diagnostics.log.1` quando o log atinge aproximadamente 1 MB.
+- A página envia um sinal de atividade a cada 5 segundos. Se o sinal deixar de chegar por 20 segundos, o monitor registra um aviso e, no Windows, verifica também se a janela nativa está marcada como sem resposta.
+- O log inclui início do app, detecção do WebView2 Runtime, navegações, falhas de inicialização e recuperação da atividade. URLs são registradas sem parâmetros de consulta ou fragmentos para reduzir o risco de guardar tokens de sessão.
+- As mensagens também são enviadas à saída padrão quando há um console anexado. Em builds gráficos do Windows, o terminal pode não estar disponível; por isso, o arquivo de log é a fonte confiável. Abra o arquivo com o Bloco de Notas depois de reproduzir o congelamento.
+- O diagnóstico distingue ausência de atividade JavaScript de uma janela nativa sem resposta, mas não consegue provar sozinho que um aplicativo externo causou o congelamento. O monitor também não pode gravar novas mensagens se o processo inteiro for encerrado abruptamente ou deixar de executar todos os seus threads.
+
 ## Privacidade, decisões e limitações
 - Sem telemetria. A navegação principal é limitada ao site configurado e a recursos de autenticação conhecidos; links HTTP/HTTPS para outros domínios abrem no navegador padrão.
 - Arquivo de configuração corrompido é substituído por valores padrão. O botão “Restaurar tamanho padrão” muda somente largura e altura para 500 × 700 px; as outras preferências são preservadas.
