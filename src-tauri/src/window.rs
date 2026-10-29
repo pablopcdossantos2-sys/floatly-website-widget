@@ -91,9 +91,10 @@ dragObserver.observe(document.documentElement,{childList:true,subtree:true});
 document.addEventListener('pointerdown',e=>{
  if(!e.isTrusted||e.button!==0||DRAG_LOCKED)return;
  const x=e.clientX,y=e.clientY,w=innerWidth,h=innerHeight;
- if(x<6||x>w-6||y<6||y>h-6){
-  const ns=y<6?'north':y>h-6?'south':'';
-  const ew=x<6?'west':x>w-6?'east':'';
+ const band=6/(window.devicePixelRatio||1);
+ if(x<band||x>w-band||y<band||y>h-band){
+  const ns=y<band?'north':y>h-band?'south':'';
+  const ew=x<band?'west':x>w-band?'east':'';
   const dir=ns&&ew?ns+'-'+ew:(ns||ew);
   if(dir){e.preventDefault();action('resize/'+dir)}
  }
