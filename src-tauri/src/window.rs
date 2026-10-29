@@ -152,6 +152,12 @@ fn apply_native_corners(window:&WebviewWindow, radius:u8) {
 #[cfg(not(windows))]
 fn apply_native_corners(_window:&WebviewWindow,_radius:u8) {}
 
+pub fn refresh_native_corners(app:&AppHandle){
+    if let Some(window)=app.get_webview_window("main"){
+        let radius=app.state::<AppState>().config.lock().map(|c|c.corner_radius).unwrap_or(12);
+        apply_native_corners(&window,radius);
+    }
+}
 pub fn apply_config(app:&AppHandle,c:&AppConfig){if let Some(w)=app.get_webview_window("main"){let _=w.set_always_on_top(c.always_on_top);let _=w.set_skip_taskbar(!c.show_in_taskbar);let _=w.set_resizable(!c.locked);let _=w.set_min_size(Some(LogicalSize::new(150.0,100.0)));let _=w.set_size(LogicalSize::new(c.width as f64,c.height as f64));let _=w.set_zoom(c.zoom as f64/100.0);let script=format!("document.documentElement.style.opacity='{}';document.documentElement.style.borderRadius='{}px';document.documentElement.style.overflow='hidden';",c.opacity as f64/100.0,c.corner_radius);let _=w.eval(&script);let _=w.set_shadow(c.corner_radius>0);apply_native_corners(&w,c.corner_radius);}}
 pub fn open_settings(app:&AppHandle){if let Some(w)=app.get_webview_window("settings"){let _=w.show();let _=w.set_focus();return}let a=app.clone();thread::spawn(move||{let dir=a.state::<AppState>().app_dir.join("settings-data");std::fs::create_dir_all(&dir).ok();let _=WebviewWindowBuilder::new(&a,"settings",WebviewUrl::App("settings.html".into())).title("Configurações — Widget Website").inner_size(760.0,850.0).min_inner_size(520.0,550.0).resizable(true).data_directory(dir).build();});}
 pub fn open_login_from_tray(app:&AppHandle){let text=app.state::<AppState>().config.lock().map(|c|c.site_url.clone()).unwrap_or_else(|_|crate::config::DEFAULT_SITE.to_owned());if let Ok(url)=Url::parse(&text){let a=app.clone();thread::spawn(move||{let _=open_login(&a,url);});}}
