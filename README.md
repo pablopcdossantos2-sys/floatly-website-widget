@@ -41,7 +41,7 @@ O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é 
 - Sem telemetria. A navegação principal é limitada ao site configurado e a recursos de autenticação conhecidos; links HTTP/HTTPS para outros domínios abrem no navegador padrão.
 - Arquivo de configuração corrompido é substituído por valores padrão.
 - A janela de login secundária compartilha a pasta de dados do WebView2; o domínio aparece no título, mas não há uma barra de endereço web própria. A compatibilidade de autenticação social depende das políticas do site e dos provedores.
-- Opacidade e zoom são aplicados por CSS no documento remoto; alguns sites podem reescrever esses estilos. O arredondamento combina sombra do Windows e recorte CSS, com diferenças no Windows 10.
+- O zoom é aplicado pelo controle nativo de ampliação do WebView2, afetando a renderização da página de forma semelhante ao zoom de um navegador. Opacidade e recorte dos cantos continuam usando CSS; o arredondamento pode variar no Windows 10.
 - A verificação de rede mostra uma tela própria antes da navegação e monitora a conexão enquanto o site está aberto. O wrapper padrão do Tauri não fornece um evento portátil que permita substituir toda falha de navegação do Chromium em todas as situações.
 - É necessário testar login real, filtros, atalho em conflito, escalas 125%/150%, monitores múltiplos, DPI e consumo de memória em Windows. O ambiente de desenvolvimento atual não permite comprovar esses comportamentos gráficos.
 
