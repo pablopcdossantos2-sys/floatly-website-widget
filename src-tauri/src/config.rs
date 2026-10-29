@@ -1,20 +1,32 @@
 use serde::{Deserialize, Serialize};
 use std::{
-    fs,
+    fs::{self, OpenOptions},
+    io::Write,
     path::{Path, PathBuf},
     str::FromStr,
-    sync::Mutex,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Mutex,
+    },
+    thread,
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use tauri_plugin_global_shortcut::Shortcut;
 use url::Url;
 
 pub const DEFAULT_SITE: &str = "https://br.investing.com/economic-calendar";
+pub const DEFAULT_WIDTH: u32 = 500;
+pub const DEFAULT_HEIGHT: u32 = 700;
+
+static SAVE_LOCK: Mutex<()> = Mutex::new(());
+static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 fn default_language() -> String {
     "pt-BR".to_owned()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct AppConfig {
     pub site_url: String,
     pub width: u32,
@@ -40,8 +52,8 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             site_url: DEFAULT_SITE.into(),
-            width: 500,
-            height: 700,
+            width: DEFAULT_WIDTH,
+            height: DEFAULT_HEIGHT,
             x: None,
             y: None,
             remember_position: true,
@@ -65,7 +77,12 @@ impl AppConfig {
         if site.is_empty() {
             return Err("config.site_url_required".into());
         }
-        if !site.contains("://") {
+        let has_scheme = site.split_once("://").is_some_and(|(scheme, _)| {
+            let mut chars = scheme.chars();
+            chars.next().is_some_and(|first| first.is_ascii_alphabetic())
+                && chars.all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '.' | '-'))
+        });
+        if !has_scheme {
             site = format!("https://{site}");
         }
         let url = Url::parse(&site).map_err(|_| "config.site_url_invalid".to_owned())?;
@@ -86,17 +103,39 @@ impl AppConfig {
         }
         self.auto_reload_minutes = self.auto_reload_minutes.min(1440);
         self.corner_radius = self.corner_radius.min(64);
-        let shortcut = self.global_shortcut.trim().to_ascii_uppercase();
-        let parts: Vec<&str> = shortcut.split('+').map(str::trim).collect();
-        let has_modifier = parts.iter().any(|part| {
-            matches!(
-                *part,
-                "CTRL" | "CONTROL" | "ALT" | "SHIFT" | "SUPER" | "WIN" | "META"
-            )
-        });
-        if !has_modifier || parts.len() < 2 || parts.last().is_none_or(|key| key.is_empty()) {
+        let raw = self.global_shortcut.trim().to_ascii_uppercase();
+        let parts: Vec<String> = raw.split('+').map(|part| part.trim().to_owned()).collect();
+        if parts.len() < 2 || parts.iter().any(String::is_empty) {
             return Err("config.shortcut_modifier_required".into());
         }
+        let key = parts.last().cloned().unwrap_or_default();
+        if matches!(key.as_str(), "CTRL" | "CONTROL" | "ALT" | "SHIFT" | "SUPER" | "WIN" | "META") {
+            return Err("config.shortcut_key_unsupported".into());
+        }
+        let mut modifiers = Vec::new();
+        for part in &parts[..parts.len() - 1] {
+            let canonical = match part.as_str() {
+                "CTRL" | "CONTROL" => "CTRL",
+                "ALT" => "ALT",
+                "SHIFT" => "SHIFT",
+                "SUPER" | "WIN" | "META" => "SUPER",
+                _ => return Err("config.shortcut_key_unsupported".into()),
+            };
+            if !modifiers.contains(&canonical) {
+                modifiers.push(canonical);
+            }
+        }
+        if !modifiers.iter().any(|modifier| matches!(*modifier, "CTRL" | "ALT" | "SUPER")) {
+            return Err("config.shortcut_modifier_required".into());
+        }
+        modifiers.sort_by_key(|modifier| match *modifier {
+            "CTRL" => 0,
+            "ALT" => 1,
+            "SHIFT" => 2,
+            "SUPER" => 3,
+            _ => 4,
+        });
+        let shortcut = format!("{}+{}", modifiers.join("+"), key);
         Shortcut::from_str(&shortcut).map_err(|_| "config.shortcut_key_unsupported".to_owned())?;
         self.global_shortcut = shortcut;
         if !["pt-BR", "en", "es"].contains(&self.language.as_str()) {
@@ -122,30 +161,134 @@ pub fn app_directory() -> PathBuf {
 }
 
 pub fn load(dir: &Path) -> AppConfig {
-    let mut config = fs::read(dir.join("config.json"))
-        .ok()
-        .and_then(|bytes| serde_json::from_slice::<AppConfig>(&bytes).ok())
-        .unwrap_or_default();
-    if config.normalize().is_err() {
-        config = AppConfig::default();
+    load_with_warnings(dir).0
+}
+
+/// Loads a configuration field-by-field so one malformed value does not discard every
+/// other preference. The boolean indicates whether startup may safely persist the result.
+pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
+    let path = dir.join("config.json");
+    let bytes = match fs::read(&path) {
+        Ok(bytes) => bytes,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return (AppConfig::default(), Vec::new(), true);
+        }
+        Err(error) => {
+            return (
+                AppConfig::default(),
+                vec![format!("Não foi possível ler config.json: {error}")],
+                false,
+            );
+        }
+    };
+    let value: serde_json::Value = match serde_json::from_slice(&bytes) {
+        Ok(value) if value.is_object() => value,
+        _ => {
+            let timestamp = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs();
+            let backup = dir.join(format!("config.json.bad-{timestamp}-{}", std::process::id()));
+            match fs::rename(&path, &backup) {
+                Ok(()) => {
+                    return (
+                        AppConfig::default(),
+                        vec![format!("JSON inválido; configuração original preservada em {}", backup.display())],
+                        true,
+                    );
+                }
+                Err(error) => {
+                    return (
+                        AppConfig::default(),
+                        vec![format!("JSON inválido e não foi possível criar backup de config.json: {error}")],
+                        false,
+                    );
+                }
+            }
+        }
+    };
+
+    let mut warnings = Vec::new();
+    let mut merged = serde_json::to_value(AppConfig::default()).expect("AppConfig default serializes");
+    if let (Some(base), Some(saved)) = (merged.as_object_mut(), value.as_object()) {
+        for (key, candidate_value) in saved {
+            let Some(default_value) = base.get(key) else {
+                continue;
+            };
+            let previous = default_value.clone();
+            base.insert(key.clone(), candidate_value.clone());
+            if serde_json::from_value::<AppConfig>(merged.clone()).is_err() {
+                base.insert(key.clone(), previous);
+                warnings.push(format!("Campo inválido em config.json: {key}; usando o valor padrão."));
+            }
+        }
     }
-    config
+    let mut config = serde_json::from_value::<AppConfig>(merged).unwrap_or_default();
+    let before_normalize = config.clone();
+    if let Err(error) = config.normalize() {
+        let field = if error.starts_with("config.site_url") {
+            config.site_url = AppConfig::default().site_url;
+            "site_url"
+        } else if error.starts_with("config.shortcut") {
+            config.global_shortcut = AppConfig::default().global_shortcut;
+            "global_shortcut"
+        } else {
+            warnings.push(format!("Configuração normalizada com valores padrão: {error}"));
+            config = AppConfig::default();
+            ""
+        };
+        if !field.is_empty() {
+            warnings.push(format!("Campo inválido em config.json: {field}; usando o valor padrão."));
+        }
+        if let Err(second_error) = config.normalize() {
+            warnings.push(format!("A configuração ainda era inválida após recuperação: {second_error}"));
+            config = AppConfig::default();
+        }
+    }
+    if before_normalize.opacity != config.opacity { warnings.push("Valor de opacity ajustado aos limites suportados.".into()); }
+    if before_normalize.zoom != config.zoom { warnings.push("Valor de zoom ajustado aos limites suportados.".into()); }
+    if before_normalize.width != config.width { warnings.push("Valor de width ajustado aos limites suportados.".into()); }
+    if before_normalize.height != config.height { warnings.push("Valor de height ajustado aos limites suportados.".into()); }
+    if before_normalize.auto_reload_minutes != config.auto_reload_minutes { warnings.push("Valor de auto_reload_minutes ajustado aos limites suportados.".into()); }
+    if before_normalize.corner_radius != config.corner_radius { warnings.push("Valor de corner_radius ajustado aos limites suportados.".into()); }
+    (config, warnings, true)
 }
 
 pub fn save(dir: &Path, config: &AppConfig) -> Result<(), String> {
+    let _guard = SAVE_LOCK.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
     fs::create_dir_all(dir).map_err(|error| error.to_string())?;
-    let temp = dir.join("config.json.tmp");
-    fs::write(
-        &temp,
-        serde_json::to_vec_pretty(config).map_err(|error| error.to_string())?,
-    )
-    .map_err(|error| error.to_string())?;
-    fs::rename(&temp, dir.join("config.json"))
-        .or_else(|_| {
-            fs::copy(&temp, dir.join("config.json"))?;
-            fs::remove_file(&temp)
-        })
-        .map_err(|error| error.to_string())
+    let bytes = serde_json::to_vec_pretty(config).map_err(|error| error.to_string())?;
+    let target = dir.join("config.json");
+    let counter = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
+    let temp = dir.join(format!("config.json.{}.{}.tmp", std::process::id(), counter));
+    let write_result = (|| -> Result<(), String> {
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&temp)
+            .map_err(|error| error.to_string())?;
+        file.write_all(&bytes).map_err(|error| error.to_string())?;
+        file.sync_all().map_err(|error| error.to_string())?;
+        Ok(())
+    })();
+    if let Err(error) = write_result {
+        let _ = fs::remove_file(&temp);
+        return Err(error);
+    }
+    let mut last_error = None;
+    for attempt in 0..3 {
+        match fs::rename(&temp, &target) {
+            Ok(()) => return Ok(()),
+            Err(error) => {
+                last_error = Some(error);
+                if attempt < 2 {
+                    thread::sleep(Duration::from_millis(50));
+                }
+            }
+        }
+    }
+    let _ = fs::remove_file(&temp);
+    Err(last_error.map(|error| error.to_string()).unwrap_or_else(|| "Não foi possível substituir config.json.".into()))
 }
 
 #[cfg(test)]
