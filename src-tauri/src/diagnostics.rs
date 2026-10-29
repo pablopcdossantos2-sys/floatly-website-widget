@@ -150,6 +150,7 @@ pub fn start_watchdog(app: AppHandle, dir: PathBuf) {
         ),
     );
 
+    let error_log_dir = dir.clone();
     let result = thread::Builder::new()
         .name("widget-webview-watchdog".to_owned())
         .spawn(move || loop {
@@ -194,7 +195,7 @@ pub fn start_watchdog(app: AppHandle, dir: PathBuf) {
 
     if let Err(error) = result {
         log(
-            &dir,
+            &error_log_dir,
             "ERRO",
             format!("Não foi possível iniciar o monitor de atividade: {error}"),
         );
