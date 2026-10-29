@@ -230,7 +230,8 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
                 .duration_since(UNIX_EPOCH)
                 .unwrap_or_default()
                 .as_secs();
-            let backup = dir.join(format!("config.json.bad-{timestamp}-{}", std::process::id()));
+            let backup_counter = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
+            let backup = dir.join(format!("config.json.bad-{timestamp}-{}-{backup_counter}", std::process::id()));
             match fs::rename(&path, &backup) {
                 Ok(()) => {
                     return (
