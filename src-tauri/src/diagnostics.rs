@@ -54,10 +54,14 @@ fn format_utc_timestamp(seconds: u64, millis: u32) -> String {
     year += if month <= 2 { 1 } else { 0 };
 
     format!(
-        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}.{millis:03}Z",
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
+        year,
+        month,
+        day,
         day_seconds / 3_600,
         (day_seconds % 3_600) / 60,
-        day_seconds % 60
+        day_seconds % 60,
+        millis
     )
 }
 
