@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main-remote-heartbeat",
-  "description": "Permite ao domínio principal do calendário enviar somente o sinal de atividade.",
+  "description": "Permite al calendario remoto enviar únicamente la señal autenticada de actividad.",
   "windows": [
     "main"
   ],
@@ -11,6 +11,6 @@
     ]
   },
   "permissions": [
-    "core:event:allow-emit"
+    "allow-heartbeat"
   ]
 }
