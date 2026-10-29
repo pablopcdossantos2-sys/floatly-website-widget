@@ -54,8 +54,8 @@
     <label class="range-label"><span data-i18n="opacity">Opacidade</span> <output id="opacity-value">100%</output><input id="opacity" type="range" min="30" max="100" step="5"></label>
     <label class="range-label"><span data-i18n="zoom">Zoom do navegador embutido</span> <output id="zoom-value">100%</output><input id="zoom" type="range" min="50" max="200" step="5"><small data-i18n="zoomHelp">Ampliação do WebView2 entre 50% e 200%, independente do CSS do site.</small></label>
     <div class="two-col">
-      <label><span data-i18n="cornerRadius">Raio dos cantos (px)</span><input id="corner_radius" type="number" min="0" max="64"></label>
-      <label><span data-i18n="reload">Recarregar a cada (min)</span><input id="auto_reload_minutes" type="number" min="0" max="1440"><small data-i18n="reloadHelp">0 desliga; valores ativos abaixo de 5 são ajustados para 5.</small></label>
+      <label><span data-i18n="cornerRadius">Raio dos cantos (px)</span><input id="corner_radius" type="number" min="0" max="64" step="1" required></label>
+      <label><span data-i18n="reload">Recarregar a cada (min)</span><input id="auto_reload_minutes" type="number" min="0" max="1440" step="1" required><small data-i18n="reloadHelp">0 desliga; valores ativos abaixo de 5 são ajustados para 5.</small></label>
     </div>
   </section>
   <section class="settings-section">
