@@ -35,6 +35,7 @@ pub fn save_config(
     app: AppHandle,
     state: State<'_, AppState>,
     config: AppConfig,
+    force_resize: Option<bool>,
 ) -> Result<SaveResult, String> {
     let mut c = config;
     c.normalize()?;
@@ -45,34 +46,127 @@ pub fn save_config(
         .clone();
     c.x = old.x;
     c.y = old.y;
+    let requested = c.clone();
+
+    // Persist the candidate before registering hotkeys or changing Windows startup.
+    config::save(&state.app_dir, &requested)
+        .map_err(|_| "config.disk_write_failed".to_owned())?;
+
     let mut warns = Vec::new();
-    if c.global_shortcut != old.global_shortcut {
-        let result = match Shortcut::from_str(&c.global_shortcut) {
-            Ok(s) => app.global_shortcut().register(s).map_err(|e| e.to_string()),
-            Err(e) => Err(e.to_string()),
+    let active_shortcut = state
+        .registered_shortcut
+        .lock()
+        .map_err(|_| "config.write_failed".to_owned())?
+        .clone();
+    let previous_active_shortcut = active_shortcut.clone();
+    let mut shortcut_changed = false;
+    if c.global_shortcut != active_shortcut {
+        match Shortcut::from_str(&c.global_shortcut) {
+            Ok(new_shortcut) => match app.global_shortcut().register(new_shortcut) {
+                Ok(()) => {
+                    let unregister_result = if active_shortcut.is_empty() {
+                        Ok(())
+                    } else {
+                        Shortcut::from_str(&active_shortcut)
+                            .map_err(|error| error.to_string())
+                            .and_then(|old_shortcut| {
+                                app.global_shortcut().unregister(old_shortcut).map_err(|error| error.to_string())
+                            })
+                    };
+                    if let Err(error) = unregister_result {
+                        let _ = app.global_shortcut().unregister(new_shortcut);
+                        crate::diagnostics::log(
+                            &state.app_dir,
+                            "WARN",
+                            format!("Não foi possível substituir o atalho ativo {active_shortcut}: {error}"),
+                        );
+                        c.global_shortcut = old.global_shortcut.clone();
+                        warns.push("shortcut_conflict".to_owned());
+                    } else {
+                        shortcut_changed = true;
+                        if let Ok(mut registered) = state.registered_shortcut.lock() {
+                            *registered = c.global_shortcut.clone();
+                        }
+                    }
+                }
+                Err(error) => {
+                    crate::diagnostics::log(
+                        &state.app_dir,
+                        "WARN",
+                        format!("Não foi possível registrar o novo atalho: {error}"),
+                    );
+                    c.global_shortcut = old.global_shortcut.clone();
+                    warns.push("shortcut_conflict".to_owned());
+                }
+            },
+            Err(error) => {
+                crate::diagnostics::log(
+                    &state.app_dir,
+                    "WARN",
+                    format!("O atalho não pôde ser interpretado: {error}"),
+                );
+                c.global_shortcut = old.global_shortcut.clone();
+                warns.push("shortcut_conflict".to_owned());
+            }
+        }
+    }
+
+    let previous_autostart = app.autolaunch().is_enabled().unwrap_or(old.autostart);
+    let mut autostart_changed = false;
+    if c.autostart != previous_autostart {
+        let result = if c.autostart {
+            app.autolaunch().enable()
+        } else {
+            app.autolaunch().disable()
         };
         if result.is_ok() {
-            if let Ok(s) = Shortcut::from_str(&old.global_shortcut) {
-                let _ = app.global_shortcut().unregister(s);
-            }
-            if let Ok(mut r) = state.registered_shortcut.lock() {
-                *r = c.global_shortcut.clone();
-            }
+            autostart_changed = app.autolaunch().is_enabled().unwrap_or(c.autostart) != previous_autostart;
         } else {
-            c.global_shortcut = old.global_shortcut.clone();
-            warns.push("shortcut_conflict".to_owned());
+            let actual = app.autolaunch().is_enabled().unwrap_or(previous_autostart);
+            if actual != c.autostart {
+                c.autostart = actual;
+                warns.push(if requested.autostart {
+                    "autostart_enable_failed".to_owned()
+                } else {
+                    "autostart_disable_failed".to_owned()
+                });
+            }
         }
     }
-    if c.autostart {
-        if app.autolaunch().enable().is_err() {
-            c.autostart = app.autolaunch().is_enabled().unwrap_or(false);
-            warns.push("autostart_enable_failed".into());
+
+    let corrected = c.global_shortcut != requested.global_shortcut || c.autostart != requested.autostart;
+    if corrected {
+        if let Err(error) = config::save(&state.app_dir, &c) {
+            crate::diagnostics::log(
+                &state.app_dir,
+                "ERRO",
+                format!("Não foi possível persistir a configuração corrigida após uma falha de integração: {error}"),
+            );
+            // Best-effort rollback: do not leave the runtime on a new hotkey if saving
+            // the corrected configuration failed.
+            if shortcut_changed {
+                if let Ok(new_shortcut) = Shortcut::from_str(&c.global_shortcut) {
+                    let _ = app.global_shortcut().unregister(new_shortcut);
+                }
+                if let Ok(old_shortcut) = Shortcut::from_str(&previous_active_shortcut) {
+                    let _ = app.global_shortcut().register(old_shortcut);
+                }
+                if let Ok(mut registered) = state.registered_shortcut.lock() {
+                    *registered = previous_active_shortcut;
+                }
+            }
+            if autostart_changed {
+                let _ = if previous_autostart {
+                    app.autolaunch().enable()
+                } else {
+                    app.autolaunch().disable()
+                };
+            }
+            let _ = config::save(&state.app_dir, &old);
+            return Err("config.disk_write_failed".to_owned());
         }
-    } else if app.autolaunch().disable().is_err() {
-        c.autostart = app.autolaunch().is_enabled().unwrap_or(false);
-        warns.push("autostart_disable_failed".into());
     }
-    config::save(&state.app_dir, &c).map_err(|_| "config.disk_write_failed".to_owned())?;
+
     {
         let mut stored = state
             .config
@@ -80,7 +174,8 @@ pub fn save_config(
             .map_err(|_| "config.write_failed".to_owned())?;
         *stored = c.clone();
     }
-    window::apply_config(&app, &c);
+    let resize = force_resize.unwrap_or(false) || c.width != old.width || c.height != old.height;
+    window::apply_config(&app, &c, resize);
     crate::tray::update_language(&app, &c.language);
     let _ = app.emit("config-changed", &c);
     if let Some(settings) = app.get_webview_window("settings") {
@@ -95,7 +190,13 @@ pub fn save_config(
         if let (Some(main), Ok(url)) =
             (app.get_webview_window("main"), url::Url::parse(&c.site_url))
         {
-            let _ = main.navigate(url);
+            if let Err(error) = main.navigate(url) {
+                crate::diagnostics::log(
+                    &state.app_dir,
+                    "WARN",
+                    format!("A configuração foi salva, mas a navegação para o novo site falhou: {error}"),
+                );
+            }
         }
     }
     Ok(SaveResult {
