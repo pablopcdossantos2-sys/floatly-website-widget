@@ -108,6 +108,11 @@ pub fn save_config(
     force_resize: Option<bool>,
 ) -> Result<SaveResult, String> {
     let patch = config;
+    let actual_autostart = if patch.autostart.is_none() {
+        app.autolaunch().is_enabled().ok()
+    } else {
+        None
+    };
     let active_shortcut = state
         .registered_shortcut
         .lock()
@@ -118,6 +123,11 @@ pub fn save_config(
         let mut stored = state.lock_config();
         let old = stored.clone();
         let mut requested = patch.apply_to(old.clone());
+        if patch.autostart.is_none() {
+            if let Some(enabled) = actual_autostart {
+                requested.autostart = enabled;
+            }
+        }
         requested.normalize()?;
         *stored = requested.clone();
 
