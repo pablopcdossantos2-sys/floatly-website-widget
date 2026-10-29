@@ -58,8 +58,7 @@ fn restore_position(w:&WebviewWindow,c:&AppConfig){if !c.remember_position{let _
 fn apply_native_corners(window:&WebviewWindow, radius:u8) {
     use std::ffi::c_void;
     use windows_sys::Win32::Graphics::Dwm::{DwmSetWindowAttribute,DWMWA_WINDOW_CORNER_PREFERENCE};
-    use windows_sys::Win32::Graphics::Gdi::{CreateRoundRectRgn,DeleteObject};
-    use windows_sys::Win32::UI::WindowsAndMessaging::SetWindowRgn;
+    use windows_sys::Win32::Graphics::Gdi::{CreateRoundRectRgn,DeleteObject,SetWindowRgn};
     if let Ok(raw_hwnd)=window.hwnd() {
         let hwnd=raw_hwnd.0;
         let preference:u32=if radius==0 {1} else {2};
