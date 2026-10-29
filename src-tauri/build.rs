@@ -5,6 +5,7 @@ fn main() {
                 "get_config",
                 "save_config",
                 "close_settings",
+                "heartbeat",
             ]),
         ),
     )
