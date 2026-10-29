@@ -5,8 +5,9 @@ use tauri::{AppHandle,Manager,WindowEvent};
 use tauri_plugin_autostart::{MacosLauncher,ManagerExt};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt,Shortcut,ShortcutState};
 fn toggle(app:&AppHandle){if let Some(w)=app.get_webview_window("main"){if w.is_visible().unwrap_or(false){let _=w.hide();}else{let _=w.show();}}}
+fn show_existing_instance(app:&AppHandle){if let Some(w)=app.get_webview_window("main"){let _=w.show();let _=w.set_focus();}}
 fn main(){tauri::Builder::default()
-.plugin(tauri_plugin_single_instance::init(|app,_,_|toggle(app)))
+.plugin(tauri_plugin_single_instance::init(|app,_,_|show_existing_instance(app)))
 .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent,None))
 .plugin(tauri_plugin_global_shortcut::Builder::new().with_handler(|app,_,event|{if event.state()==ShortcutState::Pressed{toggle(app)}}).build())
 .invoke_handler(tauri::generate_handler![commands::get_config,commands::save_config,commands::restore_defaults,commands::close_settings,commands::toggle_main_visibility,commands::reload_site,commands::quit_app])
