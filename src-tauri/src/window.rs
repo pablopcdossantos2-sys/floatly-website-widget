@@ -3,8 +3,9 @@ use std::{sync::{atomic::{AtomicBool,AtomicU64,Ordering},Arc},thread};
 use tauri::{utils::config::WebviewUrl,webview::{NewWindowResponse,WebviewWindowBuilder},AppHandle,LogicalSize,Manager,PhysicalPosition,PhysicalSize,WebviewWindow,WindowEvent};
 use url::Url;
 static LOGIN_ID:AtomicU64=AtomicU64::new(1);
-const INIT:&str=r#"(function(){
+const INIT:&str=r#"(function boot(){
 if(!/^https?:$/.test(location.protocol)||window.top!==window)return;
+if(!document.documentElement){document.addEventListener('DOMContentLoaded',boot,{once:true});return;}
 let UI_LANGUAGE='__WIDGET_LANGUAGE__';
 let DRAG_LOCKED='__WIDGET_LOCKED__'==='true';
 const UI_COPY={
@@ -20,8 +21,8 @@ style.textContent=`
 #__widget_drag::before{content:'⋮⋮';font:700 13px/1 Segoe UI,Arial,sans-serif;letter-spacing:2px;color:rgba(25,45,69,.96)}
 #__widget_drag:hover{opacity:1;background:rgba(24,105,210,.88);box-shadow:0 2px 8px rgba(0,0,0,.2)}
 #__widget_drag.__widget_drag_locked{opacity:.28;cursor:not-allowed;pointer-events:none}
-#__widget_drag_frame{position:fixed;z-index:2147483644;inset:10px;border:3px solid rgba(24,105,210,.68);border-radius:8px;box-sizing:border-box;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);transition:border-color .12s,box-shadow .12s}
-#__widget_drag_frame:hover{border-color:rgba(24,105,210,.88);box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}
+#__widget_drag_frame{position:fixed;z-index:2147483644;inset:10px;border:4px solid #1683ff;border-radius:8px;box-sizing:border-box;pointer-events:none;box-shadow:0 0 0 1px rgba(255,255,255,.9),0 0 8px rgba(22,131,255,.38),inset 0 0 0 1px rgba(255,255,255,.45);transition:border-color .12s,box-shadow .12s}
+#__widget_drag_frame:hover{border-color:#005fd4;box-shadow:0 0 0 1px rgba(255,255,255,.96),0 0 10px rgba(22,131,255,.52),inset 0 0 0 1px rgba(255,255,255,.55)}
 #__widget_drag_frame.__widget_drag_locked{border-color:rgba(115,126,139,.6);box-shadow:none}
 #__widget_drag_frame.__widget_drag_locked .__widget_drag_edge{pointer-events:none;cursor:default}
 #__widget_drag_frame .__widget_drag_edge{position:absolute;display:block;pointer-events:auto;background:transparent;touch-action:none;user-select:none;-webkit-user-select:none}
