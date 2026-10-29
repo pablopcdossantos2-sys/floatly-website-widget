@@ -216,7 +216,7 @@ let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into()))
     let _=window.eval(&script);
 })
 .on_navigation(move|u|{
-if u.scheme()=="widget-action"{
+if is_internal_app_url(&u){
     if u.host_str()==Some("tauri.localhost"){
         crate::diagnostics::log(&diag_dir,"INFO","Origem interna do Tauri autorizada; carregando a interface local.");
     }
