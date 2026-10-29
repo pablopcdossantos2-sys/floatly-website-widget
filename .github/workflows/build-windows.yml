@@ -1,4 +1,7 @@
 name: Build Windows
+concurrency:
+  group: widget-website-${{ github.ref }}
+  cancel-in-progress: true
 on:
   push:
     branches: [main]
@@ -18,6 +21,16 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
+      - name: Cache Rust dependencies and build output
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: windows-cargo-${{ hashFiles('src-tauri/Cargo.toml') }}
+          restore-keys: |
+            windows-cargo-
       - run: npm install
       - run: npm run icons
       - name: Compile Windows app and NSIS installer

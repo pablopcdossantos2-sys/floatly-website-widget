@@ -6,7 +6,7 @@ Widget desktop para manter o calendário econômico do Investing.com aberto em u
 - Janela sem barra de título, bandeja do sistema, instância única e atalho global padrão CTRL+ALT+C.
 - Sessão WebView2 persistente em %APPDATA%\WidgetWebsite\webview-data; configuração em %APPDATA%\WidgetWebsite\config.json.
 - URL, tamanho, posição, travamento, sempre no topo, barra de tarefas, opacidade, zoom, cantos e recarga automática configuráveis.
-- Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária que reutiliza a pasta do WebView2.
+- Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária com uma barra de endereço simples e a pasta de dados compartilhada do WebView2. A janela tenta fechar quando o fluxo retorna ao endereço configurado após a autenticação.
 - Workflow de compilação Windows x64 e instalador NSIS.
 
 ## Pré-requisitos
@@ -40,7 +40,7 @@ O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é 
 ## Privacidade, decisões e limitações
 - Sem telemetria. A navegação principal é limitada ao site configurado e a recursos de autenticação conhecidos; links HTTP/HTTPS para outros domínios abrem no navegador padrão.
 - Arquivo de configuração corrompido é substituído por valores padrão.
-- A janela de login secundária compartilha a pasta de dados do WebView2; o domínio aparece no título, mas não há uma barra de endereço web própria. A compatibilidade de autenticação social depende das políticas do site e dos provedores.
+- A janela de login secundária compartilha a pasta de dados do WebView2 e inclui uma barra de endereço injetada. A navegação para domínios não autorizados continua bloqueada dentro do app e abre no navegador padrão. O fechamento automático depende de o provedor retornar ao caminho configurado; alguns fluxos sociais podem exigir fechar a janela manualmente.
 - O zoom é aplicado pelo controle nativo de ampliação do WebView2, afetando a renderização da página de forma semelhante ao zoom de um navegador. Opacidade e recorte dos cantos continuam usando CSS; o arredondamento pode variar no Windows 10.
 - A verificação de rede mostra uma tela própria antes da navegação e monitora a conexão enquanto o site está aberto. O wrapper padrão do Tauri não fornece um evento portátil que permita substituir toda falha de navegação do Chromium em todas as situações.
 - É necessário testar login real, filtros, atalho em conflito, escalas 125%/150%, monitores múltiplos, DPI e consumo de memória em Windows. O ambiente de desenvolvimento atual não permite comprovar esses comportamentos gráficos.
