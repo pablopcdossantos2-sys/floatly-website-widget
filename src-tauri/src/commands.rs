@@ -12,6 +12,76 @@ pub struct SaveResult {
     pub config: AppConfig,
     pub warning: Option<String>,
 }
+#[derive(Debug, Clone, serde::Deserialize, Default)]
+pub struct ConfigPatch {
+    pub site_url: Option<String>,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
+    pub remember_position: Option<bool>,
+    pub autostart: Option<bool>,
+    pub always_on_top: Option<bool>,
+    pub opacity: Option<u8>,
+    pub zoom: Option<u16>,
+    pub auto_reload_minutes: Option<u16>,
+    pub show_in_taskbar: Option<bool>,
+    pub locked: Option<bool>,
+    pub global_shortcut: Option<String>,
+    pub corner_radius: Option<u8>,
+    pub language: Option<String>,
+}
+
+impl ConfigPatch {
+    fn apply_to(&self, mut config: AppConfig) -> AppConfig {
+        if let Some(value) = &self.site_url { config.site_url = value.clone(); }
+        if let Some(value) = self.width { config.width = value; }
+        if let Some(value) = self.height { config.height = value; }
+        if let Some(value) = self.remember_position { config.remember_position = value; }
+        if let Some(value) = self.autostart { config.autostart = value; }
+        if let Some(value) = self.always_on_top { config.always_on_top = value; }
+        if let Some(value) = self.opacity { config.opacity = value; }
+        if let Some(value) = self.zoom { config.zoom = value; }
+        if let Some(value) = self.auto_reload_minutes { config.auto_reload_minutes = value; }
+        if let Some(value) = self.show_in_taskbar { config.show_in_taskbar = value; }
+        if let Some(value) = self.locked { config.locked = value; }
+        if let Some(value) = &self.global_shortcut { config.global_shortcut = value.clone(); }
+        if let Some(value) = self.corner_radius { config.corner_radius = value; }
+        if let Some(value) = &self.language { config.language = value.clone(); }
+        config
+    }
+}
+
+#[cfg(test)]
+mod patch_tests {
+    use super::*;
+
+    #[test]
+    fn config_patch_preserves_runtime_state_not_in_the_patch() {
+        let latest = AppConfig {
+            x: Some(10),
+            y: Some(20),
+            locked: true,
+            always_on_top: true,
+            width: 900,
+            ..AppConfig::default()
+        };
+        let patch = ConfigPatch { opacity: Some(80), ..ConfigPatch::default() };
+        let result = patch.apply_to(latest);
+        assert_eq!(result.x, Some(10));
+        assert_eq!(result.y, Some(20));
+        assert!(result.locked);
+        assert!(result.always_on_top);
+        assert_eq!(result.width, 900);
+        assert_eq!(result.opacity, 80);
+    }
+
+    #[test]
+    fn empty_config_patch_does_not_change_anything() {
+        let latest = AppConfig { width: 777, locked: true, ..AppConfig::default() };
+        assert_eq!(ConfigPatch::default().apply_to(latest.clone()).width, latest.width);
+        assert_eq!(ConfigPatch::default().apply_to(latest.clone()).locked, latest.locked);
+    }
+}
+
 /// The remote calendar can only use this command to report liveness.
 #[tauri::command]
 pub fn heartbeat(token: String, state: State<'_, AppState>) -> Result<(), String> {
@@ -37,8 +107,7 @@ pub fn save_config(
     config: AppConfig,
     force_resize: Option<bool>,
 ) -> Result<SaveResult, String> {
-    let mut c = config;
-    c.normalize()?;
+    let patch = config;
     let active_shortcut = state
         .registered_shortcut
         .lock()
@@ -51,9 +120,9 @@ pub fn save_config(
             .lock()
             .map_err(|_| "config.read_failed".to_owned())?;
         let old = stored.clone();
-        c.x = old.x;
-        c.y = old.y;
-        let requested = c.clone();
+        let mut requested = patch.apply_to(old.clone());
+        requested.normalize()?;
+        let requested = requested;
         *stored = requested.clone();
 
         // Hold the state lock while persisting so the debounced geometry writer
@@ -69,6 +138,7 @@ pub fn save_config(
         }
         (old, requested)
     };
+    let mut c = requested.clone();
 
     let mut warns = Vec::new();
     let mut shortcut_changed = false;
