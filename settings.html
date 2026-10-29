@@ -1,14 +1,68 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Configurações — Widget Website</title><link rel="stylesheet" href="/src/styles.css"></head><body class="settings-page">
-<header class="settings-header"><div class="app-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div><p class="eyebrow">WIDGET WEBSITE</p><h1>Configurações</h1><p class="muted">Personalize a janela do calendário.</p></div></header>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Configurações — Widget Website</title>
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body class="settings-page">
+<header class="settings-header">
+  <div class="app-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <div>
+    <p class="eyebrow">WIDGET WEBSITE</p>
+    <h1 data-i18n="pageTitle">Configurações</h1>
+    <p class="muted" data-i18n="subtitle">Personalize a janela do calendário.</p>
+  </div>
+</header>
 <form id="settings-form">
-<section class="settings-section"><h2>Site</h2><label class="full">URL do site<input id="site_url" type="text" required></label><div class="two-col"><label>Largura (px)<input id="width" type="number" min="150" max="2000" required></label><label>Altura (px)<input id="height" type="number" min="100" max="1600" required></label></div></section>
-<section class="settings-section"><h2>Janela</h2>
-<label class="check-row"><input id="remember_position" type="checkbox"><span><strong>Lembrar posição e tamanho</strong><small>Reposiciona a janela se o monitor salvo não estiver conectado.</small></span></label>
-<label class="check-row"><input id="always_on_top" type="checkbox"><span><strong>Sempre no topo</strong><small>Mantém o widget acima de outras janelas.</small></span></label>
-<label class="check-row"><input id="show_in_taskbar" type="checkbox"><span><strong>Mostrar na barra de tarefas</strong><small>Se desativado, use o ícone da bandeja para reabrir.</small></span></label>
-<label class="check-row"><input id="locked" type="checkbox"><span><strong>Travar mover e redimensionar</strong><small>Com esta opção desativada, arraste a alça no topo do widget ou segure Alt enquanto arrasta qualquer área. Ative-a para bloquear o movimento e o redimensionamento.</small></span></label>
-<label class="check-row"><input id="autostart" type="checkbox"><span><strong>Iniciar com o Windows</strong><small>Usa o registro do usuário atual, sem exigir administrador.</small></span></label></section>
-<section class="settings-section"><h2>Aparência e atualização</h2><label class="range-label">Opacidade <output id="opacity-value">100%</output><input id="opacity" type="range" min="30" max="100" step="5"></label><label class="range-label">Zoom do navegador embutido <output id="zoom-value">100%</output><input id="zoom" type="range" min="50" max="200" step="5"><small>Controla a ampliação do próprio WebView2, entre 50% e 200%, sem depender do CSS do site.</small></label><div class="two-col"><label>Raio dos cantos (px)<input id="corner_radius" type="number" min="0" max="64"></label><label>Recarregar a cada (min)<input id="auto_reload_minutes" type="number" min="0" max="1440"><small>0 desliga; valores ativos abaixo de 5 são ajustados para 5.</small></label></div></section>
-<section class="settings-section"><h2>Atalho global</h2><label class="full">Combinação de teclas<input id="global_shortcut" type="text" readonly autocomplete="off" spellcheck="false"></label><p class="muted">Esse atalho mostra ou oculta o widget mesmo quando você está usando outro programa. Pressione a combinação para alternar entre exibir e esconder a janela. Clique no campo e pressione a combinação desejada (ex.: Ctrl + Alt + C).</p></section>
-<div id="message" class="message" role="status" aria-live="polite"></div><footer class="settings-actions"><button type="button" id="reset" class="secondary">Restaurar tamanho padrão</button><span class="actions-right"><button type="button" id="close" class="secondary">Fechar</button><button type="submit" class="primary">Salvar alterações</button></span></footer>
-</form><script type="module" src="/src/settings.ts"></script></body></html>
+  <section class="settings-section">
+    <h2 data-i18n="languageSection">Idioma</h2>
+    <label class="full"><span data-i18n="languageLabel">Idioma do programa</span>
+      <select id="language">
+        <option value="pt-BR">Português (Brasil)</option>
+        <option value="en">English</option>
+        <option value="es">Español</option>
+      </select>
+      <small data-i18n="languageHelp">Altera o idioma das configurações e dos menus do Widget Website.</small>
+    </label>
+  </section>
+  <section class="settings-section">
+    <h2 data-i18n="siteSection">Site</h2>
+    <label class="full"><span data-i18n="siteUrl">URL do site</span><input id="site_url" type="text" required></label>
+    <div class="two-col">
+      <label><span data-i18n="width">Largura (px)</span><input id="width" type="number" min="150" max="2000" required></label>
+      <label><span data-i18n="height">Altura (px)</span><input id="height" type="number" min="100" max="1600" required></label>
+    </div>
+  </section>
+  <section class="settings-section">
+    <h2 data-i18n="windowSection">Janela</h2>
+    <label class="check-row"><input id="remember_position" type="checkbox"><span><strong data-i18n="rememberPosition">Lembrar posição e tamanho</strong><small data-i18n="rememberPositionHelp">Reposiciona a janela se o monitor salvo não estiver conectado.</small></span></label>
+    <label class="check-row"><input id="always_on_top" type="checkbox"><span><strong data-i18n="alwaysOnTop">Sempre no topo</strong><small data-i18n="alwaysOnTopHelp">Mantém o widget acima de outras janelas.</small></span></label>
+    <label class="check-row"><input id="show_in_taskbar" type="checkbox"><span><strong data-i18n="taskbar">Mostrar na barra de tarefas</strong><small data-i18n="taskbarHelp">Se desativado, use o ícone da bandeja para reabrir.</small></span></label>
+    <label class="check-row"><input id="locked" type="checkbox"><span><strong data-i18n="locked">Travar mover e redimensionar</strong><small data-i18n="lockedHelp">Desative para mover a janela com a alça ou segurando Alt enquanto arrasta.</small></span></label>
+    <label class="check-row"><input id="autostart" type="checkbox"><span><strong data-i18n="autostart">Iniciar com o Windows</strong><small data-i18n="autostartHelp">Usa o registro do usuário atual, sem exigir administrador.</small></span></label>
+  </section>
+  <section class="settings-section">
+    <h2 data-i18n="appearanceSection">Aparência e atualização</h2>
+    <label class="range-label"><span data-i18n="opacity">Opacidade</span> <output id="opacity-value">100%</output><input id="opacity" type="range" min="30" max="100" step="5"></label>
+    <label class="range-label"><span data-i18n="zoom">Zoom do navegador embutido</span> <output id="zoom-value">100%</output><input id="zoom" type="range" min="50" max="200" step="5"><small data-i18n="zoomHelp">Ampliação do WebView2 entre 50% e 200%, independente do CSS do site.</small></label>
+    <div class="two-col">
+      <label><span data-i18n="cornerRadius">Raio dos cantos (px)</span><input id="corner_radius" type="number" min="0" max="64"></label>
+      <label><span data-i18n="reload">Recarregar a cada (min)</span><input id="auto_reload_minutes" type="number" min="0" max="1440"><small data-i18n="reloadHelp">0 desliga; valores ativos abaixo de 5 são ajustados para 5.</small></label>
+    </div>
+  </section>
+  <section class="settings-section">
+    <h2 data-i18n="shortcutSection">Atalho global</h2>
+    <label class="full"><span data-i18n="shortcutCombination">Combinação de teclas</span><input id="global_shortcut" type="text" readonly autocomplete="off" spellcheck="false"></label>
+    <p class="muted" data-i18n="shortcutHelp">Esse atalho mostra ou oculta o widget mesmo quando você está usando outro programa. Clique no campo e pressione a combinação desejada (ex.: Ctrl + Alt + C).</p>
+  </section>
+  <div id="message" class="message" role="status" aria-live="polite"></div>
+  <footer class="settings-actions">
+    <button type="button" id="reset" class="secondary" data-i18n="reset">Restaurar tamanho padrão</button>
+    <span class="actions-right"><button type="button" id="close" class="secondary" data-i18n="close">Fechar</button><button type="submit" class="primary" data-i18n="save">Salvar alterações</button></span>
+  </footer>
+</form>
+<script type="module" src="/src/settings.ts"></script>
+</body>
+</html>
