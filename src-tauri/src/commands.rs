@@ -32,20 +32,48 @@ pub struct ConfigPatch {
 
 impl ConfigPatch {
     fn apply_to(&self, mut config: AppConfig) -> AppConfig {
-        if let Some(value) = &self.site_url { config.site_url = value.clone(); }
-        if let Some(value) = self.width { config.width = value; }
-        if let Some(value) = self.height { config.height = value; }
-        if let Some(value) = self.remember_position { config.remember_position = value; }
-        if let Some(value) = self.autostart { config.autostart = value; }
-        if let Some(value) = self.always_on_top { config.always_on_top = value; }
-        if let Some(value) = self.opacity { config.opacity = value; }
-        if let Some(value) = self.zoom { config.zoom = value; }
-        if let Some(value) = self.auto_reload_minutes { config.auto_reload_minutes = value; }
-        if let Some(value) = self.show_in_taskbar { config.show_in_taskbar = value; }
-        if let Some(value) = self.locked { config.locked = value; }
-        if let Some(value) = &self.global_shortcut { config.global_shortcut = value.clone(); }
-        if let Some(value) = self.corner_radius { config.corner_radius = value; }
-        if let Some(value) = &self.language { config.language = value.clone(); }
+        if let Some(value) = &self.site_url {
+            config.site_url = value.clone();
+        }
+        if let Some(value) = self.width {
+            config.width = value;
+        }
+        if let Some(value) = self.height {
+            config.height = value;
+        }
+        if let Some(value) = self.remember_position {
+            config.remember_position = value;
+        }
+        if let Some(value) = self.autostart {
+            config.autostart = value;
+        }
+        if let Some(value) = self.always_on_top {
+            config.always_on_top = value;
+        }
+        if let Some(value) = self.opacity {
+            config.opacity = value;
+        }
+        if let Some(value) = self.zoom {
+            config.zoom = value;
+        }
+        if let Some(value) = self.auto_reload_minutes {
+            config.auto_reload_minutes = value;
+        }
+        if let Some(value) = self.show_in_taskbar {
+            config.show_in_taskbar = value;
+        }
+        if let Some(value) = self.locked {
+            config.locked = value;
+        }
+        if let Some(value) = &self.global_shortcut {
+            config.global_shortcut = value.clone();
+        }
+        if let Some(value) = self.corner_radius {
+            config.corner_radius = value;
+        }
+        if let Some(value) = &self.language {
+            config.language = value.clone();
+        }
         config
     }
 }
@@ -64,7 +92,10 @@ mod patch_tests {
             width: 900,
             ..AppConfig::default()
         };
-        let patch = ConfigPatch { opacity: Some(80), ..ConfigPatch::default() };
+        let patch = ConfigPatch {
+            opacity: Some(80),
+            ..ConfigPatch::default()
+        };
         let result = patch.apply_to(latest);
         assert_eq!(result.x, Some(10));
         assert_eq!(result.y, Some(20));
@@ -76,9 +107,19 @@ mod patch_tests {
 
     #[test]
     fn empty_config_patch_does_not_change_anything() {
-        let latest = AppConfig { width: 777, locked: true, ..AppConfig::default() };
-        assert_eq!(ConfigPatch::default().apply_to(latest.clone()).width, latest.width);
-        assert_eq!(ConfigPatch::default().apply_to(latest.clone()).locked, latest.locked);
+        let latest = AppConfig {
+            width: 777,
+            locked: true,
+            ..AppConfig::default()
+        };
+        assert_eq!(
+            ConfigPatch::default().apply_to(latest.clone()).width,
+            latest.width
+        );
+        assert_eq!(
+            ConfigPatch::default().apply_to(latest.clone()).locked,
+            latest.locked
+        );
     }
 }
 
@@ -158,7 +199,9 @@ pub fn save_config(
                         Shortcut::from_str(&active_shortcut)
                             .map_err(|error| error.to_string())
                             .and_then(|old_shortcut| {
-                                app.global_shortcut().unregister(old_shortcut).map_err(|error| error.to_string())
+                                app.global_shortcut()
+                                    .unregister(old_shortcut)
+                                    .map_err(|error| error.to_string())
                             })
                     };
                     if let Err(error) = unregister_result {
@@ -208,7 +251,8 @@ pub fn save_config(
             app.autolaunch().disable()
         };
         if result.is_ok() {
-            autostart_changed = app.autolaunch().is_enabled().unwrap_or(c.autostart) != previous_autostart;
+            autostart_changed =
+                app.autolaunch().is_enabled().unwrap_or(c.autostart) != previous_autostart;
         } else {
             let actual = app.autolaunch().is_enabled().unwrap_or(previous_autostart);
             if actual != c.autostart {
@@ -222,7 +266,8 @@ pub fn save_config(
         }
     }
 
-    let corrected = c.global_shortcut != requested.global_shortcut || c.autostart != requested.autostart;
+    let corrected =
+        c.global_shortcut != requested.global_shortcut || c.autostart != requested.autostart;
     if corrected {
         let correction_result = {
             let mut stored = state.lock_config();
@@ -311,13 +356,23 @@ pub fn toggle_main_visibility(app: AppHandle) {
 pub fn reload_site(app: AppHandle) {
     let dir = app.state::<AppState>().app_dir.clone();
     if let Some(window) = app.get_webview_window("main") {
-        let _ = crate::diagnostics::log_err(&dir, "Não foi possível recarregar o site pela bandeja", window.eval("location.reload()"));
+        let _ = crate::diagnostics::log_err(
+            &dir,
+            "Não foi possível recarregar o site pela bandeja",
+            window.eval("location.reload()"),
+        );
     } else {
-        crate::diagnostics::log(&dir, "WARN", "A solicitação de recarga foi ignorada porque a janela principal não existe.");
+        crate::diagnostics::log(
+            &dir,
+            "WARN",
+            "A solicitação de recarga foi ignorada porque a janela principal não existe.",
+        );
     }
 }
 pub fn quit_app(app: AppHandle) {
-    app.state::<AppState>().shutdown_requested.store(true, std::sync::atomic::Ordering::SeqCst);
+    app.state::<AppState>()
+        .shutdown_requested
+        .store(true, std::sync::atomic::Ordering::SeqCst);
     window::flush_pending_config(&app);
     app.exit(0)
 }
