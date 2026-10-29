@@ -29,13 +29,43 @@ fn now_ms() -> u64 {
         .min(u64::MAX as u128) as u64
 }
 
+fn utc_timestamp() -> String {
+    let elapsed = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default();
+    let seconds = elapsed.as_secs();
+    let days = (seconds / 86_400) as i64;
+    let day_seconds = (seconds % 86_400) as i64;
+
+    // Convert the Unix day count to a Gregorian date without adding a dependency.
+    let z = days + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let day_of_era = z - era * 146_097;
+    let year_of_era =
+        (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
+    let mut year = year_of_era + era * 400;
+    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
+    let month_prime = (5 * day_of_year + 2) / 153;
+    let day = day_of_era - (153 * month_prime + 2) / 5 + 1;
+    let month = month_prime + if month_prime < 10 { 3 } else { -9 };
+    year += if month <= 2 { 1 } else { 0 };
+
+    format!(
+        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}.{:03}Z",
+        day_seconds / 3_600,
+        (day_seconds % 3_600) / 60,
+        day_seconds % 60,
+        elapsed.subsec_millis()
+    )
+}
+
 pub fn log_path(dir: &Path) -> PathBuf {
     dir.join("diagnostics.log")
 }
 
 pub fn log(dir: &Path, level: &str, message: impl AsRef<str>) {
-    let timestamp = now_ms();
-    let line = format!("[unix_ms={timestamp}][{level}] {}\n", message.as_ref());
+    let timestamp = utc_timestamp();
+    let line = format!("[{timestamp}][{level}] {}\n", message.as_ref());
 
     // Logging should never crash the widget, even when the profile directory is unavailable.
     if let Some(lock) = LOG_LOCK.get_or_init(|| Mutex::new(())).lock().ok() {
