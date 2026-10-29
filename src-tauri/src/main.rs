@@ -73,14 +73,6 @@ fn show_message(title: &str, message: &str) {
     }
 }
 
-#[cfg(windows)]
-fn show_webview2_missing_message() {
-    show_message(
-        "Widget Website — requisito ausente",
-        "O Microsoft Edge WebView2 Runtime não foi encontrado.\n\nInstale o Runtime Evergreen oficial e abra o Widget Website novamente:\nhttps://developer.microsoft.com/microsoft-edge/webview2/",
-    );
-}
-
 fn toggle(app: &AppHandle) {
     window::toggle_main_visibility(app);
 }
