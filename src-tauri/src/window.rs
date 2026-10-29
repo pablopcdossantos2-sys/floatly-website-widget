@@ -9,9 +9,9 @@ if(!document.documentElement){document.addEventListener('DOMContentLoaded',boot,
 let UI_LANGUAGE='__WIDGET_LANGUAGE__';
 let DRAG_LOCKED='__WIDGET_LOCKED__'==='true';
 const UI_COPY={
- 'pt-BR':{dragTitle:'Arraste esta alça para mover o widget. Você também pode segurar Alt e arrastar qualquer área.',dragLabel:'Arrastar para mover o widget',offlineTitle:'Sem conexão com o calendário',offlineMessage:'O site não respondeu. Verifique a internet e tente novamente.',retry:'Tentar novamente'},
- en:{dragTitle:'Drag this handle to move the widget. You can also hold Alt and drag any area.',dragLabel:'Drag to move the widget',offlineTitle:'Calendar connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
- es:{dragTitle:'Arrastra esta asa para mover el widget. También puedes mantener Alt y arrastrar cualquier zona.',dragLabel:'Arrastrar para mover el widget',offlineTitle:'Sin conexión con el calendario',offlineMessage:'El sitio no respondió. Comprueba la conexión e inténtalo de nuevo.',retry:'Reintentar'}
+ 'pt-BR':{dragTitle:'Arraste a borda azul ou a alça superior para mover o widget.',dragLabel:'Mover o widget pela borda azul ou pela alça superior',offlineTitle:'Sem conexão com o calendário',offlineMessage:'O site não respondeu. Verifique a internet e tente novamente.',retry:'Tentar novamente'},
+ en:{dragTitle:'Drag the blue border or top handle to move the widget.',dragLabel:'Move the widget using the blue border or top handle',offlineTitle:'Calendar connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
+ es:{dragTitle:'Arrastra el borde azul o el asa superior para mover el widget.',dragLabel:'Mover el widget desde el borde azul o el asa superior',offlineTitle:'Sin conexión con el calendario',offlineMessage:'El sitio no respondió. Comprueba la conexión e inténtalo de nuevo.',retry:'Reintentar'}
 };
 function setUiLanguage(language){UI_LANGUAGE=UI_COPY[language]?language:'pt-BR';const copy=UI_COPY[UI_LANGUAGE];const drag=document.getElementById('__widget_drag');if(drag){drag.title=copy.dragTitle;drag.setAttribute('aria-label',copy.dragLabel)}document.querySelectorAll('#__widget_drag_frame .__widget_drag_edge').forEach(edge=>{edge.title=copy.dragTitle;edge.setAttribute('aria-label',copy.dragLabel)});const overlay=document.getElementById('__widget_offline');if(overlay){const heading=overlay.querySelector('h2');const paragraph=overlay.querySelector('p');const button=overlay.querySelector('button');if(heading)heading.textContent=copy.offlineTitle;if(paragraph)paragraph.textContent=copy.offlineMessage;if(button)button.textContent=copy.retry}}
 window.__widgetSetLanguage=setUiLanguage;
@@ -92,7 +92,6 @@ document.addEventListener('pointerdown',e=>{
   if(dir){e.preventDefault();action('resize/'+dir)}
   return;
  }
- if(e.altKey)dragWindow(e);
 },true);
 document.addEventListener('contextmenu',e=>e.preventDefault(),true);
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['l','t','n','w','p','j','u','s'].includes(e.key.toLowerCase())){e.preventDefault();e.stopImmediatePropagation()}else if(e.key==='F5'){e.preventDefault();location.reload()}},true);
