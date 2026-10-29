@@ -23,9 +23,13 @@ fn webview2_runtime_present() -> bool {
     );
     candidates.iter().any(|folder| {
         folder.join("msedgewebview2.exe").is_file()
-            || std::fs::read_dir(folder).map(|entries| {
-                entries.flatten().any(|entry| entry.path().join("msedgewebview2.exe").is_file())
-            }).unwrap_or(false)
+            || std::fs::read_dir(folder)
+                .map(|entries| {
+                    entries
+                        .flatten()
+                        .any(|entry| entry.path().join("msedgewebview2.exe").is_file())
+                })
+                .unwrap_or(false)
     })
 }
 
@@ -40,7 +44,10 @@ fn webview2_runtime_candidate_dirs(
     if let Some(path) = fixed_version.filter(|value| !value.is_empty()) {
         candidates.push(std::path::PathBuf::from(path));
     }
-    for base in [program_files_x86, program_files, local_app_data].into_iter().flatten() {
+    for base in [program_files_x86, program_files, local_app_data]
+        .into_iter()
+        .flatten()
+    {
         candidates.push(
             std::path::PathBuf::from(base)
                 .join("Microsoft")
@@ -94,7 +101,11 @@ fn main() {
     #[cfg(windows)]
     {
         if webview2_runtime_present() {
-            diagnostics::log(&app_dir, "INFO", "Microsoft Edge WebView2 Runtime detectado em um dos diretórios configurados.");
+            diagnostics::log(
+                &app_dir,
+                "INFO",
+                "Microsoft Edge WebView2 Runtime detectado em um dos diretórios configurados.",
+            );
         } else {
             diagnostics::log(
                 &app_dir,
