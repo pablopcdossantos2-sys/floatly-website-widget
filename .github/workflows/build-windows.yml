@@ -21,16 +21,31 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
-      - name: Cache Rust dependencies and build output
+      - name: Bootstrap dependency lockfiles
+        shell: pwsh
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { throw "Could not generate package-lock.json." }
+          cargo generate-lockfile --manifest-path src-tauri/Cargo.toml
+          if ($LASTEXITCODE -ne 0) { throw "Could not generate Cargo.lock." }
+      - name: Upload dependency lockfiles for repository bootstrap
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dependency-lockfiles-bootstrap
+          path: |
+            package-lock.json
+            src-tauri/Cargo.lock
+          if-no-files-found: warn
+      - name: Cache Rust dependencies (not build output)
         uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            src-tauri/target
-          key: windows-cargo-${{ hashFiles('src-tauri/Cargo.toml') }}
+          key: windows-cargo-${{ runner.os }}-${{ hashFiles('src-tauri/Cargo.toml', 'src-tauri/Cargo.lock') }}
           restore-keys: |
-            windows-cargo-
+            windows-cargo-${{ runner.os }}-
       - run: npm install
       - run: npm run icons
       - name: Test configuration and diagnostics
