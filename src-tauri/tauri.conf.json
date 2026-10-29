@@ -14,17 +14,32 @@
     "windows": [],
     "security": {
       "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: asset: http://asset.localhost; connect-src ipc: http://ipc.localhost https:; object-src 'none'; base-uri 'self'; form-action 'self' https:",
-      "capabilities": ["main-local", "settings-local", "main-remote-heartbeat"]
+      "capabilities": [
+        "main-local",
+        "settings-local",
+        "main-remote-heartbeat"
+      ]
     }
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/icon.ico"],
+    "targets": [
+      "nsis"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/icon.ico"
+    ],
     "windows": {
       "nsis": {
         "displayLanguageSelector": true,
-        "languages": ["PortugueseBR", "English", "Spanish"]
+        "languages": [
+          "PortugueseBR",
+          "English",
+          "Spanish"
+        ],
+        "installerHooks": "./windows/hooks.nsh"
       }
     }
   }
