@@ -826,7 +826,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
     let host = url.host_str().unwrap_or("Login").to_owned();
     let login_title = crate::i18n::login_title(&language);
 
-    WebviewWindowBuilder::new(app, label, WebviewUrl::External(url))
+    let login_window = WebviewWindowBuilder::new(app, label, WebviewUrl::External(url))
         .title(format!("{login_title} — {host}"))
         .inner_size(960.0, 760.0)
         .min_inner_size(600.0, 450.0)
@@ -848,9 +848,18 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                     && url.query().is_none()
                     && url.fragment().is_none()
                 {
-                    close_login_and_reload(&nav, &close_label, &nav_diag_dir, "solicitação pelo botão Fechar");
+                    close_login_and_reload(
+                        &nav,
+                        &close_label,
+                        &nav_diag_dir,
+                        "solicitação pelo botão Fechar",
+                    );
                 } else {
-                    crate::diagnostics::log(&nav_diag_dir, "WARN", "Pedido de fechamento de login ignorado: token ou ação inválida.");
+                    crate::diagnostics::log(
+                        &nav_diag_dir,
+                        "WARN",
+                        "Pedido de fechamento de login ignorado: token ou ação inválida.",
+                    );
                 }
                 return false;
             }
@@ -861,19 +870,35 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                 nav_seen_auth.store(true, Ordering::SeqCst);
             }
             if should_close_login(nav_seen_auth.load(Ordering::SeqCst), url, &config) {
-                close_login_and_reload(&nav, &close_label, &nav_diag_dir, "retorno ao site após autenticação");
+                close_login_and_reload(
+                    &nav,
+                    &close_label,
+                    &nav_diag_dir,
+                    "retorno ao site após autenticação",
+                );
                 return false;
             }
 
             match decide_login(url, &config) {
                 NavAction::Allow | NavAction::OpenLogin => true,
                 NavAction::External => {
-                    crate::diagnostics::log(&nav_diag_dir, "INFO", format!("Encaminhando navegação externa da janela de autenticação (host={}).", url.host_str().unwrap_or("sem host")));
+                    crate::diagnostics::log(
+                        &nav_diag_dir,
+                        "INFO",
+                        format!(
+                            "Encaminhando navegação externa da janela de autenticação (host={}).",
+                            url.host_str().unwrap_or("sem host")
+                        ),
+                    );
                     open_external_limited(nav_diag_dir.clone(), url.as_str().to_owned());
                     false
                 }
                 NavAction::Block => {
-                    crate::diagnostics::log(&nav_diag_dir, "WARN", "Navegação bloqueada na janela de autenticação por esquema não HTTP(S).");
+                    crate::diagnostics::log(
+                        &nav_diag_dir,
+                        "WARN",
+                        "Navegação bloqueada na janela de autenticação por esquema não HTTP(S).",
+                    );
                     false
                 }
             }
@@ -889,29 +914,55 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                     if allow_login_popup() {
                         open_login_limited(popup.clone(), url, popup_diag_dir.clone());
                     } else {
-                        crate::diagnostics::log(&popup_diag_dir, "WARN", "Pop-up de autenticação descartado pelo limite de uma abertura por segundo.");
+                        crate::diagnostics::log(
+                            &popup_diag_dir,
+                            "WARN",
+                            "Pop-up de autenticação descartado pelo limite de uma abertura por segundo.",
+                        );
                     }
                 }
-                NavAction::External => open_external_limited(popup_diag_dir.clone(), url.as_str().to_owned()),
-                NavAction::Block => crate::diagnostics::log(&popup_diag_dir, "WARN", "Pop-up de autenticação bloqueado por esquema não HTTP(S)."),
+                NavAction::External => {
+                    open_external_limited(popup_diag_dir.clone(), url.as_str().to_owned());
+                }
+                NavAction::Block => {
+                    crate::diagnostics::log(
+                        &popup_diag_dir,
+                        "WARN",
+                        "Pop-up de autenticação bloqueado por esquema não HTTP(S).",
+                    );
+                }
             }
             NewWindowResponse::Deny
         })
-        .on_window_event(move |event| {
-            if matches!(event, WindowEvent::CloseRequested { .. }) {
-                if close_event_app.state::<AppState>().shutdown_requested.load(Ordering::SeqCst) {
-                    return;
-                }
-                crate::diagnostics::log(&close_event_dir, "INFO", "Janela de autenticação fechada; solicitando atualização da janela principal.");
-                if let Some(main) = close_event_app.get_webview_window("main") {
-                    if let Err(error) = main.eval("location.reload()") {
-                        crate::diagnostics::log(&close_event_dir, "ERRO", format!("Não foi possível recarregar a janela principal após fechar a autenticação: {error}"));
-                    }
+        .build()?;
+
+    login_window.on_window_event(move |event| {
+        if matches!(event, WindowEvent::CloseRequested { .. }) {
+            if close_event_app
+                .state::<AppState>()
+                .shutdown_requested
+                .load(Ordering::SeqCst)
+            {
+                return;
+            }
+            crate::diagnostics::log(
+                &close_event_dir,
+                "INFO",
+                "Janela de autenticação fechada; solicitando atualização da janela principal.",
+            );
+            if let Some(main) = close_event_app.get_webview_window("main") {
+                if let Err(error) = main.eval("location.reload()") {
+                    crate::diagnostics::log(
+                        &close_event_dir,
+                        "ERRO",
+                        format!(
+                            "Não foi possível recarregar a janela principal após fechar a autenticação: {error}"
+                        ),
+                    );
                 }
             }
-        })
-        let login_window = WebviewWindowBuilder::new(app, label, WebviewUrl::External(url))
-        .title(format!("{login_title} — {host}"))
+        }
+    });
     Ok(())
 }
 
