@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
     str::FromStr,
     sync::{
-        atomic::{AtomicU64, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         Mutex,
     },
     thread,
@@ -20,6 +20,7 @@ pub const DEFAULT_HEIGHT: u32 = 700;
 
 static SAVE_LOCK: Mutex<()> = Mutex::new(());
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
+static CONFIG_POISON_WARNING_LOGGED: AtomicBool = AtomicBool::new(false);
 
 fn default_language() -> String {
     "pt-BR".to_owned()
@@ -151,6 +152,26 @@ pub struct AppState {
     pub registered_shortcut: Mutex<String>,
     /// Per-process token accepted only by the minimal remote heartbeat command.
     pub heartbeat_token: String,
+}
+
+impl AppState {
+    /// Read the latest configuration even if an earlier panic poisoned the mutex.
+    /// A poisoned lock does not make the already-stored plain data invalid.
+    pub fn snapshot(&self) -> AppConfig {
+        match self.config.lock() {
+            Ok(config) => config.clone(),
+            Err(poisoned) => {
+                if !CONFIG_POISON_WARNING_LOGGED.swap(true, Ordering::Relaxed) {
+                    crate::diagnostics::log(
+                        &self.app_dir,
+                        "WARN",
+                        "O mutex da configuração foi envenenado; recuperando o último estado armazenado.",
+                    );
+                }
+                poisoned.into_inner().clone()
+            }
+        }
+    }
 }
 
 pub fn app_directory() -> PathBuf {
