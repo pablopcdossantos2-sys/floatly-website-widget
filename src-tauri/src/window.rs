@@ -369,7 +369,7 @@ if u.scheme()=="widget-action"{
             }
         } else if let Some(direction)=action.strip_prefix("resize/") {
             if ["north","south","east","west","north-east","north-west","south-east","south-west"].contains(&direction) {
-                begin_native_resize(&window,direction);
+                if let Err(error)=begin_native_resize(&window,direction) { crate::diagnostics::log(&diag_dir,"WARN",format!("Redimensionamento nativo não iniciado: {error}")); }
             } else {
                 crate::diagnostics::log(&diag_dir,"WARN","Comando de redimensionamento ignorado: direção inválida.");
             }
