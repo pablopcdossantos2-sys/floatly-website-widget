@@ -5,6 +5,14 @@ use url::Url;
 static LOGIN_ID:AtomicU64=AtomicU64::new(1);
 const INIT:&str=r#"(function(){
 if(!/^https?:$/.test(location.protocol)||window.top!==window)return;
+let UI_LANGUAGE='__WIDGET_LANGUAGE__';
+const UI_COPY={
+ 'pt-BR':{dragTitle:'Arraste esta alça para mover o widget. Você também pode segurar Alt e arrastar qualquer área.',dragLabel:'Arrastar para mover o widget',offlineTitle:'Sem conexão com o calendário',offlineMessage:'O site não respondeu. Verifique a internet e tente novamente.',retry:'Tentar novamente'},
+ en:{dragTitle:'Drag this handle to move the widget. You can also hold Alt and drag any area.',dragLabel:'Drag to move the widget',offlineTitle:'Calendar connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
+ es:{dragTitle:'Arrastra esta asa para mover el widget. También puedes mantener Alt y arrastrar cualquier zona.',dragLabel:'Arrastrar para mover el widget',offlineTitle:'Sin conexión con el calendario',offlineMessage:'El sitio no respondió. Comprueba la conexión e inténtalo de nuevo.',retry:'Reintentar'}
+};
+function setUiLanguage(language){UI_LANGUAGE=UI_COPY[language]?language:'pt-BR';const copy=UI_COPY[UI_LANGUAGE];const drag=document.getElementById('__widget_drag');if(drag){drag.title=copy.dragTitle;drag.setAttribute('aria-label',copy.dragLabel)}const overlay=document.getElementById('__widget_offline');if(overlay){const heading=overlay.querySelector('h2');const paragraph=overlay.querySelector('p');const button=overlay.querySelector('button');if(heading)heading.textContent=copy.offlineTitle;if(paragraph)paragraph.textContent=copy.offlineMessage;if(button)button.textContent=copy.retry}}
+window.__widgetSetLanguage=setUiLanguage;
 const style=document.createElement('style');
 style.textContent=`
 #__widget_drag{position:fixed;z-index:2147483647;left:50%;transform:translateX(-50%);top:8px;width:78px;height:20px;display:flex;align-items:center;justify-content:center;background:rgba(33,52,75,.22);border:1px solid rgba(255,255,255,.72);border-radius:999px;opacity:.78;cursor:move;transition:background .12s,opacity .12s,box-shadow .12s;box-shadow:0 1px 4px rgba(0,0,0,.14);user-select:none;-webkit-user-select:none;touch-action:none}
@@ -22,7 +30,7 @@ html.__widget_scroll_active::-webkit-scrollbar-thumb,html.__widget_scroll_active
 `;
 (document.head||document.documentElement).appendChild(style);
 function action(p){location.href='widget-action://'+p}
-function install(){if(!document.body||document.getElementById('__widget_drag'))return;const d=document.createElement('div');d.id='__widget_drag';d.title='Arraste esta alça para mover o widget. Você também pode segurar Alt e arrastar qualquer área.';d.setAttribute('aria-label','Arrastar para mover o widget');d.addEventListener('pointerdown',e=>{if(e.button===0){e.preventDefault();e.stopPropagation();action('drag')}});document.body.appendChild(d)}
+function install(){if(!document.body||document.getElementById('__widget_drag'))return;const d=document.createElement('div');d.id='__widget_drag';const copy=UI_COPY[UI_LANGUAGE]||UI_COPY['pt-BR'];d.title=copy.dragTitle;d.setAttribute('aria-label',copy.dragLabel);d.addEventListener('pointerdown',e=>{if(e.button===0){e.preventDefault();e.stopPropagation();action('drag')}});document.body.appendChild(d)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 const dragObserver=new MutationObserver(()=>install());
 dragObserver.observe(document.documentElement,{childList:true,subtree:true});
@@ -34,7 +42,7 @@ function revealScrollbar(){const root=document.documentElement;if(!root)return;r
 document.addEventListener('wheel',revealScrollbar,{passive:true,capture:true});
 document.addEventListener('scroll',revealScrollbar,{passive:true,capture:true});
 document.addEventListener('pointermove',e=>{if(innerWidth-e.clientX<=24)revealScrollbar()},{passive:true});
-async function check(){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{await fetch(new URL('/favicon.ico',location.origin),{mode:'no-cors',cache:'no-store',signal:c.signal})}finally{clearTimeout(t)}document.getElementById('__widget_offline')?.remove()}catch(_){if(!document.getElementById('__widget_offline')){const b=document.createElement('div');b.id='__widget_offline';b.innerHTML='<div style="font-size:30px">⌁</div><h2>Sem conexão com o calendário</h2><p>O site não respondeu. Verifique a internet e tente novamente.</p><button type="button">Tentar novamente</button>';(document.body||document.documentElement).appendChild(b);b.querySelector('button').addEventListener('click',()=>location.reload())}}
+async function check(){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{await fetch(new URL('/favicon.ico',location.origin),{mode:'no-cors',cache:'no-store',signal:c.signal})}finally{clearTimeout(t)}document.getElementById('__widget_offline')?.remove()}catch(_){if(!document.getElementById('__widget_offline')){const b=document.createElement('div');b.id='__widget_offline';const copy=UI_COPY[UI_LANGUAGE]||UI_COPY['pt-BR'];b.innerHTML='<div style="font-size:30px">⌁</div><h2></h2><p></p><button type="button"></button>';b.querySelector('h2').textContent=copy.offlineTitle;b.querySelector('p').textContent=copy.offlineMessage;b.querySelector('button').textContent=copy.retry;(document.body||document.documentElement).appendChild(b);b.querySelector('button').addEventListener('click',()=>location.reload())}}
 }
 addEventListener('offline',check);
 setInterval(check,30000);
@@ -97,7 +105,7 @@ fn is_configured_page(url:&Url,c:&AppConfig)->bool{
 }
 pub fn create_main(app:&AppHandle,c:&AppConfig,dir:&std::path::Path)->tauri::Result<WebviewWindow>{
 let data=dir.join("webview-data");std::fs::create_dir_all(&data).ok();let diag_dir=dir.to_path_buf();let build_diag_dir=dir.to_path_buf();let popup_diag_dir=dir.to_path_buf();let nav_app=app.clone();let popup_app=app.clone();
-let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(INIT)
+let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(INIT.replace("__WIDGET_LANGUAGE__",&c.language))
 .on_navigation(move|u|{
 if u.scheme()=="widget-diagnostic"{crate::diagnostics::record_heartbeat(&diag_dir);return false}
 if is_internal_app_url(&u){
@@ -269,7 +277,7 @@ pub fn refresh_native_corners(app:&AppHandle){
         apply_native_corners(&window,radius);
     }
 }
-pub fn apply_config(app:&AppHandle,c:&AppConfig){if let Some(w)=app.get_webview_window("main"){let _=w.set_always_on_top(c.always_on_top);let _=w.set_skip_taskbar(!c.show_in_taskbar);let _=w.set_resizable(!c.locked);let _=w.set_min_size(Some(LogicalSize::new(150.0,100.0)));let _=w.set_size(LogicalSize::new(c.width as f64,c.height as f64));let _=w.set_zoom(c.zoom as f64/100.0);let script=format!("document.documentElement.style.opacity='{}';document.documentElement.style.borderRadius='{}px';",c.opacity as f64/100.0,c.corner_radius);let _=w.eval(&script);let _=w.set_shadow(c.corner_radius>0);apply_native_corners(&w,c.corner_radius);}}
+pub fn apply_config(app:&AppHandle,c:&AppConfig){if let Some(w)=app.get_webview_window("main"){let _=w.set_always_on_top(c.always_on_top);let _=w.set_skip_taskbar(!c.show_in_taskbar);let _=w.set_resizable(!c.locked);let _=w.set_min_size(Some(LogicalSize::new(150.0,100.0)));let _=w.set_size(LogicalSize::new(c.width as f64,c.height as f64));let _=w.set_zoom(c.zoom as f64/100.0);let language=serde_json::to_string(&c.language).unwrap_or_else(|_|"\"pt-BR\"".to_owned());let script=format!("document.documentElement.style.opacity='{}';document.documentElement.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});",c.opacity as f64/100.0,c.corner_radius,language);let _=w.eval(&script);let _=w.set_shadow(c.corner_radius>0);apply_native_corners(&w,c.corner_radius);}}
 pub fn open_settings(app:&AppHandle){if let Some(w)=app.get_webview_window("settings"){let _=w.show();let _=w.set_focus();return}let a=app.clone();thread::spawn(move||{let dir=a.state::<AppState>().app_dir.join("settings-data");std::fs::create_dir_all(&dir).ok();let _=WebviewWindowBuilder::new(&a,"settings",WebviewUrl::App("settings.html".into())).title("Configurações — Widget Website").inner_size(760.0,850.0).min_inner_size(520.0,550.0).resizable(true).data_directory(dir).build();});}
 pub fn open_login_from_tray(app:&AppHandle){let text=app.state::<AppState>().config.lock().map(|c|c.site_url.clone()).unwrap_or_else(|_|crate::config::DEFAULT_SITE.to_owned());if let Ok(url)=Url::parse(&text){let a=app.clone();thread::spawn(move||{let _=open_login(&a,url);});}}
 pub fn save_window_state(app:&AppHandle,e:&WindowEvent){let state=app.state::<AppState>();let scale=app.get_webview_window("main").and_then(|w|w.scale_factor().ok()).unwrap_or(1.0);let mut c=match state.config.lock(){Ok(v)=>v,Err(_)=>return};if !c.remember_position{return}match e{WindowEvent::Moved(p)=>{c.x=Some(p.x);c.y=Some(p.y)},WindowEvent::Resized(z)=>{c.width=((z.width as f64/scale).round() as u32).clamp(150,2000);c.height=((z.height as f64/scale).round() as u32).clamp(100,1600)},_=>return}let copy=c.clone();drop(c);let _=crate::config::save(&state.app_dir,&copy);if let Some(window)=app.get_webview_window("main"){apply_native_corners(&window,copy.corner_radius);}}
