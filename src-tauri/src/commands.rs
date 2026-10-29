@@ -104,7 +104,7 @@ pub fn get_config(app: AppHandle, state: State<'_, AppState>) -> AppConfig {
 pub fn save_config(
     app: AppHandle,
     state: State<'_, AppState>,
-    config: AppConfig,
+    config: ConfigPatch,
     force_resize: Option<bool>,
 ) -> Result<SaveResult, String> {
     let patch = config;
