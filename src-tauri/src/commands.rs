@@ -13,6 +13,6 @@ config::save(&state.app_dir,&c)?;{let mut stored=state.config.lock().map_err(|_|
 pub fn toggle_main_visibility(app:AppHandle){if let Some(w)=app.get_webview_window("main"){if w.is_visible().unwrap_or(false){let _=w.hide();}else{let _=w.show();}}}
 pub fn reload_site(app:AppHandle){if let Some(w)=app.get_webview_window("main"){let _=w.eval("location.reload()");}}
 pub fn quit_app(app:AppHandle){app.exit(0)}
-pub fn toggle_locked(app:&AppHandle){let s=app.state::<AppState>();let next={let mut c=match s.config.lock(){Ok(v)=>v,Err(_)=>return};c.locked=!c.locked;let _=config::save(&s.app_dir,&c);c.clone()};window::apply_config(app,&next);crate::tray::update_language(app,&next.language);let _=app.emit("config-changed",&next)}
-pub fn toggle_topmost(app:&AppHandle){let s=app.state::<AppState>();let next={let mut c=match s.config.lock(){Ok(v)=>v,Err(_)=>return};c.always_on_top=!c.always_on_top;let _=config::save(&s.app_dir,&c);c.clone()};window::apply_config(app,&next);let _=app.emit("config-changed",&next)}
+pub fn toggle_locked(app:&AppHandle){let s=app.state::<AppState>();let next={let mut c=match s.config.lock(){Ok(v)=>v,Err(_)=>return};c.locked=!c.locked;let _=config::save(&s.app_dir,&c);c.clone()};window::apply_config(app,&next);crate::tray::update_language(app,&next.language);let _=app.emit("config-changed",&next);}
+pub fn toggle_topmost(app:&AppHandle){let s=app.state::<AppState>();let next={let mut c=match s.config.lock(){Ok(v)=>v,Err(_)=>return};c.always_on_top=!c.always_on_top;let _=config::save(&s.app_dir,&c);c.clone()};window::apply_config(app,&next);let _=app.emit("config-changed",&next);}
 pub fn show_settings(app:&AppHandle){window::open_settings(app)}pub fn show_login(app:&AppHandle){window::open_login_from_tray(app)}
