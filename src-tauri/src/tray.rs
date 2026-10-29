@@ -53,12 +53,7 @@ fn labels(language: &str, locked: bool) -> [&'static str; 8] {
 }
 
 fn create_menu(app: &AppHandle, language: &str) -> tauri::Result<Menu<tauri::Wry>> {
-    let locked = app
-        .state::<AppState>()
-        .config
-        .lock()
-        .map(|config| config.locked)
-        .unwrap_or(false);
+    let locked = app.state::<AppState>().snapshot().locked;
     let text = labels(language, locked);
     let toggle = MenuItem::with_id(app, "show-hide", text[0], true, None::<&str>)?;
     let reload = MenuItem::with_id(app, "reload", text[1], true, None::<&str>)?;
