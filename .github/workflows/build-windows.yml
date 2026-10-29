@@ -42,8 +42,16 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Tauri dependency versions are inconsistent." }
           npm run check:acl
           if ($LASTEXITCODE -ne 0) { throw "Tauri capability/command ACL check failed." }
+      - name: TypeScript type check
+        run: npm run typecheck
+      - name: Check light/dark theme contrast
+        run: npm run check:contrast
       - name: Audit npm dependencies
         run: npm audit --audit-level=high
+      - name: Generate Windows icons
+        run: npm run icons
+      - name: Build frontend before Rust tests
+        run: npm run build
       - name: Check Rust formatting
         run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
       - name: Install and run RustSec audit
@@ -57,8 +65,6 @@ jobs:
         run: cargo test --manifest-path src-tauri/Cargo.toml --locked
       - name: Lint Rust
         run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets --locked -- -D warnings
-      - name: Generate Windows icons
-        run: npm run icons
       - name: Remove stale bundle outputs
         shell: pwsh
         run: |
