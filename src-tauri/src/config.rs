@@ -84,7 +84,10 @@ impl AppConfig {
         let shortcut = self.global_shortcut.trim().to_ascii_uppercase();
         let parts: Vec<&str> = shortcut.split('+').map(str::trim).collect();
         let has_modifier = parts.iter().any(|part| {
-            matches!(*part, "CTRL" | "CONTROL" | "ALT" | "SHIFT" | "SUPER" | "WIN" | "META")
+            matches!(
+                *part,
+                "CTRL" | "CONTROL" | "ALT" | "SHIFT" | "SUPER" | "WIN" | "META"
+            )
         });
         if !has_modifier || parts.len() < 2 || parts.last().is_none_or(|key| key.is_empty()) {
             return Err("config.shortcut_modifier_required".into());
@@ -194,7 +197,10 @@ mod tests {
     fn shortcut_requires_a_modifier_and_a_supported_key() {
         let mut config = AppConfig::default();
         config.global_shortcut = "A".into();
-        assert_eq!(config.normalize().unwrap_err(), "config.shortcut_modifier_required");
+        assert_eq!(
+            config.normalize().unwrap_err(),
+            "config.shortcut_modifier_required"
+        );
 
         let mut config = AppConfig::default();
         config.global_shortcut = "CTRL+ALT+C".into();
@@ -203,7 +209,10 @@ mod tests {
 
         let mut config = AppConfig::default();
         config.global_shortcut = "CTRL+ALT+NOT_A_REAL_KEY".into();
-        assert_eq!(config.normalize().unwrap_err(), "config.shortcut_key_unsupported");
+        assert_eq!(
+            config.normalize().unwrap_err(),
+            "config.shortcut_key_unsupported"
+        );
     }
 
     #[test]
