@@ -127,7 +127,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::get_config,
             commands::save_config,
-            commands::close_settings
+            commands::close_settings,
+            commands::heartbeat
         ])
         .setup(move |app| {
             let dir = setup_dir.clone();
@@ -144,6 +145,7 @@ fn main() {
                 config: std::sync::Mutex::new(cfg.clone()),
                 app_dir: dir.clone(),
                 registered_shortcut: std::sync::Mutex::new(String::new()),
+                heartbeat_token: uuid::Uuid::new_v4().simple().to_string(),
             });
 
             let shortcut_text = cfg.global_shortcut.clone();
