@@ -210,15 +210,19 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
 
     let mut warnings = Vec::new();
     let mut merged = serde_json::to_value(AppConfig::default()).expect("AppConfig default serializes");
-    if let (Some(base), Some(saved)) = (merged.as_object_mut(), value.as_object()) {
+    if let Some(saved) = value.as_object() {
         for (key, candidate_value) in saved {
-            let Some(default_value) = base.get(key) else {
-                continue;
+            let previous = match merged.as_object().and_then(|base| base.get(key)).cloned() {
+                Some(previous) => previous,
+                None => continue,
             };
-            let previous = default_value.clone();
-            base.insert(key.clone(), candidate_value.clone());
+            if let Some(base) = merged.as_object_mut() {
+                base.insert(key.clone(), candidate_value.clone());
+            }
             if serde_json::from_value::<AppConfig>(merged.clone()).is_err() {
-                base.insert(key.clone(), previous);
+                if let Some(base) = merged.as_object_mut() {
+                    base.insert(key.clone(), previous);
+                }
                 warnings.push(format!("Campo inválido em config.json: {key}; usando o valor padrão."));
             }
         }
