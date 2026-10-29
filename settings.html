@@ -8,11 +8,17 @@
 </head>
 <body class="settings-page">
 <header class="settings-header">
-  <div class="app-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-  <div>
-    <p class="eyebrow">WIDGET WEBSITE</p>
-    <h1 data-i18n="pageTitle">Configurações</h1>
-    <p class="muted" data-i18n="subtitle">Personalize a janela do calendário.</p>
+  <div class="settings-heading">
+    <div class="app-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <div>
+      <p class="eyebrow">WIDGET WEBSITE</p>
+      <h1 data-i18n="pageTitle">Configurações</h1>
+      <p class="muted" data-i18n="subtitle">Personalize a janela do calendário.</p>
+    </div>
+  </div>
+  <div class="theme-switch" role="group" data-i18n-aria-label="themeGroup" aria-label="Tema da interface">
+    <button type="button" id="theme-light" class="theme-option" aria-pressed="true" data-i18n="themeLight">Modo claro</button>
+    <button type="button" id="theme-dark" class="theme-option" aria-pressed="false" data-i18n="themeDark">Modo escuro</button>
   </div>
 </header>
 <form id="settings-form">
