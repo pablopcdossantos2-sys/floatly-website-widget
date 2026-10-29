@@ -5,8 +5,8 @@
   "windows": ["main"],
   "remote": {
     "urls": [
-      "https://br.investing.com/**",
-      "https://*.investing.com/**"
+      "https://br.investing.com",
+      "https://*.investing.com"
     ]
   },
   "permissions": [
