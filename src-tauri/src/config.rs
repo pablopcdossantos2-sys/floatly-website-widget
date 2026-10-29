@@ -1,5 +1,10 @@
 use serde::{Deserialize, Serialize};
-use std::{fs, path::{Path, PathBuf}, str::FromStr, sync::Mutex};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    str::FromStr,
+    sync::Mutex,
+};
 use tauri_plugin_global_shortcut::Shortcut;
 use url::Url;
 
