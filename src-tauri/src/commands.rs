@@ -39,26 +39,38 @@ pub fn save_config(
 ) -> Result<SaveResult, String> {
     let mut c = config;
     c.normalize()?;
-    let old = state
-        .config
-        .lock()
-        .map_err(|_| "config.read_failed".to_owned())?
-        .clone();
-    c.x = old.x;
-    c.y = old.y;
-    let requested = c.clone();
     let active_shortcut = state
         .registered_shortcut
         .lock()
         .map_err(|_| "config.write_failed".to_owned())?
         .clone();
+    let previous_active_shortcut = active_shortcut.clone();
+    let (old, requested) = {
+        let mut stored = state
+            .config
+            .lock()
+            .map_err(|_| "config.read_failed".to_owned())?;
+        let old = stored.clone();
+        c.x = old.x;
+        c.y = old.y;
+        let requested = c.clone();
+        *stored = requested.clone();
 
-    // Persist the candidate before registering hotkeys or changing Windows startup.
-    config::save(&state.app_dir, &requested)
-        .map_err(|_| "config.disk_write_failed".to_owned())?;
+        // Hold the state lock while persisting so the debounced geometry writer
+        // cannot later overwrite this newer configuration with an old snapshot.
+        if let Err(error) = config::save(&state.app_dir, &stored) {
+            *stored = old.clone();
+            crate::diagnostics::log(
+                &state.app_dir,
+                "ERRO",
+                format!("Não foi possível persistir as configurações antes de aplicar integrações: {error}"),
+            );
+            return Err("config.disk_write_failed".to_owned());
+        }
+        (old, requested)
+    };
 
     let mut warns = Vec::new();
-    let previous_active_shortcut = active_shortcut.clone();
     let mut shortcut_changed = false;
     if c.global_shortcut != active_shortcut {
         match Shortcut::from_str(&c.global_shortcut) {
@@ -136,16 +148,33 @@ pub fn save_config(
 
     let corrected = c.global_shortcut != requested.global_shortcut || c.autostart != requested.autostart;
     if corrected {
-        if let Err(error) = config::save(&state.app_dir, &c) {
+        let correction_result = {
+            let mut stored = state
+                .config
+                .lock()
+                .map_err(|_| "config.write_failed".to_owned())?;
+            let requested_state = stored.clone();
+            *stored = c.clone();
+            match config::save(&state.app_dir, &stored) {
+                Ok(()) => Ok(()),
+                Err(error) => {
+                    *stored = old.clone();
+                    Err(error)
+                }
+            }.map_err(|error| {
+                // Keep the in-memory and persisted state aligned on the best-effort rollback path.
+                let _ = requested_state;
+                error
+            })
+        };
+        if let Err(error) = correction_result {
             crate::diagnostics::log(
                 &state.app_dir,
                 "ERRO",
                 format!("Não foi possível persistir a configuração corrigida após uma falha de integração: {error}"),
             );
-            // Best-effort rollback: do not leave the runtime on a new hotkey if saving
-            // the corrected configuration failed.
             if shortcut_changed {
-                if let Ok(new_shortcut) = Shortcut::from_str(&c.global_shortcut) {
+                if let Ok(new_shortcut) = Shortcut::from_str(&requested.global_shortcut) {
                     let _ = app.global_shortcut().unregister(new_shortcut);
                 }
                 if let Ok(old_shortcut) = Shortcut::from_str(&previous_active_shortcut) {
@@ -162,17 +191,15 @@ pub fn save_config(
                     app.autolaunch().disable()
                 };
             }
-            let _ = config::save(&state.app_dir, &old);
+            if let Err(rollback_error) = config::save(&state.app_dir, &old) {
+                crate::diagnostics::log(
+                    &state.app_dir,
+                    "ERRO",
+                    format!("Falha adicional ao restaurar config.json: {rollback_error}"),
+                );
+            }
             return Err("config.disk_write_failed".to_owned());
         }
-    }
-
-    {
-        let mut stored = state
-            .config
-            .lock()
-            .map_err(|_| "config.write_failed".to_owned())?;
-        *stored = c.clone();
     }
     let resize = force_resize.unwrap_or(false) || c.width != old.width || c.height != old.height;
     window::apply_config(&app, &c, resize);
