@@ -6,6 +6,7 @@ static LOGIN_ID:AtomicU64=AtomicU64::new(1);
 const INIT:&str=r#"(function(){
 if(!/^https?:$/.test(location.protocol)||window.top!==window)return;
 let UI_LANGUAGE='__WIDGET_LANGUAGE__';
+let DRAG_LOCKED='__WIDGET_LOCKED__'==='true';
 const UI_COPY={
  'pt-BR':{dragTitle:'Arraste esta alça para mover o widget. Você também pode segurar Alt e arrastar qualquer área.',dragLabel:'Arrastar para mover o widget',offlineTitle:'Sem conexão com o calendário',offlineMessage:'O site não respondeu. Verifique a internet e tente novamente.',retry:'Tentar novamente'},
  en:{dragTitle:'Drag this handle to move the widget. You can also hold Alt and drag any area.',dragLabel:'Drag to move the widget',offlineTitle:'Calendar connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
@@ -18,8 +19,11 @@ style.textContent=`
 #__widget_drag{position:fixed;z-index:2147483647;left:50%;transform:translateX(-50%);top:8px;width:78px;height:20px;display:flex;align-items:center;justify-content:center;background:rgba(33,52,75,.22);border:1px solid rgba(255,255,255,.72);border-radius:999px;opacity:.78;cursor:move;transition:background .12s,opacity .12s,box-shadow .12s;box-shadow:0 1px 4px rgba(0,0,0,.14);user-select:none;-webkit-user-select:none;touch-action:none}
 #__widget_drag::before{content:'⋮⋮';font:700 13px/1 Segoe UI,Arial,sans-serif;letter-spacing:2px;color:rgba(25,45,69,.96)}
 #__widget_drag:hover{opacity:1;background:rgba(24,105,210,.88);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+#__widget_drag.__widget_drag_locked{opacity:.28;cursor:not-allowed;pointer-events:none}
 #__widget_drag_frame{position:fixed;z-index:2147483644;inset:10px;border:3px solid rgba(24,105,210,.68);border-radius:8px;box-sizing:border-box;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);transition:border-color .12s,box-shadow .12s}
 #__widget_drag_frame:hover{border-color:rgba(24,105,210,.88);box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}
+#__widget_drag_frame.__widget_drag_locked{border-color:rgba(115,126,139,.6);box-shadow:none}
+#__widget_drag_frame.__widget_drag_locked .__widget_drag_edge{pointer-events:none;cursor:default}
 #__widget_drag_frame .__widget_drag_edge{position:absolute;display:block;pointer-events:auto;background:transparent;touch-action:none;user-select:none;-webkit-user-select:none}
 #__widget_drag_frame .__widget_drag_edge:hover{background:rgba(24,105,210,.16)}
 #__widget_drag_frame .__widget_drag_edge--top{top:-3px;left:0;right:0;height:9px;cursor:move}
@@ -38,8 +42,17 @@ html.__widget_scroll_active::-webkit-scrollbar-thumb,html.__widget_scroll_active
 `;
 (document.head||document.documentElement).appendChild(style);
 function action(p){location.href='widget-action://'+p}
+function setUiLocked(locked){
+ DRAG_LOCKED=Boolean(locked);
+ const frame=document.getElementById('__widget_drag_frame');
+ const handle=document.getElementById('__widget_drag');
+ if(frame)frame.classList.toggle('__widget_drag_locked',DRAG_LOCKED);
+ if(handle)handle.classList.toggle('__widget_drag_locked',DRAG_LOCKED);
+}
+window.__widgetSetLocked=setUiLocked;
 function dragWindow(event){
  if(event.button!==0)return;
+ if(DRAG_LOCKED){event.preventDefault();event.stopPropagation();if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();return;}
  event.preventDefault();
  event.stopPropagation();
  if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();
@@ -56,14 +69,14 @@ function dragWindow(event){
 function install(){
  if(!document.documentElement)return;
  if(!document.getElementById('__widget_drag_frame')){
-  const frame=document.createElement('div');frame.id='__widget_drag_frame';frame.setAttribute('aria-label','Borda para mover o widget');
+  const frame=document.createElement('div');frame.id='__widget_drag_frame';frame.setAttribute('aria-label','Borda para mover o widget');if(DRAG_LOCKED)frame.classList.add('__widget_drag_locked');
   for(const side of ['top','bottom','left','right']){
    const edge=document.createElement('div');edge.className='__widget_drag_edge __widget_drag_edge--'+side;edge.title=UI_COPY[UI_LANGUAGE]?.dragTitle||UI_COPY['pt-BR'].dragTitle;edge.setAttribute('aria-label',UI_COPY[UI_LANGUAGE]?.dragLabel||UI_COPY['pt-BR'].dragLabel);edge.addEventListener('pointerdown',dragWindow);frame.appendChild(edge);
   }
   document.documentElement.appendChild(frame);
  }
  if(!document.body||document.getElementById('__widget_drag'))return;
- const d=document.createElement('div');d.id='__widget_drag';const copy=UI_COPY[UI_LANGUAGE]||UI_COPY['pt-BR'];d.title=copy.dragTitle;d.setAttribute('aria-label',copy.dragLabel);d.addEventListener('pointerdown',dragWindow);document.body.appendChild(d);
+ const d=document.createElement('div');d.id='__widget_drag';const copy=UI_COPY[UI_LANGUAGE]||UI_COPY['pt-BR'];d.title=copy.dragTitle;d.setAttribute('aria-label',copy.dragLabel);if(DRAG_LOCKED)d.classList.add('__widget_drag_locked');d.addEventListener('pointerdown',dragWindow);document.body.appendChild(d);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 const dragObserver=new MutationObserver(()=>install());
@@ -156,7 +169,7 @@ fn is_configured_page(url:&Url,c:&AppConfig)->bool{
 }
 pub fn create_main(app:&AppHandle,c:&AppConfig,dir:&std::path::Path)->tauri::Result<WebviewWindow>{
 let data=dir.join("webview-data");std::fs::create_dir_all(&data).ok();let diag_dir=dir.to_path_buf();let build_diag_dir=dir.to_path_buf();let popup_diag_dir=dir.to_path_buf();let nav_app=app.clone();let popup_app=app.clone();
-let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(INIT.replace("__WIDGET_LANGUAGE__",&c.language))
+let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(INIT.replace("__WIDGET_LANGUAGE__",&c.language).replace("__WIDGET_LOCKED__",&c.locked.to_string()))
 .on_navigation(move|u|{
 if u.scheme()=="widget-diagnostic"{crate::diagnostics::record_heartbeat(&diag_dir);return false}
 if is_internal_app_url(&u){
@@ -328,7 +341,7 @@ pub fn refresh_native_corners(app:&AppHandle){
         apply_native_corners(&window,radius);
     }
 }
-pub fn apply_config(app:&AppHandle,c:&AppConfig){if let Some(w)=app.get_webview_window("main"){let _=w.set_always_on_top(c.always_on_top);let _=w.set_skip_taskbar(!c.show_in_taskbar);let _=w.set_resizable(!c.locked);let _=w.set_min_size(Some(LogicalSize::new(150.0,100.0)));let _=w.set_size(LogicalSize::new(c.width as f64,c.height as f64));let _=w.set_zoom(c.zoom as f64/100.0);let language=serde_json::to_string(&c.language).unwrap_or_else(|_|"\"pt-BR\"".to_owned());let script=format!("document.documentElement.style.opacity='{}';document.documentElement.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});",c.opacity as f64/100.0,c.corner_radius,language);let _=w.eval(&script);let _=w.set_shadow(c.corner_radius>0);apply_native_corners(&w,c.corner_radius);}}
+pub fn apply_config(app:&AppHandle,c:&AppConfig){if let Some(w)=app.get_webview_window("main"){let _=w.set_always_on_top(c.always_on_top);let _=w.set_skip_taskbar(!c.show_in_taskbar);let _=w.set_resizable(!c.locked);let _=w.set_min_size(Some(LogicalSize::new(150.0,100.0)));let _=w.set_size(LogicalSize::new(c.width as f64,c.height as f64));let _=w.set_zoom(c.zoom as f64/100.0);let language=serde_json::to_string(&c.language).unwrap_or_else(|_|"\"pt-BR\"".to_owned());let script=format!("document.documentElement.style.opacity='{}';document.documentElement.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});",c.opacity as f64/100.0,c.corner_radius,language,c.locked);let _=w.eval(&script);let _=w.set_shadow(c.corner_radius>0);apply_native_corners(&w,c.corner_radius);}}
 pub fn open_settings(app:&AppHandle){if let Some(w)=app.get_webview_window("settings"){let _=w.show();let _=w.set_focus();return}let a=app.clone();thread::spawn(move||{let language=a.state::<AppState>().config.lock().map(|config|config.language.clone()).unwrap_or_else(|_|"pt-BR".to_owned());let title=match language.as_str(){"en"=>"Settings — Widget Website","es"=>"Configuración — Widget Website",_=>"Configurações — Widget Website"};let dir=a.state::<AppState>().app_dir.join("settings-data");std::fs::create_dir_all(&dir).ok();let _=WebviewWindowBuilder::new(&a,"settings",WebviewUrl::App("settings.html".into())).title(title).inner_size(760.0,850.0).min_inner_size(520.0,550.0).resizable(true).data_directory(dir).build();});}
 pub fn open_login_from_tray(app:&AppHandle){let text=app.state::<AppState>().config.lock().map(|c|c.site_url.clone()).unwrap_or_else(|_|crate::config::DEFAULT_SITE.to_owned());if let Ok(url)=Url::parse(&text){let a=app.clone();thread::spawn(move||{let _=open_login(&a,url);});}}
 pub fn save_window_state(app:&AppHandle,e:&WindowEvent){let state=app.state::<AppState>();let scale=app.get_webview_window("main").and_then(|w|w.scale_factor().ok()).unwrap_or(1.0);let mut c=match state.config.lock(){Ok(v)=>v,Err(_)=>return};if !c.remember_position{return}match e{WindowEvent::Moved(p)=>{c.x=Some(p.x);c.y=Some(p.y)},WindowEvent::Resized(z)=>{c.width=((z.width as f64/scale).round() as u32).clamp(150,2000);c.height=((z.height as f64/scale).round() as u32).clamp(100,1600)},_=>return}let copy=c.clone();drop(c);let _=crate::config::save(&state.app_dir,&copy);if let Some(window)=app.get_webview_window("main"){apply_native_corners(&window,copy.corner_radius);}}
