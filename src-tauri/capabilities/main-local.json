@@ -6,8 +6,6 @@
     "main"
   ],
   "permissions": [
-    "core:default",
-    "core:webview:allow-set-webview-zoom",
     "app:allow-get-config"
   ]
 }
