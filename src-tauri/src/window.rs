@@ -889,6 +889,58 @@ pub fn refresh_native_corners(app: &AppHandle) {
         apply_native_corners(&window, radius);
     }
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ToggleAction {
+    Show,
+    Hide,
+}
+
+fn toggle_action(visible: bool, minimized: bool, focused: bool) -> ToggleAction {
+    if !visible || minimized || !focused { ToggleAction::Show } else { ToggleAction::Hide }
+}
+
+pub fn show_main(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let dir = app.state::<AppState>().app_dir.clone();
+        for (name, result) in [
+            ("restaurar", window.unminimize().map_err(|error| error.to_string())),
+            ("exibir", window.show().map_err(|error| error.to_string())),
+            ("focar", window.set_focus().map_err(|error| error.to_string())),
+        ] {
+            if let Err(error) = result {
+                crate::diagnostics::log(&dir, "WARN", format!("Não foi possível {name} a janela principal: {error}"));
+            }
+        }
+        crate::diagnostics::set_window_visible(true);
+    } else {
+        crate::diagnostics::log(
+            &app.state::<AppState>().app_dir,
+            "ERRO",
+            "A janela principal não existe; não foi possível trazê-la para frente.",
+        );
+    }
+}
+
+pub fn toggle_main_visibility(app: &AppHandle) {
+    let Some(window) = app.get_webview_window("main") else {
+        crate::diagnostics::log(&app.state::<AppState>().app_dir, "ERRO", "A janela principal não existe; o alternador de visibilidade foi ignorado.");
+        return;
+    };
+    let visible = window.is_visible().unwrap_or(false);
+    let minimized = window.is_minimized().unwrap_or(false);
+    let focused = window.is_focused().unwrap_or(false);
+    match toggle_action(visible, minimized, focused) {
+        ToggleAction::Show => show_main(app),
+        ToggleAction::Hide => {
+            if let Err(error) = window.hide() {
+                crate::diagnostics::log(&app.state::<AppState>().app_dir, "WARN", format!("Não foi possível ocultar a janela principal: {error}"));
+            } else {
+                crate::diagnostics::set_window_visible(false);
+            }
+        }
+    }
+}
+
 pub fn apply_config(app: &AppHandle, c: &AppConfig, resize: bool) {
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.set_always_on_top(c.always_on_top);
@@ -1105,6 +1157,19 @@ pub fn start_auto_reload(app: AppHandle) {
             }
         }
     });
+}
+
+#[cfg(test)]
+mod toggle_action_tests {
+    use super::*;
+
+    #[test]
+    fn toggle_restores_minimized_window_or_brings_unfocused_window_forward() {
+        assert_eq!(toggle_action(true, true, false), ToggleAction::Show);
+        assert_eq!(toggle_action(true, false, false), ToggleAction::Show);
+        assert_eq!(toggle_action(false, false, false), ToggleAction::Show);
+        assert_eq!(toggle_action(true, false, true), ToggleAction::Hide);
+    }
 }
 
 #[cfg(test)]
