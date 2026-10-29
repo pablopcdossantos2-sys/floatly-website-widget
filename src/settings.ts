@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
 type Language = "pt-BR" | "en" | "es";
 type C = {
@@ -43,7 +44,9 @@ const translations: Record<Language, Record<string, string>> = {
     shortcutSection: "Atalho global", shortcutCombination: "Combinação de teclas",
     shortcutHelp: "Esse atalho mostra ou oculta o widget mesmo quando você está usando outro programa. Clique no campo e pressione a combinação desejada (ex.: Ctrl + Alt + C).",
     reset: "Restaurar tamanho padrão", close: "Fechar", save: "Salvar alterações",
-    saving: "Salvando…", saved: "Configurações salvas.", resetSaved: "Tamanho padrão restaurado.",
+    saving: "Salvando…", saved: "Configurações salvas.", resetSaved: "Dimensões padrão preenchidas. Clique em Salvar alterações para aplicar.",
+    fieldRequired: "Preencha os campos numéricos obrigatórios.", fieldRange: "Use um número inteiro dentro dos limites indicados.", shortcutModifierRequired: "Inclua pelo menos um modificador (Ctrl, Alt, Shift ou Win).", shortcutKeyUnsupported: "Essa tecla não é compatível com o atalho global.",
+    autostartEnableWarning: "Não foi possível habilitar o início com o Windows.", autostartDisableWarning: "Não foi possível desabilitar o início com o Windows.",
     loadFailed: "Não foi possível ler as configurações: ", invalidConfig: "Não foi possível salvar as configurações: ",
     shortcutWarning: "O novo atalho conflita com outro aplicativo; o atalho anterior foi mantido.",
     autostartWarning: "Não foi possível alterar a configuração de início com o Windows.",
@@ -70,7 +73,9 @@ const translations: Record<Language, Record<string, string>> = {
     shortcutSection: "Global shortcut", shortcutCombination: "Key combination",
     shortcutHelp: "This shortcut shows or hides the widget even while you are using another application. Click the field and press the desired combination (e.g. Ctrl + Alt + C).",
     reset: "Restore default size", close: "Close", save: "Save changes",
-    saving: "Saving…", saved: "Settings saved.", resetSaved: "Default size restored.",
+    saving: "Saving…", saved: "Settings saved.", resetSaved: "Default dimensions filled in. Click Save changes to apply them.",
+    fieldRequired: "Fill in all required numeric fields.", fieldRange: "Enter an integer within the indicated limits.", shortcutModifierRequired: "Include at least one modifier (Ctrl, Alt, Shift or Win).", shortcutKeyUnsupported: "This key is not supported for the global shortcut.",
+    autostartEnableWarning: "Could not enable startup with Windows.", autostartDisableWarning: "Could not disable startup with Windows.",
     loadFailed: "Could not load settings: ", invalidConfig: "Could not save settings: ",
     shortcutWarning: "The new shortcut conflicts with another application; the previous shortcut was kept.",
     autostartWarning: "Could not change the Windows startup setting.",
@@ -97,7 +102,9 @@ const translations: Record<Language, Record<string, string>> = {
     shortcutSection: "Atajo global", shortcutCombination: "Combinación de teclas",
     shortcutHelp: "Este atajo muestra u oculta el widget aunque estés usando otra aplicación. Haz clic en el campo y pulsa la combinación deseada (p. ej., Ctrl + Alt + C).",
     reset: "Restaurar tamaño predeterminado", close: "Cerrar", save: "Guardar cambios",
-    saving: "Guardando…", saved: "Configuración guardada.", resetSaved: "Se restauró el tamaño predeterminado.",
+    saving: "Guardando…", saved: "Configuración guardada.", resetSaved: "Dimensiones predeterminadas completadas. Pulsa Guardar cambios para aplicarlas.",
+    fieldRequired: "Completa los campos numéricos obligatorios.", fieldRange: "Introduce un número entero dentro de los límites indicados.", shortcutModifierRequired: "Incluye al menos un modificador (Ctrl, Alt, Shift o Win).", shortcutKeyUnsupported: "Esta tecla no es compatible con el atajo global.",
+    autostartEnableWarning: "No se pudo activar el inicio con Windows.", autostartDisableWarning: "No se pudo desactivar el inicio con Windows.",
     loadFailed: "No se pudo leer la configuración: ", invalidConfig: "No se pudo guardar la configuración: ",
     shortcutWarning: "El nuevo atajo entra en conflicto con otra aplicación; se mantuvo el atajo anterior.",
     autostartWarning: "No se pudo cambiar la opción de inicio con Windows.",
@@ -114,6 +121,7 @@ const ids = [
 ];
 let current: C | null = null;
 let activeLanguage: Language = "pt-BR";
+const dirtyFields = new Set<string>();
 type SettingsTheme = "light" | "dark";
 const themePreferenceKey = "widget-website-settings-theme";
 
@@ -153,31 +161,39 @@ function applyLanguage(language: string) {
     if (key) element.setAttribute("aria-label", t(key));
   });
 }
-function display(config: C) {
-  for (const id of ids) {
-    const element = f(id);
-    const value = config[id as keyof C];
-    if (element instanceof HTMLInputElement && element.type === "checkbox") {
-      element.checked = Boolean(value);
-    } else {
-      element.value = String(value ?? "");
-    }
+function displayField(config: C, id: string) {
+  const element = f(id);
+  const value = config[id as keyof C];
+  if (element instanceof HTMLInputElement && element.type === "checkbox") {
+    element.checked = Boolean(value);
+  } else {
+    element.value = String(value ?? "");
   }
-  document.getElementById("opacity-value")!.textContent = config.opacity + "%";
-  document.getElementById("zoom-value")!.textContent = config.zoom + "%";
-  applyLanguage(config.language);
+  if (id === "opacity") document.getElementById("opacity-value")!.textContent = config.opacity + "%";
+  if (id === "zoom") document.getElementById("zoom-value")!.textContent = config.zoom + "%";
+  if (id === "language") applyLanguage(config.language);
+}
+function display(config: C) {
+  for (const id of ids) displayField(config, id);
 }
 async function load() {
   current = await invoke<C>("get_config");
   display(current);
+}
+function readInt(id: string, min: number, max: number): number {
+  const raw = f(id).value.trim();
+  if (!raw) throw new Error("FIELD_REQUIRED");
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed < min || parsed > max) throw new Error("FIELD_RANGE");
+  return parsed;
 }
 function read(): C {
   const value = (id: string) => f(id).value;
   const checked = (id: string) => f(id).checked;
   return {
     site_url: value("site_url"),
-    width: Number(value("width")),
-    height: Number(value("height")),
+    width: readInt("width", 150, 2000),
+    height: readInt("height", 100, 1600),
     x: current?.x ?? null,
     y: current?.y ?? null,
     remember_position: checked("remember_position"),
@@ -185,11 +201,11 @@ function read(): C {
     always_on_top: checked("always_on_top"),
     opacity: Number(value("opacity")),
     zoom: Number(value("zoom")),
-    auto_reload_minutes: Number(value("auto_reload_minutes")),
+    auto_reload_minutes: readInt("auto_reload_minutes", 0, 1440),
     show_in_taskbar: checked("show_in_taskbar"),
     locked: checked("locked"),
     global_shortcut: value("global_shortcut"),
-    corner_radius: Number(value("corner_radius")),
+    corner_radius: readInt("corner_radius", 0, 64),
     language: f<HTMLSelectElement>("language").value as Language
   };
 }
@@ -200,17 +216,24 @@ form.addEventListener("submit", async (event) => {
   try {
     const result = await invoke<S>("save_config", { config: read() });
     current = result.config;
+    dirtyFields.clear();
     display(result.config);
     if (result.warning) {
-      const warning = result.warning.includes("atalho")
-        ? t("shortcutWarning")
-        : result.warning.includes("início") ? t("autostartWarning") : result.warning;
+      const warningKeys: Record<string, string> = {
+        shortcut_conflict: "shortcutWarning",
+        autostart_enable_failed: "autostartEnableWarning",
+        autostart_disable_failed: "autostartDisableWarning"
+      };
+      const warning = result.warning.split(/\s+/).map((code) => t(warningKeys[code] ?? "shortcutWarning")).join(" ");
       say(warning, "warning");
     } else {
       say(t("saved"));
     }
   } catch (error) {
-    say(t("invalidConfig") + String(error), "error");
+    const message = error instanceof Error ? error.message : String(error);
+    if (message === "FIELD_REQUIRED") say(t("fieldRequired"), "error");
+    else if (message === "FIELD_RANGE") say(t("fieldRange"), "error");
+    else say(t("invalidConfig") + message, "error");
   }
 });
 
@@ -224,30 +247,49 @@ f("opacity").addEventListener("input", (event) => {
 f("zoom").addEventListener("input", (event) => {
   document.getElementById("zoom-value")!.textContent = (event.target as HTMLInputElement).value + "%";
 });
+function shortcutKeyFromCode(code: string): string | null {
+  if (/^Key[A-Z]$/.test(code)) return code.slice(3);
+  if (/^Digit[0-9]$/.test(code)) return code.slice(5);
+  if (/^Numpad[0-9]$/.test(code)) return "NUMPAD" + code.slice(6);
+  if (/^F([1-9]|1[0-9]|2[0-4])$/.test(code)) return code;
+  const named: Record<string, string> = {
+    Escape: "ESC", Enter: "ENTER", Space: "SPACE", Backspace: "BACKSPACE",
+    Delete: "DELETE", Insert: "INSERT", Home: "HOME", End: "END",
+    PageUp: "PAGEUP", PageDown: "PAGEDOWN", ArrowUp: "UP", ArrowDown: "DOWN",
+    ArrowLeft: "LEFT", ArrowRight: "RIGHT"
+  };
+  return named[code] ?? null;
+}
 f("global_shortcut").addEventListener("keydown", (event) => {
-  event.preventDefault();
+  if (event.key === "Tab") return;
   if (["Control", "Alt", "Shift", "Meta"].includes(event.key)) return;
   const parts: string[] = [];
   if (event.ctrlKey) parts.push("CTRL");
   if (event.altKey) parts.push("ALT");
   if (event.shiftKey) parts.push("SHIFT");
   if (event.metaKey) parts.push("SUPER");
-  const map: Record<string, string> = {
-    Escape: "ESC", " ": "SPACE", ArrowUp: "UP", ArrowDown: "DOWN",
-    ArrowLeft: "LEFT", ArrowRight: "RIGHT", PageUp: "PAGEUP", PageDown: "PAGEDOWN"
-  };
-  parts.push(event.key.length === 1 ? event.key.toUpperCase() : (map[event.key] || event.key.toUpperCase()));
-  f("global_shortcut").value = parts.join("+");
-});
-document.getElementById("reset")!.addEventListener("click", async () => {
-  try {
-    const result = await invoke<S>("restore_default_size");
-    current = result.config;
-    display(result.config);
-    say(result.warning || t("resetSaved"), result.warning ? "warning" : "");
-  } catch (error) {
-    say(String(error), "error");
+  if (parts.length === 0) {
+    event.preventDefault();
+    say(t("shortcutModifierRequired"), "warning");
+    return;
   }
+  const primary = shortcutKeyFromCode(event.code);
+  if (!primary) {
+    event.preventDefault();
+    say(t("shortcutKeyUnsupported"), "warning");
+    return;
+  }
+  event.preventDefault();
+  parts.push(primary);
+  f("global_shortcut").value = parts.join("+");
+  say("");
+});
+document.getElementById("reset")!.addEventListener("click", () => {
+  f("width").value = "500";
+  f("height").value = "700";
+  dirtyFields.add("width");
+  dirtyFields.add("height");
+  say(t("resetSaved"));
 });
 document.getElementById("close")!.addEventListener("click", () => {
   void invoke("close_settings");
@@ -260,5 +302,22 @@ try {
 } catch {
   setSettingsTheme("light", false);
 }
+
+form.addEventListener("input", (event) => {
+  const target = event.target;
+  if (target instanceof HTMLElement && target.id) dirtyFields.add(target.id);
+});
+form.addEventListener("change", (event) => {
+  const target = event.target;
+  if (target instanceof HTMLElement && target.id) dirtyFields.add(target.id);
+});
+void listen<C>("config-changed", (event) => {
+  current = event.payload;
+  for (const id of ids) {
+    if (!dirtyFields.has(id)) displayField(event.payload, id);
+  }
+}).catch((error) => {
+  say(t("loadFailed") + String(error), "error");
+});
 
 void load().catch((error) => say(t("loadFailed") + String(error), "error"));
