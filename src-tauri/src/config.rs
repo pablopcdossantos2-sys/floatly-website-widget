@@ -121,7 +121,7 @@ pub fn app_directory() -> PathBuf {
         .join("WidgetWebsite")
 }
 
-pub fn load(dir: &PathBuf) -> AppConfig {
+pub fn load(dir: &Path) -> AppConfig {
     let mut config = fs::read(dir.join("config.json"))
         .ok()
         .and_then(|bytes| serde_json::from_slice::<AppConfig>(&bytes).ok())
