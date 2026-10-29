@@ -8,7 +8,8 @@ Widget desktop para manter o calendário econômico do Investing.com aberto em u
 - Janela sem barra de título, bandeja do sistema, instância única e atalho global padrão CTRL+ALT+C. Fechar pela tecla/ botão de fechar esconde o widget na bandeja; use Sair para encerrar o processo.
 - Sessão WebView2 persistente em %APPDATA%\WidgetWebsite\webview-data; configuração em %APPDATA%\WidgetWebsite\config.json.
 - Interface em português do Brasil, inglês ou espanhol, selecionável nas configurações.
-- Uma borda azul bem visível ao redor do conteúdo permite arrastar a janela pelos quatro lados. As opções de tamanho e posição estão nas configurações.
+- Uma pequena aba na parte superior central permite arrastar o widget. As áreas de interação nas bordas continuam ativas, mas são transparentes e não desenham uma moldura ao redor do conteúdo. O tamanho e a posição podem ser alterados nas configurações.
+- O tamanho padrão é 350 × 550 px e o zoom padrão do navegador embutido é 80%; ambos podem ser alterados nas configurações.
 - URL, tamanho, posição, travamento, sempre no topo, barra de tarefas, opacidade, zoom, cantos e recarga automática configuráveis.
 - Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária com uma barra de endereço simples e a pasta de dados compartilhada do WebView2. A janela tenta fechar quando o fluxo retorna ao endereço configurado após a autenticação.
 - Workflow de compilação Windows x64 e instalador NSIS.
@@ -66,7 +67,7 @@ O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é 
 
 ## Privacidade, decisões e limitações
 - Sem telemetria. A navegação principal é limitada ao site configurado e a recursos de autenticação conhecidos; links HTTP/HTTPS para outros domínios abrem no navegador padrão.
-- Arquivo de configuração corrompido é substituído por valores padrão. O botão “Restaurar tamanho padrão” muda somente largura e altura para 500 × 700 px; as outras preferências são preservadas.
+- Arquivo de configuração corrompido é substituído por valores padrão. O botão “Restaurar tamanho padrão” muda somente largura e altura para 350 × 550 px; as outras preferências são preservadas.
 - A CI verifica a compatibilidade das versões Tauri, o manifesto de permissões e as capabilities; executa `npm ci`, verificação de tipos, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` e `cargo test`; por fim, compila o instalador no Windows.
 - A janela de login secundária compartilha a pasta de dados do WebView2 e inclui uma barra de endereço injetada. A navegação para domínios não autorizados continua bloqueada dentro do app e abre no navegador padrão. O fechamento automático depende de o provedor retornar ao caminho configurado; alguns fluxos sociais podem exigir fechar a janela manualmente.
 - O zoom é aplicado pelo controle nativo de ampliação do WebView2, afetando a renderização da página de forma semelhante ao zoom de um navegador. Opacidade e recorte dos cantos continuam usando CSS; o arredondamento pode variar no Windows 10.
