@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf, str::FromStr, sync::Mutex};
+use std::{fs, path::{Path, PathBuf}, str::FromStr, sync::Mutex};
 use tauri_plugin_global_shortcut::Shortcut;
 use url::Url;
 
@@ -127,7 +127,7 @@ pub fn load(dir: &PathBuf) -> AppConfig {
     config
 }
 
-pub fn save(dir: &PathBuf, config: &AppConfig) -> Result<(), String> {
+pub fn save(dir: &Path, config: &AppConfig) -> Result<(), String> {
     fs::create_dir_all(dir).map_err(|error| error.to_string())?;
     let temp = dir.join("config.json.tmp");
     fs::write(
@@ -162,14 +162,16 @@ mod tests {
 
     #[test]
     fn normalization_prefixes_https_and_clamps_values() {
-        let mut config = AppConfig::default();
-        config.site_url = "investing.com".into();
-        config.width = 1;
-        config.height = 9999;
-        config.opacity = 0;
-        config.zoom = 250;
-        config.auto_reload_minutes = 1;
-        config.corner_radius = 100;
+        let mut config = AppConfig {
+            site_url: "investing.com".into(),
+            width: 1,
+            height: 9999,
+            opacity: 0,
+            zoom: 250,
+            auto_reload_minutes: 1,
+            corner_radius: 100,
+            ..AppConfig::default()
+        };
         config.normalize().unwrap();
         assert_eq!(config.site_url, "https://investing.com/");
         assert_eq!(config.width, 150);
@@ -183,34 +185,44 @@ mod tests {
     #[test]
     fn language_is_limited_to_supported_values() {
         for language in ["pt-BR", "en", "es"] {
-            let mut config = AppConfig::default();
-            config.language = language.to_owned();
+            let mut config = AppConfig {
+                language: language.to_owned(),
+                ..AppConfig::default()
+            };
             config.normalize().unwrap();
             assert_eq!(config.language, language);
         }
 
-        let mut config = AppConfig::default();
-        config.language = "fr".into();
+        let mut config = AppConfig {
+            language: "fr".into(),
+            ..AppConfig::default()
+        };
         config.normalize().unwrap();
         assert_eq!(config.language, "pt-BR");
     }
 
     #[test]
     fn shortcut_requires_a_modifier_and_a_supported_key() {
-        let mut config = AppConfig::default();
-        config.global_shortcut = "A".into();
+        let mut config = AppConfig {
+            global_shortcut: "A".into(),
+            ..AppConfig::default()
+        };
         assert_eq!(
             config.normalize().unwrap_err(),
             "config.shortcut_modifier_required"
         );
 
-        let mut config = AppConfig::default();
-        config.global_shortcut = "CTRL+ALT+C".into();
+        let mut config = AppConfig {
+            global_shortcut: "CTRL+ALT+C".into(),
+            ..AppConfig::default()
+        };
         config.normalize().unwrap();
         assert_eq!(config.global_shortcut, "CTRL+ALT+C");
 
-        let mut config = AppConfig::default();
-        config.global_shortcut = "CTRL+ALT+NOT_A_REAL_KEY".into();
+        let mut config = AppConfig {
+            global_shortcut: "CTRL+ALT+NOT_A_REAL_KEY".into(),
+            ..AppConfig::default()
+        };
         assert_eq!(
             config.normalize().unwrap_err(),
             "config.shortcut_key_unsupported"
@@ -234,8 +246,10 @@ mod tests {
             "ftp://example.com",
             "https://user:secret@example.com",
         ] {
-            let mut config = AppConfig::default();
-            config.site_url = invalid.into();
+            let mut config = AppConfig {
+                site_url: invalid.into(),
+                ..AppConfig::default()
+            };
             assert!(
                 config.normalize().is_err(),
                 "accepted invalid URL: {invalid}"
