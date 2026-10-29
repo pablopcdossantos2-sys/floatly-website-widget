@@ -338,20 +338,6 @@ fn is_internal_app_url(url: &Url) -> bool {
         || (cfg!(debug_assertions) && host == "127.0.0.1")
 }
 
-fn is_configured_page(url: &Url, c: &AppConfig) -> bool {
-    let Ok(target) = Url::parse(&c.site_url) else {
-        return false;
-    };
-    let host = url.host_str().unwrap_or("").to_ascii_lowercase();
-    let target_host = target.host_str().unwrap_or("").to_ascii_lowercase();
-    let same = host == target_host || host.ends_with(&format!(".{target_host}"));
-    let target_path = target.path().trim_end_matches('/');
-    let current_path = url.path().trim_end_matches('/');
-    same && (target_path.is_empty()
-        || target_path == "/"
-        || current_path == target_path
-        || current_path.starts_with(&format!("{target_path}/")))
-}
 fn authorized_widget_action<'a>(url: &'a Url, expected_token: &str) -> Option<&'a str> {
     if url.scheme() != "widget-action"
         || url.host_str() != Some(expected_token)
