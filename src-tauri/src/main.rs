@@ -156,6 +156,8 @@ fn main() {
                 config: std::sync::Mutex::new(cfg.clone()),
                 app_dir: dir.clone(),
                 registered_shortcut: std::sync::Mutex::new(String::new()),
+                geometry_save_revision: std::sync::atomic::AtomicU64::new(0),
+                geometry_save_worker_running: std::sync::atomic::AtomicBool::new(false),
                 heartbeat_token: uuid::Uuid::new_v4().simple().to_string(),
             });
 
