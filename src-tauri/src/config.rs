@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf, sync::Mutex};
+use std::{fs, path::PathBuf, str::FromStr, sync::Mutex};
+use tauri_plugin_global_shortcut::Shortcut;
 use url::Url;
 
 pub const DEFAULT_SITE: &str = "https://br.investing.com/economic-calendar";
@@ -57,18 +58,18 @@ impl AppConfig {
     pub fn normalize(&mut self) -> Result<(), String> {
         let mut site = self.site_url.trim().to_owned();
         if site.is_empty() {
-            return Err("Informe a URL do site.".into());
+            return Err("config.site_url_required".into());
         }
         if !site.contains("://") {
             site = format!("https://{site}");
         }
-        let url = Url::parse(&site).map_err(|_| "URL inválida.".to_owned())?;
+        let url = Url::parse(&site).map_err(|_| "config.site_url_invalid".to_owned())?;
         if !["http", "https"].contains(&url.scheme())
             || url.host_str().is_none()
             || !url.username().is_empty()
             || url.password().is_some()
         {
-            return Err("Use uma URL HTTP/HTTPS válida, sem credenciais.".into());
+            return Err("config.site_url_http_only".into());
         }
         self.site_url = url.to_string();
         self.width = self.width.clamp(150, 2000);
@@ -80,9 +81,16 @@ impl AppConfig {
         }
         self.auto_reload_minutes = self.auto_reload_minutes.min(1440);
         self.corner_radius = self.corner_radius.min(64);
-        if self.global_shortcut.trim().is_empty() {
-            return Err("Informe um atalho global.".into());
+        let shortcut = self.global_shortcut.trim().to_ascii_uppercase();
+        let parts: Vec<&str> = shortcut.split('+').map(str::trim).collect();
+        let has_modifier = parts.iter().any(|part| {
+            matches!(*part, "CTRL" | "CONTROL" | "ALT" | "SHIFT" | "SUPER" | "WIN" | "META")
+        });
+        if !has_modifier || parts.len() < 2 || parts.last().is_none_or(|key| key.is_empty()) {
+            return Err("config.shortcut_modifier_required".into());
         }
+        Shortcut::from_str(&shortcut).map_err(|_| "config.shortcut_key_unsupported".to_owned())?;
+        self.global_shortcut = shortcut;
         if !["pt-BR", "en", "es"].contains(&self.language.as_str()) {
             self.language = default_language();
         }
@@ -180,6 +188,22 @@ mod tests {
         config.language = "fr".into();
         config.normalize().unwrap();
         assert_eq!(config.language, "pt-BR");
+    }
+
+    #[test]
+    fn shortcut_requires_a_modifier_and_a_supported_key() {
+        let mut config = AppConfig::default();
+        config.global_shortcut = "A".into();
+        assert_eq!(config.normalize().unwrap_err(), "config.shortcut_modifier_required");
+
+        let mut config = AppConfig::default();
+        config.global_shortcut = "CTRL+ALT+C".into();
+        config.normalize().unwrap();
+        assert_eq!(config.global_shortcut, "CTRL+ALT+C");
+
+        let mut config = AppConfig::default();
+        config.global_shortcut = "CTRL+ALT+NOT_A_REAL_KEY".into();
+        assert_eq!(config.normalize().unwrap_err(), "config.shortcut_key_unsupported");
     }
 
     #[test]
