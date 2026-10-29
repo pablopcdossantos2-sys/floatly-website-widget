@@ -15,8 +15,8 @@ use tauri_plugin_global_shortcut::Shortcut;
 use url::Url;
 
 pub const DEFAULT_SITE: &str = "https://br.investing.com/economic-calendar";
-pub const DEFAULT_WIDTH: u32 = 500;
-pub const DEFAULT_HEIGHT: u32 = 700;
+pub const DEFAULT_WIDTH: u32 = 350;
+pub const DEFAULT_HEIGHT: u32 = 550;
 
 static SAVE_LOCK: Mutex<()> = Mutex::new(());
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -61,7 +61,7 @@ impl Default for AppConfig {
             autostart: false,
             always_on_top: false,
             opacity: 100,
-            zoom: 100,
+            zoom: 80,
             auto_reload_minutes: 0,
             show_in_taskbar: false,
             locked: false,
@@ -414,7 +414,7 @@ mod tests {
         assert_eq!(config.site_url, DEFAULT_SITE);
         assert_eq!(config.width, DEFAULT_WIDTH);
         assert_eq!(config.height, DEFAULT_HEIGHT);
-        assert_eq!(config.zoom, 100);
+        assert_eq!(config.zoom, 80);
         assert_eq!(config.opacity, 100);
         assert_eq!(config.global_shortcut, "CTRL+ALT+C");
         assert_eq!(config.language, "pt-BR");
