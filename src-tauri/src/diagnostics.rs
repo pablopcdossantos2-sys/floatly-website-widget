@@ -3,7 +3,7 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
     sync::{
-        atomic::{AtomicBool, AtomicU64, Ordering},
+        atomic::{AtomicBool, AtomicIsize, AtomicU64, Ordering},
         Mutex, OnceLock,
     },
     thread,
@@ -22,6 +22,8 @@ const MAX_LOG_BACKUPS: usize = 3;
 static LOG_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 static LOG_RATE_LOCK: OnceLock<Mutex<(u64, u32)>> = OnceLock::new();
 static WATCHDOG_STATE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+static NATIVE_WINDOW_HANDLE: AtomicIsize = AtomicIsize::new(0);
+static NATIVE_WINDOW_VISIBLE: AtomicBool = AtomicBool::new(true);
 static LAST_HEARTBEAT_MS: AtomicU64 = AtomicU64::new(0);
 static LAST_WARNING_MS: AtomicU64 = AtomicU64::new(0);
 static HEARTBEAT_SEEN: AtomicBool = AtomicBool::new(false);
@@ -223,7 +225,32 @@ pub fn safe_url_summary(raw_url: &str) -> String {
     }
 }
 
+pub fn set_native_window(hwnd: isize) {
+    NATIVE_WINDOW_HANDLE.store(hwnd, Ordering::SeqCst);
+}
+
+pub fn set_window_visible(visible: bool) {
+    NATIVE_WINDOW_VISIBLE.store(visible, Ordering::SeqCst);
+    if visible {
+        reset_grace();
+    }
+}
+
+pub fn reset_grace() {
+    let _state = WATCHDOG_STATE_LOCK
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    LAST_HEARTBEAT_MS.store(now_ms(), Ordering::SeqCst);
+    LAST_WARNING_MS.store(0, Ordering::SeqCst);
+    WATCHDOG_ALERTED.store(false, Ordering::SeqCst);
+}
+
 pub fn record_heartbeat(dir: &Path) {
+    let _state = WATCHDOG_STATE_LOCK
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     LAST_HEARTBEAT_MS.store(now_ms(), Ordering::SeqCst);
     let first = !HEARTBEAT_SEEN.swap(true, Ordering::SeqCst);
     let recovered = WATCHDOG_ALERTED.swap(false, Ordering::SeqCst);
@@ -275,15 +302,10 @@ pub fn start_watchdog(app: AppHandle, dir: PathBuf) {
             thread::sleep(Duration::from_secs(5));
             let now = now_ms();
 
-            // A widget hidden in the system tray is not useful for UI hang detection;
-            // reset the grace clock while hidden to avoid false positives from timer throttling.
-            if let Some(window) = app.get_webview_window("main") {
-                if matches!(window.is_visible(), Ok(false)) {
-                    LAST_HEARTBEAT_MS.store(now, Ordering::SeqCst);
-                    LAST_WARNING_MS.store(0, Ordering::SeqCst);
-                    WATCHDOG_ALERTED.store(false, Ordering::SeqCst);
-                    continue;
-                }
+            // Read cached visibility rather than calling Tauri window APIs from a worker thread.
+            if !NATIVE_WINDOW_VISIBLE.load(Ordering::SeqCst) {
+                reset_grace();
+                continue;
             }
 
             let last = LAST_HEARTBEAT_MS.load(Ordering::SeqCst);
@@ -297,18 +319,31 @@ pub fn start_watchdog(app: AppHandle, dir: PathBuf) {
                 continue;
             }
 
-            let native_status = native_window_status(&app);
+            let native_status = native_window_status();
+            let _state = WATCHDOG_STATE_LOCK
+                .get_or_init(|| Mutex::new(()))
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            let latest = LAST_HEARTBEAT_MS.load(Ordering::SeqCst);
+            if now.saturating_sub(latest) < HEARTBEAT_TIMEOUT_MS {
+                continue;
+            }
+            let latest_warning = LAST_WARNING_MS.load(Ordering::SeqCst);
+            if latest_warning != 0 && now.saturating_sub(latest_warning) < REPEAT_WARNING_MS {
+                continue;
+            }
+            // Commit the alert and its log while heartbeat transitions are serialized.
+            LAST_WARNING_MS.store(now, Ordering::SeqCst);
+            WATCHDOG_ALERTED.store(true, Ordering::SeqCst);
             log(
                 &dir,
                 "WARN",
                 format!(
                     "Sem sinal de atividade do JavaScript/WebView2 há aproximadamente {} s. {}. Isso indica uma possível página/renderização travada ou bloqueio de navegação; o log, isoladamente, não prova que outro navegador causou o problema.",
-                    age / 1_000,
+                    now.saturating_sub(latest) / 1_000,
                     native_status
                 ),
             );
-            LAST_WARNING_MS.store(now, Ordering::SeqCst);
-            WATCHDOG_ALERTED.store(true, Ordering::SeqCst);
         });
 
     if let Err(error) = result {
@@ -321,29 +356,25 @@ pub fn start_watchdog(app: AppHandle, dir: PathBuf) {
 }
 
 #[cfg(windows)]
-fn native_window_status(app: &AppHandle) -> String {
-    use windows_sys::Win32::UI::WindowsAndMessaging::IsHungAppWindow;
+fn native_window_status() -> String {
+    use windows_sys::Win32::UI::WindowsAndMessaging::{IsHungAppWindow, IsWindowVisible};
 
-    let window_status = if let Some(window) = app.get_webview_window("main") {
-        match window.hwnd() {
-            Ok(hwnd) => {
-                let hung = unsafe { IsHungAppWindow(hwnd.0) != 0 };
-                if hung {
-                    "O Windows também marca a janela nativa como sem resposta".to_owned()
-                } else {
-                    "A janela nativa ainda responde às mensagens do Windows".to_owned()
-                }
-            }
-            Err(error) => format!("Não foi possível inspecionar a janela nativa: {error}"),
-        }
+    let raw_hwnd = NATIVE_WINDOW_HANDLE.load(Ordering::SeqCst);
+    let window_status = if raw_hwnd == 0 {
+        "O identificador da janela principal ainda não está disponível".to_owned()
     } else {
-        "A janela principal não foi encontrada".to_owned()
+        let hwnd = raw_hwnd as windows_sys::Win32::Foundation::HWND;
+        let hung = unsafe { IsHungAppWindow(hwnd) != 0 };
+        let visible = unsafe { IsWindowVisible(hwnd) != 0 };
+        if hung {
+            "O Windows marca a janela nativa como sem resposta".to_owned()
+        } else if visible {
+            "A janela nativa está visível e ainda responde às mensagens do Windows".to_owned()
+        } else {
+            "A janela nativa está oculta e ainda responde às mensagens do Windows".to_owned()
+        }
     };
-
-    format!(
-        "{window_status}. {}",
-        webview2_descendant_process_status(std::process::id())
-    )
+    format!("{window_status}. {}", webview2_descendant_process_status(std::process::id()))
 }
 
 #[cfg(windows)]
@@ -415,7 +446,7 @@ fn webview2_descendant_process_status(app_pid: u32) -> String {
 }
 
 #[cfg(not(windows))]
-fn native_window_status(_app: &AppHandle) -> String {
+fn native_window_status() -> String {
     "Verificação nativa de janela indisponível nesta plataforma".to_owned()
 }
 
