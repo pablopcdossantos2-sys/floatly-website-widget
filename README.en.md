@@ -9,7 +9,8 @@ A small Windows desktop widget that keeps the Investing.com economic calendar op
 - System tray, single-instance behavior and a global shortcut (default: CTRL+ALT+C). Closing the window hides it in the tray; use **Quit** to exit the app.
 - Persistent WebView2 session in %APPDATA%\WidgetWebsite\webview-data; settings in %APPDATA%\WidgetWebsite\config.json.
 - Interface available in Brazilian Portuguese, English and Spanish. Change it under **Settings → Language**.
-- Drag the widget using the clearly visible blue border around the content (top, bottom or either side). Window size and position are configurable.
+- A small handle at the top center lets you drag the widget. The edge hit areas remain active but transparent, so no frame is drawn around the content. Window size and position are configurable.
+- The default window size is 350 × 550 px and the default embedded browser zoom is 80%; both can be changed in settings.
 - Configurable website URL, size, position, movement lock, always-on-top behavior, taskbar visibility, opacity, zoom, corner radius and automatic reload.
 - External links open in the default browser. Recognized sign-in domains open in a secondary window with a simple address bar and shared WebView2 data folder; the window attempts to close when sign-in returns to the configured website.
 - Windows x64 build workflow and NSIS installer.
@@ -72,7 +73,7 @@ The app does not read, copy or store passwords. The default WebView2 user agent 
 ## Privacy and limitations
 
 - No telemetry. The main navigation is restricted to the configured website and recognized authentication resources; other HTTP/HTTPS links are opened in the default browser.
-- A corrupt configuration file is replaced with defaults. **Restore default size** only changes the dimensions to 500 × 700 px; other preferences are preserved.
+- A corrupt configuration file is replaced with defaults. **Restore default size** only changes the dimensions to 350 × 550 px; other preferences are preserved.
 - CI checks Tauri version alignment, the command manifest and capabilities; it runs `npm ci`, type checking, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` and `cargo test`, then builds the Windows installer.
 - The secondary sign-in window shares the WebView2 data folder and has an injected address bar. Navigation to unapproved domains is opened in the default browser. Automatic closing depends on the sign-in provider returning to the configured website; some social sign-in flows may require closing the window manually.
 - Zoom uses the native WebView2 zoom control. Opacity and rounded corners use CSS/native clipping; corner appearance may vary on Windows 10.
