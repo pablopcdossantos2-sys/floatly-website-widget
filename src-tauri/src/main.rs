@@ -75,20 +75,11 @@ fn show_webview2_missing_message() {
 }
 
 fn toggle(app: &AppHandle) {
-    if let Some(window) = app.get_webview_window("main") {
-        if window.is_visible().unwrap_or(false) {
-            let _ = window.hide();
-        } else {
-            let _ = window.show();
-        }
-    }
+    window::toggle_main_visibility(app);
 }
 
 fn show_existing_instance(app: &AppHandle) {
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.show();
-        let _ = window.set_focus();
-    }
+    window::show_main(app);
 }
 
 fn main() {
@@ -213,6 +204,11 @@ fn main() {
             }
 
             let main_window = window::create_main(app.handle(), &cfg, &dir)?;
+            diagnostics::set_window_visible(true);
+            #[cfg(windows)]
+            if let Ok(hwnd) = main_window.hwnd() {
+                diagnostics::set_native_window(hwnd.0 as isize);
+            }
             diagnostics::log(
                 &dir,
                 "INFO",
@@ -232,7 +228,11 @@ fn main() {
                         "Pedido de fechar a janela: mantendo o aplicativo na bandeja.",
                     );
                     api.prevent_close();
-                    let _ = main_for_events.hide();
+                    if let Err(error) = main_for_events.hide() {
+                        diagnostics::log(&event_diag_dir, "WARN", format!("Não foi possível ocultar a janela principal: {error}"));
+                    } else {
+                        diagnostics::set_window_visible(false);
+                    }
                 }
                 WindowEvent::Moved(_) => {
                     window::save_window_state(&handle, event);
