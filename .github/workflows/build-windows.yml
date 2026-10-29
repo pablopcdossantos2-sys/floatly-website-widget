@@ -12,88 +12,122 @@ permissions:
   contents: read
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
-      - uses: dtolnay/rust-toolchain@stable
+          package-manager-cache: false
+      - uses: dtolnay/rust-toolchain@b004a9e513613d286f06c426a2fda62016c6fe9e # pinned rust-toolchain action
         with:
+          toolchain: stable
           targets: x86_64-pc-windows-msvc
-      - name: Bootstrap dependency lockfiles
-        shell: pwsh
-        run: |
-          npm install --package-lock-only --ignore-scripts
-          if ($LASTEXITCODE -ne 0) { throw "Could not generate package-lock.json." }
-          cargo generate-lockfile --manifest-path src-tauri/Cargo.toml
-          if ($LASTEXITCODE -ne 0) { throw "Could not generate Cargo.lock." }
-      - name: Upload dependency lockfiles for repository bootstrap
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: dependency-lockfiles-bootstrap
-          path: |
-            package-lock.json
-            src-tauri/Cargo.lock
-          if-no-files-found: warn
-      - name: Cache Rust dependencies (not build output)
-        uses: actions/cache@v6
+          components: rustfmt, clippy
+      - name: Cache Cargo registry only
+        uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # actions/cache v6.2.0
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-          key: windows-cargo-${{ runner.os }}-${{ hashFiles('src-tauri/Cargo.toml', 'src-tauri/Cargo.lock') }}
-          restore-keys: |
-            windows-cargo-${{ runner.os }}-
-      - run: npm install
-      - run: npm run icons
-      - name: Test configuration and diagnostics
-        run: cargo test --manifest-path src-tauri/Cargo.toml
-      - name: Prepare Windows code-signing certificate
-        if: github.event_name != 'pull_request'
+          key: windows-cargo-${{ runner.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+      - name: Install locked npm dependencies
+        run: npm ci
+      - name: Check dependency versions and command ACL
+        shell: pwsh
+        run: |
+          npm run check:tauri-versions
+          if ($LASTEXITCODE -ne 0) { throw "Tauri dependency versions are inconsistent." }
+          npm run check:acl
+          if ($LASTEXITCODE -ne 0) { throw "Tauri capability/command ACL check failed." }
+      - name: Audit npm dependencies
+        run: npm audit --audit-level=high
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+      - name: Install and run RustSec audit
+        shell: pwsh
+        run: |
+          cargo install cargo-audit --version 0.22.2 --locked
+          if ($LASTEXITCODE -ne 0) { throw "Could not install cargo-audit." }
+          cargo audit --file src-tauri/Cargo.lock
+          if ($LASTEXITCODE -ne 0) { throw "RustSec found an advisory affecting the locked dependencies." }
+      - name: Test configuration, diagnostics and window authorization
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+      - name: Lint Rust
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets --locked -- -D warnings
+      - name: Generate Windows icons
+        run: npm run icons
+      - name: Remove stale bundle outputs
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force "src-tauri/target/release/bundle" -ErrorAction SilentlyContinue
+          Remove-Item -Force "src-tauri/target/release/widget-website.exe" -ErrorAction SilentlyContinue
+      - name: Compile unsigned Windows app and NSIS installer
+        shell: pwsh
+        run: |
+          npm run tauri build -- -- --locked
+          if ($LASTEXITCODE -ne 0) { throw "Tauri build failed." }
+          $installers = @(Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File -ErrorAction SilentlyContinue)
+          if ($installers.Count -ne 1) { throw "Expected exactly one current NSIS installer; found $($installers.Count)." }
+          if (!(Test-Path "src-tauri/target/release/widget-website.exe")) { throw "The application executable was not generated." }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # actions/upload-artifact v7.0.2
+        with:
+          name: widget-website-build
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/widget-website.exe
+          if-no-files-found: error
+          retention-days: 14
+  sign-and-publish:
+    needs: build
+    runs-on: windows-2025
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # actions/download-artifact v8.0.2
+        with:
+          name: widget-website-build
+          path: ${{ runner.temp }}/widget-website-build
+      - name: Sign final artifacts without compiling dependencies
         shell: pwsh
         env:
           WINDOWS_PFX_BASE64: ${{ secrets.WINDOWS_PFX_BASE64 }}
           WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
         run: |
+          $root = Join-Path $env:RUNNER_TEMP "widget-website-build"
+          $installerDir = Join-Path $root "bundle/nsis"
+          $installers = @(Get-ChildItem $installerDir -Filter "*.exe" -File -ErrorAction SilentlyContinue)
+          if ($installers.Count -ne 1) { throw "Expected exactly one installer to publish; found $($installers.Count)." }
+          $appBinary = Join-Path $root "widget-website.exe"
+          if (!(Test-Path $appBinary)) { throw "Application executable is missing from build artifact." }
           if ([string]::IsNullOrWhiteSpace($env:WINDOWS_PFX_BASE64) -or [string]::IsNullOrWhiteSpace($env:WINDOWS_PFX_PASSWORD)) {
-            Write-Warning "Building an unsigned artifact. Windows SmartScreen may display an unknown-publisher warning."
-            exit 0
-          }
-          $bytes = [Convert]::FromBase64String(($env:WINDOWS_PFX_BASE64 -replace '\s', ''))
-          $pfxPath = Join-Path $env:RUNNER_TEMP "widget-website-codesign.pfx"
-          [System.IO.File]::WriteAllBytes($pfxPath, $bytes)
-          $securePassword = ConvertTo-SecureString -String $env:WINDOWS_PFX_PASSWORD -AsPlainText -Force
-          $certificates = Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My -Password $securePassword
-          $certificate = $certificates | Where-Object { $_.HasPrivateKey } | Select-Object -First 1
-          if ($null -eq $certificate) { throw "The PFX did not provide a certificate with a private key." }
-          $configPath = Join-Path $env:RUNNER_TEMP "widget-website-signing.json"
-          $config = @{
-            bundle = @{
-              windows = @{
-                certificateThumbprint = $certificate.Thumbprint
-                digestAlgorithm = "sha256"
-                timestampUrl = "http://timestamp.digicert.com"
-              }
-            }
-          } | ConvertTo-Json -Depth 5
-          [System.IO.File]::WriteAllText($configPath, $config, [System.Text.UTF8Encoding]::new($false))
-          "TAURI_WINDOWS_SIGNING_CONFIG=$configPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Remove-Item $pfxPath -Force
-          Write-Host "A trusted code-signing certificate is installed for this build."
-      - name: Compile Windows app and NSIS installer
-        shell: pwsh
-        run: |
-          if ($env:TAURI_WINDOWS_SIGNING_CONFIG) {
-            npm run tauri build -- --config "$env:TAURI_WINDOWS_SIGNING_CONFIG"
+            Write-Warning "Publishing unsigned artifacts because signing secrets are not configured."
           } else {
-            npm run tauri build
+            $pfxPath = Join-Path $env:RUNNER_TEMP "widget-website-codesign.pfx"
+            try {
+              $bytes = [Convert]::FromBase64String(($env:WINDOWS_PFX_BASE64 -replace '\s', ''))
+              [System.IO.File]::WriteAllBytes($pfxPath, $bytes)
+              $sdkBin = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
+              $signtool = Get-ChildItem $sdkBin -Recurse -Filter "signtool.exe" -File -ErrorAction SilentlyContinue | Where-Object { $_.Directory.Name -eq "x64" } | Sort-Object { try { [version]$_.Directory.Parent.Name } catch { [version]"0.0" } } -Descending | Select-Object -First 1
+              if ($null -eq $signtool) { throw "Windows SDK signtool.exe was not found." }
+              foreach ($file in @($appBinary, $installers[0].FullName)) {
+                & $signtool.FullName sign /f $pfxPath /p $env:WINDOWS_PFX_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $file
+                if ($LASTEXITCODE -ne 0) { throw "signtool could not sign $file." }
+                & $signtool.FullName verify /pa /v $file
+                if ($LASTEXITCODE -ne 0) { throw "The Authenticode signature did not verify for $file." }
+              }
+              Write-Host "The application executable and installer were signed and verified."
+            } finally {
+              Remove-Item $pfxPath -Force -ErrorAction SilentlyContinue
+              Remove-Item Env:WINDOWS_PFX_BASE64 -ErrorAction SilentlyContinue
+              Remove-Item Env:WINDOWS_PFX_PASSWORD -ErrorAction SilentlyContinue
+            }
           }
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # actions/upload-artifact v7.0.2
         with:
           name: widget-website-windows-x64
           path: |
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/widget-website.exe
+            ${{ runner.temp }}/widget-website-build/bundle/nsis/*.exe
+            ${{ runner.temp }}/widget-website-build/widget-website.exe
           if-no-files-found: error
+          retention-days: 30
