@@ -310,13 +310,7 @@ pub fn close_settings(app: AppHandle) {
     }
 }
 pub fn toggle_main_visibility(app: AppHandle) {
-    if let Some(w) = app.get_webview_window("main") {
-        if w.is_visible().unwrap_or(false) {
-            let _ = w.hide();
-        } else {
-            let _ = w.show();
-        }
-    }
+    window::toggle_main_visibility(&app)
 }
 pub fn reload_site(app: AppHandle) {
     if let Some(w) = app.get_webview_window("main") {
