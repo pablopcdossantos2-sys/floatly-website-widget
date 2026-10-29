@@ -23,6 +23,7 @@ button.secondary{background:#eef2f7;color:#29384a;border:1px solid #d9e1eb}
 .eyebrow{font-size:10px;letter-spacing:.12em;font-weight:800;color:var(--settings-accent);margin:0 0 3px}
 .settings-header h1{font-size:22px;margin:0 0 3px;color:var(--settings-text)}
 .muted{color:var(--settings-muted);font-size:12px;margin:4px 0 0;line-height:1.45}
+.shortcut-reset{margin-top:10px}
 .theme-switch{display:flex;flex:none;gap:3px;padding:4px;background:var(--settings-card);border:1px solid var(--settings-border);border-radius:10px}
 .theme-option{padding:8px 10px;border:1px solid transparent;background:transparent;color:var(--settings-muted);white-space:nowrap;font-size:12px}
 .theme-option:hover{background:var(--settings-theme-hover)}
