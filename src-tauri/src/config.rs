@@ -418,7 +418,90 @@ mod tests {
         fs::write(dir.join("config.json"), b"{ this is not valid json").unwrap();
         let config = load(&dir);
         assert_eq!(config.site_url, DEFAULT_SITE);
-        assert_eq!(config.width, 500);
+        assert_eq!(config.width, DEFAULT_WIDTH);
+        assert!(fs::read_dir(&dir).unwrap().any(|entry| {
+            entry.unwrap().file_name().to_string_lossy().starts_with("config.json.bad-")
+        }));
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn load_keeps_valid_fields_when_one_field_is_out_of_range() {
+        let dir = std::env::temp_dir().join(format!("widget-website-partial-config-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("config.json"), r#"{"width":800,"opacity":300,"language":"en"}"#).unwrap();
+        let (config, warnings, safe_to_persist) = load_with_warnings(&dir);
+        assert_eq!(config.width, 800);
+        assert_eq!(config.opacity, 100);
+        assert_eq!(config.language, "en");
+        assert!(warnings.iter().any(|warning| warning.contains("opacity")));
+        assert!(safe_to_persist);
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn load_resets_only_invalid_site_url() {
+        let dir = std::env::temp_dir().join(format!("widget-website-invalid-url-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("config.json"), r#"{"site_url":"file:///invalid","width":860,"language":"es"}"#).unwrap();
+        let (config, warnings, _) = load_with_warnings(&dir);
+        assert_eq!(config.site_url, DEFAULT_SITE);
+        assert_eq!(config.width, 860);
+        assert_eq!(config.language, "es");
+        assert!(warnings.iter().any(|warning| warning.contains("site_url")));
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn load_tolerates_missing_fields_via_struct_default() {
+        let config: AppConfig = serde_json::from_str(r#"{"width":777}"#).unwrap();
+        assert_eq!(config.width, 777);
+        assert_eq!(config.height, DEFAULT_HEIGHT);
+        assert_eq!(config.site_url, DEFAULT_SITE);
+    }
+
+    #[test]
+    fn normalization_prefixes_https_when_scheme_only_appears_in_query() {
+        let mut config = AppConfig {
+            site_url: "investing.com/x?u=https://example.com".into(),
+            ..AppConfig::default()
+        };
+        config.normalize().unwrap();
+        assert_eq!(config.site_url, "https://investing.com/x?u=https://example.com");
+    }
+
+    #[test]
+    fn normalization_rejects_shift_only_shortcuts_and_canonicalizes_modifiers() {
+        for shortcut in ["SHIFT+A", "TAB", "", "CTRL+"] {
+            let mut config = AppConfig { global_shortcut: shortcut.into(), ..AppConfig::default() };
+            assert!(config.normalize().is_err(), "accepted shortcut: {shortcut}");
+        }
+        let mut config = AppConfig {
+            global_shortcut: " ctrl+alt+c ".into(),
+            ..AppConfig::default()
+        };
+        config.normalize().unwrap();
+        assert_eq!(config.global_shortcut, "CTRL+ALT+C");
+        let mut reversed = AppConfig {
+            global_shortcut: "ALT+CTRL+C".into(),
+            ..AppConfig::default()
+        };
+        reversed.normalize().unwrap();
+        assert_eq!(reversed.global_shortcut, "CTRL+ALT+C");
+    }
+
+    #[test]
+    fn save_uses_unique_temp_files_and_leaves_valid_json() {
+        let dir = std::env::temp_dir().join(format!("widget-website-atomic-save-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let config = AppConfig { width: 811, ..AppConfig::default() };
+        save(&dir, &config).unwrap();
+        let parsed: AppConfig = serde_json::from_slice(&fs::read(dir.join("config.json")).unwrap()).unwrap();
+        assert_eq!(parsed.width, 811);
+        assert!(!fs::read_dir(&dir).unwrap().any(|entry| entry.unwrap().file_name().to_string_lossy().ends_with(".tmp")));
         fs::remove_dir_all(&dir).unwrap();
     }
 }
