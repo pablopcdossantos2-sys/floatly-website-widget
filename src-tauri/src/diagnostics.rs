@@ -112,6 +112,18 @@ pub fn log_navigation(dir: &Path, url: &url::Url) {
     );
 }
 
+pub fn safe_url_summary(raw_url: &str) -> String {
+    match url::Url::parse(raw_url) {
+        Ok(url) => format!(
+            "scheme={} host={} path={}",
+            url.scheme(),
+            url.host_str().unwrap_or("(sem host)"),
+            url.path()
+        ),
+        Err(_) => "(URL inválida; detalhes omitidos)".to_owned(),
+    }
+}
+
 pub fn record_heartbeat(dir: &Path) {
     LAST_HEARTBEAT_MS.store(now_ms(), Ordering::SeqCst);
     let first = !HEARTBEAT_SEEN.swap(true, Ordering::SeqCst);
@@ -346,6 +358,16 @@ mod tests {
         let contents = fs::read_to_string(log_path(&dir)).unwrap();
         assert!(contents.contains("[TEST] diagnostic log test"));
         fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn configured_url_summary_omits_query_and_fragment() {
+        let summary = safe_url_summary(
+            "https://example.com/login?token=secret-value#private-fragment",
+        );
+        assert_eq!(summary, "scheme=https host=example.com path=/login");
+        assert!(!summary.contains("secret-value"));
+        assert!(!summary.contains("private-fragment"));
     }
 
     #[test]
