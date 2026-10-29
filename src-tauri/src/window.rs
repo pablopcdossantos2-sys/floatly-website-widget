@@ -24,7 +24,7 @@ function addToolbar(){
  const button=document.createElement('button');button.type='button';button.textContent='Ir';button.addEventListener('click',go);
  const close=document.createElement('button');close.type='button';close.textContent='Fechar';close.addEventListener('click',function(){location.href='widget-login-action://close'});
  bar.append(label,back,address,button,reload,close);document.documentElement.appendChild(bar);
- document.documentElement.style.setProperty('scroll-padding-top','50px','important');
+ document.documentElement.style.setProperty('padding-top','46px','important');document.documentElement.style.setProperty('scroll-padding-top','50px','important');
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addToolbar,{once:true});else addToolbar();
 })();"#;

@@ -3,7 +3,7 @@
 Widget desktop para manter o calendário econômico do Investing.com aberto em uma pequena janela WebView2, sem moldura. Projeto Tauri 2 direcionado a Windows 10/11 x64.
 
 ## Recursos
-- Janela sem barra de título, bandeja do sistema, instância única e atalho global padrão CTRL+ALT+C.
+- Janela sem barra de título, bandeja do sistema, instância única e atalho global padrão CTRL+ALT+C. Fechar pela tecla/ botão de fechar esconde o widget na bandeja; use Sair para encerrar o processo.
 - Sessão WebView2 persistente em %APPDATA%\WidgetWebsite\webview-data; configuração em %APPDATA%\WidgetWebsite\config.json.
 - URL, tamanho, posição, travamento, sempre no topo, barra de tarefas, opacidade, zoom, cantos e recarga automática configuráveis.
 - Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária com uma barra de endereço simples e a pasta de dados compartilhada do WebView2. A janela tenta fechar quando o fluxo retorna ao endereço configurado após a autenticação.
@@ -12,7 +12,7 @@ Widget desktop para manter o calendário econômico do Investing.com aberto em u
 ## Pré-requisitos
 - Windows 10/11 x64, Node.js LTS e npm.
 - Rust estável 1.90 ou mais recente.
-- Microsoft Edge WebView2 Runtime: https://developer.microsoft.com/microsoft-edge/webview2/
+- Microsoft Edge WebView2 Runtime: https://developer.microsoft.com/microsoft-edge/webview2/. O aplicativo verifica as pastas usuais do Runtime e mostra esse endereço se não o encontrar.
 - Para compilar localmente: Visual Studio Build Tools com Desenvolvimento para desktop com C++ e Windows SDK.
 
 ## Desenvolvimento
@@ -39,7 +39,8 @@ O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é 
 
 ## Privacidade, decisões e limitações
 - Sem telemetria. A navegação principal é limitada ao site configurado e a recursos de autenticação conhecidos; links HTTP/HTTPS para outros domínios abrem no navegador padrão.
-- Arquivo de configuração corrompido é substituído por valores padrão.
+- Arquivo de configuração corrompido é substituído por valores padrão. O botão “Restaurar tamanho padrão” muda somente largura e altura para 500 × 700 px; as outras preferências são preservadas.
+- O workflow executa testes automatizados para valores padrão, normalização e validação da URL e recuperação de configuração corrompida. O instalador é compilado no Windows do GitHub Actions.
 - A janela de login secundária compartilha a pasta de dados do WebView2 e inclui uma barra de endereço injetada. A navegação para domínios não autorizados continua bloqueada dentro do app e abre no navegador padrão. O fechamento automático depende de o provedor retornar ao caminho configurado; alguns fluxos sociais podem exigir fechar a janela manualmente.
 - O zoom é aplicado pelo controle nativo de ampliação do WebView2, afetando a renderização da página de forma semelhante ao zoom de um navegador. Opacidade e recorte dos cantos continuam usando CSS; o arredondamento pode variar no Windows 10.
 - A verificação de rede mostra uma tela própria antes da navegação e monitora a conexão enquanto o site está aberto. O wrapper padrão do Tauri não fornece um evento portátil que permita substituir toda falha de navegação do Chromium em todas as situações.
