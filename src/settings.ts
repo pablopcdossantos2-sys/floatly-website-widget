@@ -126,6 +126,8 @@ let current: C | null = null;
 let activeLanguage: Language = "pt-BR";
 let forceResizeOnSave = false;
 const dirtyFields = new Set<string>();
+const DEFAULT_WIDGET_WIDTH = 500;
+const DEFAULT_WIDGET_HEIGHT = 700;
 type SettingsTheme = "light" | "dark";
 const themePreferenceKey = "widget-website-settings-theme";
 
@@ -308,8 +310,8 @@ f("global_shortcut").addEventListener("keydown", (event) => {
   say("");
 });
 document.getElementById("reset")!.addEventListener("click", () => {
-  f("width").value = "500";
-  f("height").value = String(700);
+  f("width").value = String(DEFAULT_WIDGET_WIDTH);
+  f("height").value = String(DEFAULT_WIDGET_HEIGHT);
   forceResizeOnSave = true;
   dirtyFields.add("width");
   dirtyFields.add("height");
