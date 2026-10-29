@@ -33,7 +33,7 @@ jobs:
             windows-cargo-
       - run: npm install
       - run: npm run icons
-      - name: Test configuration validation
+      - name: Test configuration and diagnostics
         run: cargo test --manifest-path src-tauri/Cargo.toml
       - name: Compile Windows app and NSIS installer
         run: npm run tauri build
