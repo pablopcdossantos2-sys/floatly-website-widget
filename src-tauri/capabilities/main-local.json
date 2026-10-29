@@ -6,6 +6,7 @@
     "main"
   ],
   "permissions": [
-    "app:allow-get-config"
+    "app:allow-get-config",
+    "core:event:allow-emit"
   ]
 }
