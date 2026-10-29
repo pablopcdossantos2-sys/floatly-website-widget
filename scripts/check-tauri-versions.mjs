@@ -3,14 +3,14 @@ const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
 const packageLock = JSON.parse(fs.readFileSync("package-lock.json", "utf8"));
 const tauriConfig = JSON.parse(fs.readFileSync("src-tauri/tauri.conf.json", "utf8"));
 const cargoToml = fs.readFileSync("src-tauri/Cargo.toml", "utf8");
-const cargoVersion = /^version = "([^"]+)"/m.exec(cargoToml)?.[1];
-const versions = [packageJson.version, packageLock.version, cargoVersion, tauriConfig.version];
+const packageCargoVersion = /^version = "([^"]+)"/m.exec(cargoToml)?.[1];
+const versions = [packageJson.version, packageLock.version, packageCargoVersion, tauriConfig.version];
 if (versions.some((v) => !v) || new Set(versions).size !== 1) {
   throw new Error("App versions differ across package.json, package-lock.json, Cargo.toml and tauri.conf.json: " + JSON.stringify(versions));
 }
 const cargoLock = fs.readFileSync("src-tauri/Cargo.lock", "utf8");
 const npmVersions = { api: packageLock.packages?.["node_modules/@tauri-apps/api"]?.version, cli: packageLock.packages?.["node_modules/@tauri-apps/cli"]?.version };
-function cargoVersion(name) {
+function cargoLockVersion(name) {
   const blocks = cargoLock.split("[[package]]");
   for (const block of blocks) {
     const packageName = /^\s*name = "([^"]+)"/m.exec(block)?.[1];
@@ -18,8 +18,8 @@ function cargoVersion(name) {
   }
   return undefined;
 }
-const rustTauri = cargoVersion("tauri");
-const rustBuild = cargoVersion("tauri-build");
+const rustTauri = cargoLockVersion("tauri");
+const rustBuild = cargoLockVersion("tauri-build");
 const majorMinor = (version) => version?.split(".").slice(0, 2).join(".");
 if (!npmVersions.api || !npmVersions.cli || !rustTauri || !rustBuild) throw new Error("Could not locate the Tauri versions in the lockfiles.");
 const minors = [majorMinor(npmVersions.api), majorMinor(npmVersions.cli), majorMinor(rustTauri)];
