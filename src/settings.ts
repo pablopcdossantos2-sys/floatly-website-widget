@@ -124,6 +124,7 @@ const ids = [
 ];
 let current: C | null = null;
 let activeLanguage: Language = "pt-BR";
+let forceResizeOnSave = false;
 const dirtyFields = new Set<string>();
 type SettingsTheme = "light" | "dark";
 const themePreferenceKey = "widget-website-settings-theme";
@@ -232,8 +233,9 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   say(t("saving"));
   try {
-    const result = await invoke<S>("save_config", { config: read() });
+    const result = await invoke<S>("save_config", { config: read(), forceResize: forceResizeOnSave });
     current = result.config;
+    forceResizeOnSave = false;
     dirtyFields.clear();
     display(result.config);
     if (result.warning) {
@@ -307,7 +309,8 @@ f("global_shortcut").addEventListener("keydown", (event) => {
 });
 document.getElementById("reset")!.addEventListener("click", () => {
   f("width").value = "500";
-  f("height").value = "700";
+  f("height").value = String(700);
+  forceResizeOnSave = true;
   dirtyFields.add("width");
   dirtyFields.add("height");
   say(t("resetSaved"));
