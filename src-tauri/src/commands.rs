@@ -153,7 +153,6 @@ pub fn save_config(
                 .config
                 .lock()
                 .map_err(|_| "config.write_failed".to_owned())?;
-            let requested_state = stored.clone();
             *stored = c.clone();
             match config::save(&state.app_dir, &stored) {
                 Ok(()) => Ok(()),
@@ -161,11 +160,7 @@ pub fn save_config(
                     *stored = old.clone();
                     Err(error)
                 }
-            }.map_err(|error| {
-                // Keep the in-memory and persisted state aligned on the best-effort rollback path.
-                let _ = requested_state;
-                error
-            })
+            }
         };
         if let Err(error) = correction_result {
             crate::diagnostics::log(
