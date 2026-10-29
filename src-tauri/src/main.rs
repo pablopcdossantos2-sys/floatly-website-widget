@@ -231,10 +231,11 @@ fn main() {
                     window::refresh_native_corners(&handle);
                 }
                 WindowEvent::Destroyed => {
+                    window::flush_pending_config(&handle);
                     diagnostics::log(
                         &event_diag_dir,
                         "WARN",
-                        "A janela principal foi destruída enquanto o processo estava ativo.",
+                        "A janela principal foi destruída enquanto o processo estava ativo; configuração pendente descarregada.",
                     );
                 }
                 _ => {}
