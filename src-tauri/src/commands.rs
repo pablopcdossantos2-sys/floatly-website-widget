@@ -229,6 +229,7 @@ pub fn reload_site(app: AppHandle) {
     }
 }
 pub fn quit_app(app: AppHandle) {
+    window::flush_pending_config(&app);
     app.exit(0)
 }
 pub fn toggle_locked(app: &AppHandle) {
