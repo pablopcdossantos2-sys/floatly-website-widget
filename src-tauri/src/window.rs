@@ -2,7 +2,7 @@ use crate::config::{AppConfig, AppState};
 use std::{
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
-        Arc,
+        Arc, Mutex,
     },
     thread,
     time::Duration,
@@ -619,7 +619,43 @@ fn begin_native_resize(window: &WebviewWindow, direction: &str) -> Result<(), St
 #[cfg(not(windows))]
 fn begin_native_resize(_window: &WebviewWindow, _direction: &str) -> Result<(), String> { Ok(()) }
 
+fn close_login_and_reload(app: &AppHandle, label: &str, dir: &std::path::Path, reason: &str) {
+    crate::diagnostics::log(dir, "INFO", format!("Fechando a janela de autenticação ({reason})."));
+    if let Some(window) = app.get_webview_window(label) {
+        if let Err(error) = window.close() {
+            crate::diagnostics::log(dir, "ERRO", format!("Não foi possível fechar a janela de autenticação: {error}"));
+        }
+    }
+}
+
 fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
+    let _creation_guard = LOGIN_WINDOW_LOCK
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+
+    if let Some((label, existing)) = app
+        .webview_windows()
+        .into_iter()
+        .find(|(label, _)| label.starts_with("login-"))
+    {
+        let app_dir = app.state::<AppState>().app_dir.clone();
+        crate::diagnostics::log(&app_dir, "INFO", format!("Reutilizando a janela de autenticação existente ({label})."));
+        existing.navigate(url).map_err(|error| {
+            crate::diagnostics::log(&app_dir, "ERRO", format!("Não foi possível navegar na janela de autenticação existente: {error}"));
+            error
+        })?;
+        for (name, result) in [
+            ("restaurar", existing.unminimize().map_err(|error| error.to_string())),
+            ("exibir", existing.show().map_err(|error| error.to_string())),
+            ("focar", existing.set_focus().map_err(|error| error.to_string())),
+        ] {
+            if let Err(error) = result {
+                crate::diagnostics::log(&app_dir, "WARN", format!("Não foi possível {name} a janela de autenticação: {error}"));
+            }
+        }
+        return Ok(());
+    }
+
     let id = LOGIN_ID.fetch_add(1, Ordering::Relaxed);
     let label = format!("login-{id}");
     let close_label = label.clone();
@@ -627,28 +663,27 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
     let navigation_close_token = close_token.clone();
     let state = app.state::<AppState>();
     let diag_dir = state.app_dir.clone();
-    let language = state.snapshot().language;
-    let dir = state.app_dir.join("webview-data");
-    std::fs::create_dir_all(&dir).ok();
-    crate::diagnostics::log(
-        &diag_dir,
-        "INFO",
-        format!(
-            "Abrindo janela de autenticação (host={}).",
-            url.host_str().unwrap_or("sem host")
-        ),
-    );
+    let initial_config = state.snapshot();
+    let language = initial_config.language.clone();
+    let initially_authenticating = is_auth_page(url.host_str().unwrap_or(""), url.path(), &initial_config);
+    let data_dir = state.app_dir.join("webview-data");
+    if let Err(error) = std::fs::create_dir_all(&data_dir) {
+        crate::diagnostics::log(&diag_dir, "ERRO", format!("Não foi possível preparar os dados da janela de autenticação: {error}"));
+        return Err(error.into());
+    }
+    crate::diagnostics::log(&diag_dir, "INFO", format!("Abrindo janela de autenticação (host={}).", url.host_str().unwrap_or("sem host")));
+
     let nav = app.clone();
-    let pop = app.clone();
-    let close_app = app.clone();
-    let nav_seen_auth = Arc::new(AtomicBool::new(false));
+    let popup = app.clone();
+    let close_event_app = app.clone();
+    let nav_diag_dir = diag_dir.clone();
+    let popup_diag_dir = diag_dir.clone();
+    let close_event_dir = diag_dir.clone();
+    let nav_seen_auth = Arc::new(AtomicBool::new(initially_authenticating));
     let popup_seen_auth = Arc::clone(&nav_seen_auth);
     let host = url.host_str().unwrap_or("Login").to_owned();
-    let login_title = match language.as_str() {
-        "en" => "Sign in",
-        "es" => "Iniciar sesión",
-        _ => "Entrar",
-    };
+    let login_title = crate::i18n::login_title(&language);
+
     WebviewWindowBuilder::new(app, label, WebviewUrl::External(url))
         .title(format!("{login_title} — {host}"))
         .inner_size(960.0, 760.0)
@@ -656,7 +691,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
         .decorations(true)
         .resizable(true)
         .skip_taskbar(false)
-        .data_directory(dir)
+        .data_directory(data_dir)
         .devtools(cfg!(debug_assertions))
         .zoom_hotkeys_enabled(false)
         .initialization_script(
@@ -664,77 +699,79 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                 .replace("__WIDGET_LANGUAGE__", &language)
                 .replace("__WIDGET_LOGIN_CLOSE_TOKEN__", &close_token),
         )
-        .on_navigation(move |u| {
-            if u.scheme() == "widget-login-action" {
-                if u.host_str() == Some(navigation_close_token.as_str())
-                    && u.path() == "/close"
-                    && u.query().is_none()
-                    && u.fragment().is_none()
+        .on_navigation(move |url| {
+            if url.scheme() == "widget-login-action" {
+                if url.host_str() == Some(navigation_close_token.as_str())
+                    && url.path() == "/close"
+                    && url.query().is_none()
+                    && url.fragment().is_none()
                 {
-                    if let Some(w) = nav.get_webview_window(&close_label) {
-                        let _ = w.close();
-                    }
+                    close_login_and_reload(&nav, &close_label, &nav_diag_dir, "solicitação pelo botão Fechar");
                 } else {
-                    crate::diagnostics::log(
-                        &diag_dir,
-                        "WARN",
-                        "Pedido de fechamento de login ignorado: token ou ação inválida.",
-                    );
+                    crate::diagnostics::log(&nav_diag_dir, "WARN", "Pedido de fechamento de login ignorado: token ou ação inválida.");
                 }
                 return false;
             }
-            if u.scheme() != "http" && u.scheme() != "https" {
-                crate::diagnostics::log(
-                    &diag_dir,
-                    "WARN",
-                    format!("Navegação de login bloqueada por esquema: {}", u.scheme()),
-                );
-                return false;
-            }
-            crate::diagnostics::log_navigation(&diag_dir, u);
-            let c = nav.state::<AppState>().snapshot();
-            let host = u.host_str().unwrap_or("");
-            if is_auth_page(host, u.path(), &c) {
+
+            crate::diagnostics::log_navigation(&nav_diag_dir, url);
+            let config = nav.state::<AppState>().snapshot();
+            if is_auth_page(url.host_str().unwrap_or(""), url.path(), &config) {
                 nav_seen_auth.store(true, Ordering::SeqCst);
-                return true;
             }
-            if nav_seen_auth.load(Ordering::SeqCst) && is_configured_page(u, &c) {
-                let a = close_app.clone();
-                let label = close_label.clone();
-                thread::spawn(move || {
-                    if let Some(w) = a.get_webview_window(&label) {
-                        let _ = w.close();
-                    }
-                });
+            if should_close_login(nav_seen_auth.load(Ordering::SeqCst), url, &config) {
+                close_login_and_reload(&nav, &close_label, &nav_diag_dir, "retorno ao site após autenticação");
                 return false;
             }
-            if allowed(host, &c) {
-                true
-            } else {
-                let _ = open::that(u.as_str());
-                false
+
+            match decide_login(url, &config) {
+                NavAction::Allow | NavAction::OpenLogin => true,
+                NavAction::External => {
+                    crate::diagnostics::log(&nav_diag_dir, "INFO", format!("Encaminhando navegação externa da janela de autenticação (host={}).", url.host_str().unwrap_or("sem host")));
+                    open_external_limited(nav_diag_dir.clone(), url.as_str().to_owned());
+                    false
+                }
+                NavAction::Block => {
+                    crate::diagnostics::log(&nav_diag_dir, "WARN", "Navegação bloqueada na janela de autenticação por esquema não HTTP(S).");
+                    false
+                }
             }
         })
-        .on_new_window(move |u, _| {
-            if u.scheme() == "http" || u.scheme() == "https" {
-                let c = pop.state::<AppState>().snapshot();
-                if allowed(u.host_str().unwrap_or(""), &c) {
-                    if is_auth_page(u.host_str().unwrap_or(""), u.path(), &c) {
+        .on_new_window(move |url, _| {
+            crate::diagnostics::log_navigation(&popup_diag_dir, &url);
+            let config = popup.state::<AppState>().snapshot();
+            match decide_login(&url, &config) {
+                NavAction::Allow | NavAction::OpenLogin => {
+                    if is_auth_page(url.host_str().unwrap_or(""), url.path(), &config) {
                         popup_seen_auth.store(true, Ordering::SeqCst);
                     }
-                    let a = pop.clone();
-                    thread::spawn(move || {
-                        let _ = open_login(&a, u);
-                    });
-                } else {
-                    let _ = open::that(u.as_str());
+                    open_login_limited(popup.clone(), url, popup_diag_dir.clone());
                 }
+                NavAction::External => open_external_limited(popup_diag_dir.clone(), url.as_str().to_owned()),
+                NavAction::Block => crate::diagnostics::log(&popup_diag_dir, "WARN", "Pop-up de autenticação bloqueado por esquema não HTTP(S)."),
             }
             NewWindowResponse::Deny
         })
-        .build()?;
-    Ok(())
+        .on_window_event(move |event| {
+            if matches!(event, WindowEvent::CloseRequested { .. }) {
+                crate::diagnostics::log(&close_event_dir, "INFO", "Janela de autenticação fechada; solicitando atualização da janela principal.");
+                if let Some(main) = close_event_app.get_webview_window("main") {
+                    if let Err(error) = main.eval("location.reload()") {
+                        crate::diagnostics::log(&close_event_dir, "ERRO", format!("Não foi possível recarregar a janela principal após fechar a autenticação: {error}"));
+                    }
+                }
+            }
+        })
+        .build()
 }
+
+pub fn open_login_from_tray(app: &AppHandle) {
+    let config = app.state::<AppState>().snapshot();
+    match Url::parse(&config.site_url) {
+        Ok(url) => open_login_limited(app.clone(), url, app.state::<AppState>().app_dir.clone()),
+        Err(error) => crate::diagnostics::log(&app.state::<AppState>().app_dir, "ERRO", format!("A URL configurada não pôde ser usada para abrir a autenticação: {error}")),
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 struct MonitorBounds {
     x: i64,
@@ -870,36 +907,49 @@ pub fn apply_config(app: &AppHandle, c: &AppConfig, resize: bool) {
         apply_native_corners(&w, c.corner_radius);
     }
 }
+static SETTINGS_WINDOW_CREATING: AtomicBool = AtomicBool::new(false);
+
 pub fn open_settings(app: &AppHandle) {
-    if let Some(w) = app.get_webview_window("settings") {
-        let _ = w.show();
-        let _ = w.set_focus();
+    if let Some(window) = app.get_webview_window("settings") {
+        for (name, result) in [
+            ("restaurar", window.unminimize().map_err(|error| error.to_string())),
+            ("exibir", window.show().map_err(|error| error.to_string())),
+            ("focar", window.set_focus().map_err(|error| error.to_string())),
+        ] {
+            if let Err(error) = result {
+                crate::diagnostics::log(&app.state::<AppState>().app_dir, "WARN", format!("Não foi possível {name} a janela de configurações: {error}"));
+            }
+        }
         return;
     }
-    let a = app.clone();
+    if SETTINGS_WINDOW_CREATING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_err() {
+        return;
+    }
+    let app = app.clone();
     thread::spawn(move || {
-        let language = a
-            .state::<AppState>()
-            .config
-            .lock()
-            .map(|config| config.language.clone())
-            .unwrap_or_else(|_| "pt-BR".to_owned());
-        let title = match language.as_str() {
-            "en" => "Settings — Widget Website",
-            "es" => "Configuración — Widget Website",
-            _ => "Configurações — Widget Website",
+        let app_dir = app.state::<AppState>().app_dir.clone();
+        let language = app.state::<AppState>().snapshot().language;
+        let title = crate::i18n::settings_title(&language);
+        let dir = app_dir.join("settings-data");
+        let result = match std::fs::create_dir_all(&dir) {
+            Ok(()) => WebviewWindowBuilder::new(&app, "settings", WebviewUrl::App("settings.html".into()))
+                .title(title)
+                .inner_size(760.0, 850.0)
+                .min_inner_size(520.0, 550.0)
+                .resizable(true)
+                .data_directory(dir)
+                .build()
+                .map(|_| ())
+                .map_err(|error| error.to_string()),
+            Err(error) => Err(format!("não foi possível criar o diretório de dados das configurações: {error}")),
         };
-        let dir = a.state::<AppState>().app_dir.join("settings-data");
-        std::fs::create_dir_all(&dir).ok();
-        let _ = WebviewWindowBuilder::new(&a, "settings", WebviewUrl::App("settings.html".into()))
-            .title(title)
-            .inner_size(760.0, 850.0)
-            .min_inner_size(520.0, 550.0)
-            .resizable(true)
-            .data_directory(dir)
-            .build();
+        SETTINGS_WINDOW_CREATING.store(false, Ordering::SeqCst);
+        if let Err(error) = result {
+            crate::diagnostics::log(&app_dir, "ERRO", format!("Não foi possível abrir a janela de configurações: {error}"));
+        }
     });
 }
+
 pub fn open_login_from_tray(app: &AppHandle) {
     let text = app
         .state::<AppState>()
@@ -1012,31 +1062,147 @@ pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
     let _ = app.emit("config-changed", &copy);
 
 }
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct ReloadState {
+    elapsed_seconds: u32,
+    last_minutes: u32,
+}
+
+fn next_reload_state(mut state: ReloadState, minutes: u32, visible: bool) -> (ReloadState, bool) {
+    if minutes == 0 {
+        return (ReloadState::default(), false);
+    }
+    if minutes != state.last_minutes {
+        state.last_minutes = minutes;
+        state.elapsed_seconds = 0;
+        return (state, false);
+    }
+    state.elapsed_seconds = state.elapsed_seconds.saturating_add(10).min(minutes.saturating_mul(60));
+    if visible && state.elapsed_seconds >= minutes.saturating_mul(60) {
+        state.elapsed_seconds = 0;
+        (state, true)
+    } else {
+        (state, false)
+    }
+}
+
 pub fn start_auto_reload(app: AppHandle) {
     thread::spawn(move || {
-        let mut seconds: u32 = 0;
+        let mut state = ReloadState::default();
         loop {
-            thread::sleep(std::time::Duration::from_secs(10));
-            let mins = app
-                .state::<AppState>()
-                .config
-                .lock()
-                .map(|c| c.auto_reload_minutes)
-                .unwrap_or(0) as u32;
-            if mins == 0 {
-                seconds = 0;
-                continue;
-            }
-            seconds += 10;
-            if seconds >= mins * 60 {
-                seconds = 0;
-                if let Some(w) = app.get_webview_window("main") {
-                    let _ = w.eval("location.reload()");
+            thread::sleep(Duration::from_secs(10));
+            let minutes = app.state::<AppState>().snapshot().auto_reload_minutes as u32;
+            let window = app.get_webview_window("main");
+            let visible = window.as_ref().is_some_and(|window| window.is_visible().unwrap_or(false));
+            let (next, should_reload) = next_reload_state(state, minutes, visible);
+            state = next;
+            if should_reload {
+                if let Some(window) = window {
+                    if let Err(error) = window.eval("location.reload()") {
+                        crate::diagnostics::log(&app.state::<AppState>().app_dir, "ERRO", format!("Falha ao recarregar automaticamente o site: {error}"));
+                    }
                 }
             }
         }
     });
 }
+
+#[cfg(test)]
+mod navigation_policy_tests {
+    use super::*;
+
+    fn config(site_url: &str) -> AppConfig {
+        AppConfig { site_url: site_url.to_owned(), ..AppConfig::default() }
+    }
+
+    #[test]
+    fn host_matches_requires_dot_boundary() {
+        assert!(host_matches("www.example.com", "example.com"));
+        assert!(!host_matches("evilinvesting.com", "investing.com"));
+        assert!(!host_matches("notinvesting.com", "investing.com"));
+    }
+
+    #[test]
+    fn host_matches_ignores_trailing_dot() {
+        assert!(host_matches("BR.INVESTING.COM.", "br.investing.com"));
+        assert!(host_matches("EXAMPLE.COM", "example.com."));
+    }
+
+    #[test]
+    fn host_matches_handles_ip_and_single_label_targets() {
+        assert!(host_matches("127.0.0.1", "127.0.0.1"));
+        assert!(!host_matches("x.127.0.0.1", "127.0.0.1"));
+        assert!(host_matches("x.intranet", "intranet"));
+        assert!(!host_matches("intranetx", "intranet"));
+    }
+
+    #[test]
+    fn nav_policy_routes_non_provider_google_and_facebook_hosts_to_external_browser() {
+        let cfg = config("https://br.investing.com/economic-calendar");
+        assert_eq!(decide_main(&Url::parse("https://accounts.google.com/signin").unwrap(), &cfg), NavAction::OpenLogin);
+        assert_eq!(decide_main(&Url::parse("https://www.google.com/aclk?x=1").unwrap(), &cfg), NavAction::External);
+        assert_eq!(decide_main(&Url::parse("https://adservice.google.com/x").unwrap(), &cfg), NavAction::External);
+        assert_eq!(decide_main(&Url::parse("https://www.facebook.com/sharer/share.php").unwrap(), &cfg), NavAction::External);
+        assert_eq!(decide_main(&Url::parse("https://www.facebook.com/login/").unwrap(), &cfg), NavAction::OpenLogin);
+    }
+
+    #[test]
+    fn nav_policy_does_not_hardcode_investing_when_site_changes() {
+        let cfg = config("https://example.com/");
+        assert_eq!(decide_main(&Url::parse("https://www.investing.com/news").unwrap(), &cfg), NavAction::External);
+        assert_eq!(decide_main(&Url::parse("https://app.example.com/").unwrap(), &cfg), NavAction::Allow);
+    }
+
+    #[test]
+    fn is_auth_page_matches_path_segments_not_substrings() {
+        let cfg = config("https://br.investing.com/economic-calendar");
+        assert!(!is_auth_page("br.investing.com", "/news/authors/joao", &cfg));
+        assert!(!is_auth_page("br.investing.com", "/analysis/authority-x", &cfg));
+        assert!(!is_auth_page("br.investing.com", "/accounting-news", &cfg));
+        assert!(is_auth_page("br.investing.com", "/login", &cfg));
+        assert!(is_auth_page("br.investing.com", "/oauth/authorize", &cfg));
+        assert!(is_auth_page("br.investing.com", "/account/login", &cfg));
+    }
+
+    #[test]
+    fn is_configured_page_accepts_site_root_after_login_redirect() {
+        let cfg = config("https://br.investing.com/economic-calendar");
+        assert!(is_configured_page(&Url::parse("https://br.investing.com/").unwrap(), &cfg));
+        assert!(!is_configured_page(&Url::parse("https://br.investing.com/login").unwrap(), &cfg));
+        assert!(should_close_login(true, &Url::parse("https://br.investing.com/").unwrap(), &cfg));
+        assert!(!should_close_login(false, &Url::parse("https://br.investing.com/").unwrap(), &cfg));
+    }
+
+    #[test]
+    fn external_open_rate_limiter_drops_burst_and_duplicates() {
+        let mut state = ExternalOpenState::default();
+        assert!(external_open_allowed(&mut state, "https://example.com/a", 1_000));
+        assert!(!external_open_allowed(&mut state, "https://example.com/b", 2_000));
+        assert!(!external_open_allowed(&mut state, "https://example.com/a", 2_500));
+        assert!(external_open_allowed(&mut state, "https://example.com/a", 12_000));
+    }
+
+    #[test]
+    fn reload_counter_resets_when_interval_changes() {
+        let state = ReloadState { elapsed_seconds: 350, last_minutes: 60 };
+        let (next, reload) = next_reload_state(state, 5, true);
+        assert_eq!(next.elapsed_seconds, 0);
+        assert_eq!(next.last_minutes, 5);
+        assert!(!reload);
+    }
+
+    #[test]
+    fn reload_is_skipped_while_hidden_and_runs_when_visible_after_expiry() {
+        let state = ReloadState { elapsed_seconds: 290, last_minutes: 5 };
+        let (hidden, reload_hidden) = next_reload_state(state, 5, false);
+        assert_eq!(hidden.elapsed_seconds, 300);
+        assert!(!reload_hidden);
+        let (visible, reload_visible) = next_reload_state(hidden, 5, true);
+        assert_eq!(visible.elapsed_seconds, 0);
+        assert!(reload_visible);
+    }
+}
+
 #[cfg(test)]
 mod internal_app_navigation_tests {
     use super::*;
