@@ -15,7 +15,8 @@ use tauri::{
 use url::Url;
 static LOGIN_ID: AtomicU64 = AtomicU64::new(1);
 const INIT: &str = r#"(function boot(){
-if(!/^https?:$/.test(location.protocol)||window.top!==window)return;
+const localTauriOrigin=(location.protocol==='tauri:'&&location.host==='localhost')||(location.protocol==='http:'&&['tauri.localhost','127.0.0.1','localhost'].includes(location.host));
+if(!(/^https?:$/.test(location.protocol)||localTauriOrigin)||window.top!==window)return;
 if(!document.documentElement){document.addEventListener('DOMContentLoaded',boot,{once:true});return;}
 let UI_LANGUAGE='__WIDGET_LANGUAGE__';
 let DRAG_LOCKED='__WIDGET_LOCKED__'==='true';
