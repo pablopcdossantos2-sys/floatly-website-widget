@@ -299,6 +299,9 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
             break;
         }
     }
+    if before_normalize.site_url != config.site_url { warnings.push("Valor de site_url normalizado.".into()); }
+    if before_normalize.global_shortcut != config.global_shortcut { warnings.push("Valor de global_shortcut normalizado.".into()); }
+    if before_normalize.language != config.language { warnings.push("Valor de language inválido; usando o idioma padrão.".into()); }
     if before_normalize.opacity != config.opacity { warnings.push("Valor de opacity ajustado aos limites suportados.".into()); }
     if before_normalize.zoom != config.zoom { warnings.push("Valor de zoom ajustado aos limites suportados.".into()); }
     if before_normalize.width != config.width { warnings.push("Valor de width ajustado aos limites suportados.".into()); }
