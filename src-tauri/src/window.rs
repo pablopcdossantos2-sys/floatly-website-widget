@@ -5,6 +5,7 @@ use std::{
         Arc,
     },
     thread,
+    time::Duration,
 };
 use tauri::{
     utils::config::WebviewUrl,
@@ -745,6 +746,61 @@ pub fn open_login_from_tray(app: &AppHandle) {
         });
     }
 }
+fn schedule_debounced_config_save(app: &AppHandle) {
+    {
+        let state = app.state::<AppState>();
+        state.geometry_save_revision.fetch_add(1, Ordering::SeqCst);
+        if state
+            .geometry_save_worker_running
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+            .is_err()
+        {
+            return;
+        }
+    }
+
+    let app = app.clone();
+    thread::spawn(move || loop {
+        let revision = app
+            .state::<AppState>()
+            .geometry_save_revision
+            .load(Ordering::SeqCst);
+        thread::sleep(Duration::from_millis(500));
+        let state = app.state::<AppState>();
+        if state.geometry_save_revision.load(Ordering::SeqCst) != revision {
+            continue;
+        }
+        let config = state.snapshot();
+        if let Err(error) = crate::config::save(&state.app_dir, &config) {
+            crate::diagnostics::log(
+                &state.app_dir,
+                "ERRO",
+                format!("Falha ao persistir posição/tamanho da janela: {error}"),
+            );
+        }
+        state
+            .geometry_save_worker_running
+            .store(false, Ordering::SeqCst);
+        if state.geometry_save_revision.load(Ordering::SeqCst) != revision {
+            schedule_debounced_config_save(&app);
+        }
+        break;
+    });
+}
+
+/// Flush the most recent state before an explicit Quit action.
+pub fn flush_pending_config(app: &AppHandle) {
+    let state = app.state::<AppState>();
+    let config = state.snapshot();
+    if let Err(error) = crate::config::save(&state.app_dir, &config) {
+        crate::diagnostics::log(
+            &state.app_dir,
+            "ERRO",
+            format!("Falha ao descarregar a configuração antes de sair: {error}"),
+        );
+    }
+}
+
 pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
     let state = app.state::<AppState>();
     if let Some(window) = app.get_webview_window("main") {
@@ -781,13 +837,7 @@ pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
     }
     let copy = c.clone();
     drop(c);
-    if let Err(error) = crate::config::save(&state.app_dir, &copy) {
-        crate::diagnostics::log(
-            &state.app_dir,
-            "ERRO",
-            format!("Falha ao persistir posição/tamanho da janela: {error}"),
-        );
-    }
+    schedule_debounced_config_save(app);
     let _ = app.emit("config-changed", &copy);
     if let Some(window) = app.get_webview_window("main") {
         apply_native_corners(&window, copy.corner_radius);
