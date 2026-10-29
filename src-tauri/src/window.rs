@@ -799,6 +799,14 @@ pub fn flush_pending_config(app: &AppHandle) {
     }
 }
 
+fn is_valid_saved_position(x: i32, y: i32) -> bool {
+    x > -30_000 && y > -30_000
+}
+
+fn is_valid_saved_size(width: u32, height: u32) -> bool {
+    width > 0 && height > 0
+}
+
 pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
     let state = app.state::<AppState>();
     if let Some(window) = app.get_webview_window("main") {
@@ -807,8 +815,8 @@ pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
         }
     }
     match e {
-        WindowEvent::Moved(position) if position.x <= -30_000 || position.y <= -30_000 => return,
-        WindowEvent::Resized(size) if size.width == 0 || size.height == 0 => return,
+        WindowEvent::Moved(position) if !is_valid_saved_position(position.x, position.y) => return,
+        WindowEvent::Resized(size) if !is_valid_saved_size(size.width, size.height) => return,
         _ => {}
     }
     let scale = app
@@ -938,7 +946,24 @@ mod geometry_tests {
 
     #[test]
     fn target_monitor_scale_factor_affects_visible_intersection() {
-        let monitors = [monitor(0, 0, 1920, 1080, 1.5)];
-        assert!(is_placeable(-70, 0, 100, 100, &monitors));
+        let scaled = [monitor(0, 0, 1920, 1080, 1.5)];
+        let standard = [monitor(0, 0, 1920, 1080, 1.0)];
+        assert!(is_placeable(-70, 0, 100, 100, &scaled));
+        assert!(!is_placeable(-70, 0, 100, 100, &standard));
+    }
+
+    #[test]
+    fn window_state_ignores_zero_size_resizes() {
+        assert!(!is_valid_saved_size(0, 0));
+        assert!(!is_valid_saved_size(1000, 0));
+        assert!(!is_valid_saved_size(0, 700));
+        assert!(is_valid_saved_size(1000, 1400));
+    }
+
+    #[test]
+    fn window_state_ignores_sentinel_positions() {
+        assert!(!is_valid_saved_position(-32_000, -32_000));
+        assert!(!is_valid_saved_position(100, -32_000));
+        assert!(is_valid_saved_position(-1920, 100));
     }
 }
