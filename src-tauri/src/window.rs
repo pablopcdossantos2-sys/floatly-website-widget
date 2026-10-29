@@ -44,9 +44,10 @@ function dragWindow(event){
  event.stopPropagation();
  if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();
  try{
-  const invoke=window.__TAURI__&&window.__TAURI__.core&&window.__TAURI__.core.invoke;
-  if(typeof invoke==='function'){
-   invoke('start_window_drag').catch(()=>action('drag'));
+  const api=window.__TAURI__&&window.__TAURI__.window;
+  const current=api&&typeof api.getCurrentWindow==='function'?api.getCurrentWindow():null;
+  if(current&&typeof current.startDragging==='function'){
+   current.startDragging().catch(()=>action('drag'));
    return;
   }
  }catch(_){}
@@ -198,7 +199,7 @@ crate::diagnostics::log(&diag_dir,"INFO",format!("Encaminhando link externo ao n
 restore_position(&w,c);apply_config(app,c);Ok(w)
 }
 #[cfg(windows)]
-pub fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
+fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
     use windows_sys::Win32::Foundation::POINT;
     use windows_sys::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
@@ -226,7 +227,7 @@ pub fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
 }
 
 #[cfg(not(windows))]
-pub fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
+fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
     window.start_dragging().map_err(|error| error.to_string())
 }
 
