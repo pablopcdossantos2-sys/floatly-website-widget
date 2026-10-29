@@ -1,58 +1,50 @@
 # Widget Website — Windows
 
-Widget desktop sem moldura para abrir o calendário econômico do Investing.com em uma pequena janela WebView2, com sessão persistente.
+Widget desktop para manter o calendário econômico do Investing.com aberto em uma pequena janela WebView2, sem moldura. Projeto Tauri 2 direcionado a Windows 10/11 x64.
 
-> O repositório foi inicializado com Tauri 2. O alvo principal é Windows 10/11 de 64 bits; a validação gráfica final e o primeiro login precisam ser confirmados em um computador Windows.
-
-## Recursos previstos
-
-- Janela compacta sem barra de título, bandeja do sistema e instância única.
-- Sessão persistente em `%APPDATA%\WidgetWebsite\webview-data`; o app não armazena senhas.
-- Configurações em `%APPDATA%\WidgetWebsite\config.json`.
-- Atalho global, inicialização com o Windows, opacidade, zoom, posição, tamanho, bloqueio e sempre no topo.
-- Redirecionamento de links para o navegador padrão e fluxo de autenticação dentro do WebView.
-- Build para Windows x64 e instalador NSIS via GitHub Actions.
+## Recursos
+- Janela sem barra de título, bandeja do sistema, instância única e atalho global padrão CTRL+ALT+C.
+- Sessão WebView2 persistente em %APPDATA%\WidgetWebsite\webview-data; configuração em %APPDATA%\WidgetWebsite\config.json.
+- URL, tamanho, posição, travamento, sempre no topo, barra de tarefas, opacidade, zoom, cantos e recarga automática configuráveis.
+- Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária que reutiliza a pasta do WebView2.
+- Workflow de compilação Windows x64 e instalador NSIS.
 
 ## Pré-requisitos
-
-- Windows 10/11 x64.
-- Node.js LTS e npm.
-- Rust estável (o toolchain atual dos plugins Tauri 2 exige Rust 1.90 ou superior).
-- Microsoft Edge WebView2 Runtime. Se estiver ausente, instale o [Evergreen Runtime oficial](https://developer.microsoft.com/microsoft-edge/webview2/).
-- Para desenvolvimento local, Visual Studio Build Tools com a carga de trabalho **Desenvolvimento para desktop com C++** e Windows SDK.
+- Windows 10/11 x64, Node.js LTS e npm.
+- Rust estável 1.90 ou mais recente.
+- Microsoft Edge WebView2 Runtime: https://developer.microsoft.com/microsoft-edge/webview2/
+- Para compilar localmente: Visual Studio Build Tools com Desenvolvimento para desktop com C++ e Windows SDK.
 
 ## Desenvolvimento
+Execute no PowerShell:
+    npm install
+    npm run tauri dev
 
-```powershell
-npm install
-npm run tauri dev
-```
+## Instalar / empacotar
+Execute:
+    npm install
+    npm run icons
+    npm run tauri build
 
-## Gerar instalador
-
-O ícone-fonte fica em `icons/widget.svg`. Gere os formatos nativos antes do empacotamento:
-
-```powershell
-npm install
-npm run icons
-npm run tauri build
-```
-
-O instalador NSIS e o executável ficam em `src-tauri/target/release/bundle/nsis` e `src-tauri/target/release`. Também há um workflow do GitHub Actions que compila para Windows x64.
+O instalador aparece em src-tauri/target/release/bundle/nsis e o executável em src-tauri/target/release. O workflow Build Windows compila a saída no GitHub Actions e publica-a como artefato.
 
 ## Primeiro login
+1. Abra o widget e aguarde o calendário carregar.
+2. Prefira autenticação por e-mail e senha. O menu da bandeja oferece Entrar / mostrar janela de login.
+3. Feche e abra o app para verificar a persistência. Filtros salvos podem depender da conta e talvez precisem ser refeitos em uma conta nova.
+4. Se a sessão expirar, use Entrar / mostrar janela de login e autentique-se novamente.
 
-1. Inicie o widget e aguarde o calendário carregar.
-2. Entre preferencialmente com e-mail e senha em uma conta Investing.com. A janela de autenticação pode ser aberta pelo menu da bandeja.
-3. Refaça filtros se eles não forem sincronizados pela conta ou se estiver usando uma conta nova.
-4. Feche e reabra o widget para conferir a persistência. Os dados do WebView2 não são apagados ao fechar.
+O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é preservado.
 
-A sessão pode expirar por decisão do site. Use **Entrar / mostrar janela de login**, autentique-se e retorne ao widget. O aplicativo não lê, copia nem salva senhas.
+## Privacidade, decisões e limitações
+- Sem telemetria. A navegação principal é limitada ao site configurado e a recursos de autenticação conhecidos; links HTTP/HTTPS para outros domínios abrem no navegador padrão.
+- Arquivo de configuração corrompido é substituído por valores padrão.
+- A janela de login secundária compartilha a pasta de dados do WebView2; o domínio aparece no título, mas não há uma barra de endereço web própria. A compatibilidade de autenticação social depende das políticas do site e dos provedores.
+- Opacidade e zoom são aplicados por CSS no documento remoto; alguns sites podem reescrever esses estilos. O arredondamento combina sombra do Windows e recorte CSS, com diferenças no Windows 10.
+- A verificação de rede mostra uma tela própria antes da navegação e monitora a conexão enquanto o site está aberto. O wrapper padrão do Tauri não fornece um evento portátil que permita substituir toda falha de navegação do Chromium em todas as situações.
+- É necessário testar login real, filtros, atalho em conflito, escalas 125%/150%, monitores múltiplos, DPI e consumo de memória em Windows. O ambiente de desenvolvimento atual não permite comprovar esses comportamentos gráficos.
 
-## Privacidade e limitações
-
-- Sem telemetria. A navegação do widget é destinada ao site configurado e a links de autenticação relacionados; links externos comuns são encaminhados ao navegador padrão.
-- O User-Agent padrão do WebView2 é preservado.
-- A tela de configuração não armazena credenciais.
-- O suporte de arredondamento e a nitidez das bordas podem variar entre Windows 10, Windows 11 e configurações de DPI.
-- O build automatizado não substitui o teste manual em Windows: login do Investing.com, autenticação social, monitores múltiplos, escala de 125%/150% e comportamento em suspensão devem ser validados na máquina-alvo.
+## Estrutura
+- src-tauri/src: configuração, janela, comandos e bandeja em Rust.
+- src: inicialização e painel de configurações em TypeScript.
+- icons/widget.svg: ícone-fonte vetorial usado para gerar os ícones nativos do Windows.
