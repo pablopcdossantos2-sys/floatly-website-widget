@@ -22,8 +22,9 @@ restore_position(&w,c);apply_config(app,c);Ok(w)
 }
 #[cfg(windows)]
 fn begin_native_resize(window:&WebviewWindow, direction:&str) {
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        ReleaseCapture, SendMessageW, WM_NCLBUTTONDOWN, HTBOTTOM, HTBOTTOMLEFT,
+        SendMessageW, WM_NCLBUTTONDOWN, HTBOTTOM, HTBOTTOMLEFT,
         HTBOTTOMRIGHT, HTLEFT, HTRIGHT, HTTOP, HTTOPLEFT, HTTOPRIGHT,
     };
     let hit_test = match direction {
@@ -37,7 +38,8 @@ fn begin_native_resize(window:&WebviewWindow, direction:&str) {
         "south-west" => HTBOTTOMLEFT,
         _ => return,
     };
-    if let Ok(hwnd) = window.hwnd() {
+    if let Ok(raw_hwnd) = window.hwnd() {
+        let hwnd = raw_hwnd.0;
         unsafe {
             ReleaseCapture();
             SendMessageW(hwnd, WM_NCLBUTTONDOWN, hit_test as usize, 0);
@@ -55,14 +57,13 @@ fn restore_position(w:&WebviewWindow,c:&AppConfig){if !c.remember_position{let _
 #[cfg(windows)]
 fn apply_native_corners(window:&WebviewWindow, radius:u8) {
     use std::ffi::c_void;
-    use windows_sys::Win32::Foundation::HWND;
     use windows_sys::Win32::Graphics::Dwm::{DwmSetWindowAttribute,DWMWA_WINDOW_CORNER_PREFERENCE};
     use windows_sys::Win32::Graphics::Gdi::{CreateRoundRectRgn,DeleteObject};
     use windows_sys::Win32::UI::WindowsAndMessaging::SetWindowRgn;
     if let Ok(raw_hwnd)=window.hwnd() {
-        let hwnd:HWND=raw_hwnd as *mut c_void;
+        let hwnd=raw_hwnd.0;
         let preference:u32=if radius==0 {1} else {2};
-        unsafe { let _=DwmSetWindowAttribute(hwnd,DWMWA_WINDOW_CORNER_PREFERENCE,&preference as *const u32 as *const c_void,std::mem::size_of::<u32>() as u32); }
+        unsafe { let _=DwmSetWindowAttribute(hwnd,DWMWA_WINDOW_CORNER_PREFERENCE as u32,&preference as *const u32 as *const c_void,std::mem::size_of::<u32>() as u32); }
         if let Ok(size)=window.inner_size() {
             let scale=window.scale_factor().unwrap_or(1.0);
             let w=size.width.min(i32::MAX as u32) as i32;
