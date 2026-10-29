@@ -2,8 +2,9 @@
 name = "widget-website"
 version = "0.1.0"
 description = "Widget desktop compacto para calendário econômico"
-authors = ["Widget Website"]
+authors = ["pablopcdossantos2-sys"]
 edition = "2021"
+rust-version = "1.90"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
