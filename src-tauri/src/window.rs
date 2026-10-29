@@ -910,7 +910,8 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                 }
             }
         })
-        .build()?;
+        let login_window = WebviewWindowBuilder::new(app, label, WebviewUrl::External(url))
+        .title(format!("{login_title} — {host}"))
     Ok(())
 }
 
