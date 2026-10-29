@@ -120,7 +120,7 @@ async function check(){try{const c=new AbortController(),t=setTimeout(()=>c.abor
 }
 addEventListener('offline',check);
 setInterval(check,30000);
-function heartbeat(){try{const events=window.__TAURI__&&window.__TAURI__.event;if(events&&typeof events.emit==='function')events.emit('widget-heartbeat',HEARTBEAT_TOKEN).catch(()=>{})}catch(_){}}
+function heartbeat(){try{const core=window.__TAURI__&&window.__TAURI__.core;if(core&&typeof core.invoke==='function')core.invoke('heartbeat',{token:HEARTBEAT_TOKEN}).catch(()=>{})}catch(_){}}
 setTimeout(heartbeat,1000);
 setInterval(heartbeat,5000)
 })();"#;
@@ -271,22 +271,13 @@ pub fn create_main(
     let nav_app = app.clone();
     let popup_app = app.clone();
     let action_token = uuid::Uuid::new_v4().simple().to_string();
-    let heartbeat_token = uuid::Uuid::new_v4().simple().to_string();
+    let heartbeat_token = app.state::<AppState>().heartbeat_token.clone();
     let init_script = INIT
         .replace("__WIDGET_LANGUAGE__", &c.language)
         .replace("__WIDGET_LOCKED__", &c.locked.to_string())
         .replace("__WIDGET_ACTION_TOKEN__", &action_token)
         .replace("__WIDGET_HEARTBEAT_TOKEN__", &heartbeat_token);
     let navigation_action_token = action_token.clone();
-    let heartbeat_token = heartbeat_token.clone();
-    let heartbeat_dir = dir.to_path_buf();
-    let _heartbeat_listener = app.listen("widget-heartbeat", move |event| {
-        let payload = event.payload();
-        let value = serde_json::from_str::<String>(payload).unwrap_or_else(|_| payload.to_owned());
-        if value == heartbeat_token {
-            crate::diagnostics::record_heartbeat(&heartbeat_dir);
-        }
-    });
     let page_load_app = app.clone();
     let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(init_script)
 .on_page_load(move|window,payload|{
