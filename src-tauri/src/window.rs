@@ -9,7 +9,7 @@ use std::{
 use tauri::{
     utils::config::WebviewUrl,
     webview::{NewWindowResponse, PageLoadEvent, WebviewWindowBuilder},
-    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, PhysicalSize, WebviewWindow,
+    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, WebviewWindow,
     WindowEvent,
 };
 use url::Url;
@@ -569,6 +569,39 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
         .build()?;
     Ok(())
 }
+#[derive(Clone, Copy, Debug)]
+struct MonitorBounds {
+    x: i64,
+    y: i64,
+    width: i64,
+    height: i64,
+    scale_factor: f64,
+}
+
+/// Returns true only when a useful portion of the window is visible on one monitor.
+/// Coordinates and intersection arithmetic use i64 to avoid overflow at extreme positions.
+fn is_placeable(x: i32, y: i32, width: u32, height: u32, monitors: &[MonitorBounds]) -> bool {
+    if width == 0 || height == 0 {
+        return false;
+    }
+    monitors.iter().any(|monitor| {
+        let scale = if monitor.scale_factor.is_finite() && monitor.scale_factor > 0.0 {
+            monitor.scale_factor
+        } else {
+            1.0
+        };
+        let physical_width = ((width as f64 * scale).round() as i64).max(1);
+        let physical_height = ((height as f64 * scale).round() as i64).max(1);
+        let left = i64::from(x);
+        let top = i64::from(y);
+        let right = left + physical_width;
+        let bottom = top + physical_height;
+        let visible_width = right.min(monitor.x + monitor.width) - left.max(monitor.x);
+        let visible_height = bottom.min(monitor.y + monitor.height) - top.max(monitor.y);
+        visible_width >= 80.min(physical_width) && visible_height >= 40.min(physical_height)
+    })
+}
+
 fn restore_position(w: &WebviewWindow, c: &AppConfig) {
     if !c.remember_position {
         let _ = w.center();
@@ -582,18 +615,18 @@ fn restore_position(w: &WebviewWindow, c: &AppConfig) {
         let _ = w.center();
         return;
     };
-    let scale = w.scale_factor().unwrap_or(1.0);
-    let s = PhysicalSize::new(
-        (c.width as f64 * scale) as u32,
-        (c.height as f64 * scale) as u32,
-    );
-    let visible = monitors.iter().any(|m| {
-        let p = m.position();
-        let z = m.size();
-        (x + s.width as i32).min(p.x + z.width as i32) > x.max(p.x)
-            && (y + s.height as i32).min(p.y + z.height as i32) > y.max(p.y)
-    });
-    if visible {
+    let bounds = monitors.iter().map(|monitor| {
+        let position = monitor.position();
+        let size = monitor.size();
+        MonitorBounds {
+            x: i64::from(position.x),
+            y: i64::from(position.y),
+            width: i64::from(size.width),
+            height: i64::from(size.height),
+            scale_factor: monitor.scale_factor(),
+        }
+    }).collect::<Vec<_>>();
+    if is_placeable(x, y, c.width, c.height, &bounds) {
         let _ = w.set_position(PhysicalPosition::new(x, y));
     } else {
         let _ = w.center();
@@ -714,6 +747,16 @@ pub fn open_login_from_tray(app: &AppHandle) {
 }
 pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
     let state = app.state::<AppState>();
+    if let Some(window) = app.get_webview_window("main") {
+        if window.is_minimized().unwrap_or(false) {
+            return;
+        }
+    }
+    match e {
+        WindowEvent::Moved(position) if position.x <= -30_000 || position.y <= -30_000 => return,
+        WindowEvent::Resized(size) if size.width == 0 || size.height == 0 => return,
+        _ => {}
+    }
     let scale = app
         .get_webview_window("main")
         .and_then(|w| w.scale_factor().ok())
@@ -738,7 +781,13 @@ pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
     }
     let copy = c.clone();
     drop(c);
-    let _ = crate::config::save(&state.app_dir, &copy);
+    if let Err(error) = crate::config::save(&state.app_dir, &copy) {
+        crate::diagnostics::log(
+            &state.app_dir,
+            "ERRO",
+            format!("Falha ao persistir posição/tamanho da janela: {error}"),
+        );
+    }
     let _ = app.emit("config-changed", &copy);
     if let Some(window) = app.get_webview_window("main") {
         apply_native_corners(&window, copy.corner_radius);
@@ -813,5 +862,35 @@ mod internal_app_navigation_tests {
     fn allows_tauri_protocol() {
         let url = Url::parse("tauri://localhost/").unwrap();
         assert!(is_internal_app_url(&url));
+    }
+}
+
+#[cfg(test)]
+mod geometry_tests {
+    use super::*;
+
+    fn monitor(x: i64, y: i64, width: i64, height: i64, scale_factor: f64) -> MonitorBounds {
+        MonitorBounds { x, y, width, height, scale_factor }
+    }
+
+    #[test]
+    fn one_pixel_overlap_is_not_placeable() {
+        assert!(!is_placeable(-149, 0, 150, 100, &[monitor(0, 0, 1920, 1080, 1.0)]));
+    }
+
+    #[test]
+    fn fully_visible_window_is_placeable_on_negative_coordinate_monitor() {
+        assert!(is_placeable(-1800, 100, 500, 700, &[monitor(-1920, 0, 1920, 1080, 1.0)]));
+    }
+
+    #[test]
+    fn extreme_coordinates_do_not_overflow() {
+        assert!(!is_placeable(i32::MAX, i32::MAX, 2000, 1600, &[monitor(0, 0, 1920, 1080, 1.5)]));
+    }
+
+    #[test]
+    fn target_monitor_scale_factor_affects_visible_intersection() {
+        let monitors = [monitor(0, 0, 1920, 1080, 1.5)];
+        assert!(is_placeable(-70, 0, 100, 100, &monitors));
     }
 }
