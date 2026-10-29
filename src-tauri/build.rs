@@ -5,7 +5,6 @@ fn main() {
             "save_config",
             "close_settings",
             "heartbeat",
-            "heartbeat",
         ]),
     ))
     .expect("falha ao gerar o manifesto de permissões do Tauri");
