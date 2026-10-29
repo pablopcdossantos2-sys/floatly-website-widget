@@ -6,7 +6,7 @@
     "main"
   ],
   "permissions": [
-    "app:allow-get-config",
-    "core:event:allow-emit"
+    "allow-get-config",
+    "allow-heartbeat"
   ]
 }
