@@ -198,7 +198,7 @@ crate::diagnostics::log(&diag_dir,"INFO",format!("Encaminhando link externo ao n
 restore_position(&w,c);apply_config(app,c);Ok(w)
 }
 #[cfg(windows)]
-fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
+pub fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
     use windows_sys::Win32::Foundation::POINT;
     use windows_sys::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
@@ -226,7 +226,7 @@ fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
 }
 
 #[cfg(not(windows))]
-fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
+pub fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
     window.start_dragging().map_err(|error| error.to_string())
 }
 
