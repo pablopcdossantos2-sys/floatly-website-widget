@@ -62,7 +62,7 @@ pub fn save_config(
     let mut shortcut_changed = false;
     if c.global_shortcut != active_shortcut {
         match Shortcut::from_str(&c.global_shortcut) {
-            Ok(new_shortcut) => match app.global_shortcut().register(new_shortcut) {
+            Ok(new_shortcut) => match app.global_shortcut().register(new_shortcut.clone()) {
                 Ok(()) => {
                     let unregister_result = if active_shortcut.is_empty() {
                         Ok(())
@@ -242,7 +242,7 @@ pub fn toggle_locked(app: &AppHandle) {
         let _ = config::save(&s.app_dir, &c);
         c.clone()
     };
-    window::apply_config(app, &next);
+    window::apply_config(app, &next, false);
     crate::tray::update_language(app, &next.language);
     let _ = app.emit("config-changed", &next);
 }
@@ -257,7 +257,7 @@ pub fn toggle_topmost(app: &AppHandle) {
         let _ = config::save(&s.app_dir, &c);
         c.clone()
     };
-    window::apply_config(app, &next);
+    window::apply_config(app, &next, false);
     let _ = app.emit("config-changed", &next);
 }
 pub fn show_settings(app: &AppHandle) {
