@@ -209,6 +209,7 @@ pub fn app_directory() -> PathBuf {
         .join("WidgetWebsite")
 }
 
+#[cfg(test)]
 pub fn load(dir: &Path) -> AppConfig {
     load_with_warnings(dir).0
 }
@@ -230,7 +231,7 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
             );
         }
     };
-    let value: serde_json::Value = match serde_json::from_slice(&bytes) {
+    let value: serde_json::Value = match serde_json::from_slice::<serde_json::Value>(&bytes) {
         Ok(value) if value.is_object() => value,
         _ => {
             let timestamp = SystemTime::now()
@@ -271,7 +272,11 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
         serde_json::to_value(AppConfig::default()).expect("AppConfig default serializes");
     if let Some(saved) = value.as_object() {
         for (key, candidate_value) in saved {
-            let previous = match merged.as_object().and_then(|base| base.get(key)).cloned() {
+            let previous = match merged
+                .as_object()
+                .and_then(|base| base.get::<str>(key.as_str()))
+                .cloned()
+            {
                 Some(previous) => previous,
                 None => continue,
             };

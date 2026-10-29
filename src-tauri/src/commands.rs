@@ -191,7 +191,7 @@ pub fn save_config(
     let mut shortcut_changed = false;
     if c.global_shortcut != active_shortcut {
         match Shortcut::from_str(&c.global_shortcut) {
-            Ok(new_shortcut) => match app.global_shortcut().register(new_shortcut.clone()) {
+            Ok(new_shortcut) => match app.global_shortcut().register(new_shortcut) {
                 Ok(()) => {
                     let unregister_result = if active_shortcut.is_empty() {
                         Ok(())
