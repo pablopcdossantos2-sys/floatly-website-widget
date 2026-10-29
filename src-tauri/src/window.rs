@@ -817,6 +817,9 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
         })
         .on_window_event(move |event| {
             if matches!(event, WindowEvent::CloseRequested { .. }) {
+                if close_event_app.state::<AppState>().shutdown_requested.load(Ordering::SeqCst) {
+                    return;
+                }
                 crate::diagnostics::log(&close_event_dir, "INFO", "Janela de autenticação fechada; solicitando atualização da janela principal.");
                 if let Some(main) = close_event_app.get_webview_window("main") {
                     if let Err(error) = main.eval("location.reload()") {
