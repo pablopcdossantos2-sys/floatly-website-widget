@@ -34,7 +34,7 @@ style.textContent=`
 #__widget_drag{position:fixed;z-index:2147483647;left:50%;transform:translateX(-50%);top:8px;width:78px;height:20px;display:flex;align-items:center;justify-content:center;background:rgba(33,52,75,.22);border:1px solid rgba(255,255,255,.72);border-radius:999px;opacity:.78;cursor:move;transition:background .12s,opacity .12s,box-shadow .12s;box-shadow:0 1px 4px rgba(0,0,0,.14);user-select:none;-webkit-user-select:none;touch-action:none}
 #__widget_drag:hover{opacity:1;background:rgba(24,105,210,.88);box-shadow:0 2px 8px rgba(0,0,0,.2)}
 #__widget_drag.__widget_drag_locked{opacity:.28;cursor:not-allowed;pointer-events:none}
-#__widget_drag_frame{position:fixed;z-index:2147483644;inset:10px;border:4px solid transparent;border-radius:8px;box-sizing:border-box;pointer-events:none;box-shadow:0 0 0 1px rgba(255,255,255,.9),0 0 8px rgba(22,131,255,.38),inset 0 0 0 1px rgba(255,255,255,.45);transition:none}
+#__widget_drag_frame{position:fixed;z-index:2147483644;inset:10px;border:4px solid transparent;border-radius:8px;box-sizing:border-box;pointer-events:none;box-shadow:none;transition:none}
 #__widget_drag_frame:hover{border-color:transparent;box-shadow:none}
 #__widget_drag_frame.__widget_drag_locked{border-color:transparent;box-shadow:none}
 #__widget_drag_frame.__widget_drag_locked .__widget_drag_edge{pointer-events:none;cursor:default}
