@@ -80,7 +80,9 @@ impl AppConfig {
         }
         let has_scheme = site.split_once("://").is_some_and(|(scheme, _)| {
             let mut chars = scheme.chars();
-            chars.next().is_some_and(|first| first.is_ascii_alphabetic())
+            chars
+                .next()
+                .is_some_and(|first| first.is_ascii_alphabetic())
                 && chars.all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '.' | '-'))
         });
         if !has_scheme {
@@ -110,7 +112,10 @@ impl AppConfig {
             return Err("config.shortcut_modifier_required".into());
         }
         let key = parts.last().cloned().unwrap_or_default();
-        if matches!(key.as_str(), "CTRL" | "CONTROL" | "ALT" | "SHIFT" | "SUPER" | "WIN" | "META") {
+        if matches!(
+            key.as_str(),
+            "CTRL" | "CONTROL" | "ALT" | "SHIFT" | "SUPER" | "WIN" | "META"
+        ) {
             return Err("config.shortcut_key_unsupported".into());
         }
         let mut modifiers = Vec::new();
@@ -126,7 +131,10 @@ impl AppConfig {
                 modifiers.push(canonical);
             }
         }
-        if !modifiers.iter().any(|modifier| matches!(*modifier, "CTRL" | "ALT" | "SUPER")) {
+        if !modifiers
+            .iter()
+            .any(|modifier| matches!(*modifier, "CTRL" | "ALT" | "SUPER"))
+        {
             return Err("config.shortcut_modifier_required".into());
         }
         modifiers.sort_by_key(|modifier| match *modifier {
@@ -230,19 +238,27 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
                 .unwrap_or_default()
                 .as_secs();
             let backup_counter = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
-            let backup = dir.join(format!("config.json.bad-{timestamp}-{}-{backup_counter}", std::process::id()));
+            let backup = dir.join(format!(
+                "config.json.bad-{timestamp}-{}-{backup_counter}",
+                std::process::id()
+            ));
             match fs::rename(&path, &backup) {
                 Ok(()) => {
                     return (
                         AppConfig::default(),
-                        vec![format!("JSON inválido; configuração original preservada em {}", backup.display())],
+                        vec![format!(
+                            "JSON inválido; configuração original preservada em {}",
+                            backup.display()
+                        )],
                         true,
                     );
                 }
                 Err(error) => {
                     return (
                         AppConfig::default(),
-                        vec![format!("JSON inválido e não foi possível criar backup de config.json: {error}")],
+                        vec![format!(
+                            "JSON inválido e não foi possível criar backup de config.json: {error}"
+                        )],
                         false,
                     );
                 }
@@ -251,7 +267,8 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
     };
 
     let mut warnings = Vec::new();
-    let mut merged = serde_json::to_value(AppConfig::default()).expect("AppConfig default serializes");
+    let mut merged =
+        serde_json::to_value(AppConfig::default()).expect("AppConfig default serializes");
     if let Some(saved) = value.as_object() {
         for (key, candidate_value) in saved {
             let previous = match merged.as_object().and_then(|base| base.get(key)).cloned() {
@@ -265,7 +282,9 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
                 if let Some(base) = merged.as_object_mut() {
                     base.insert(key.clone(), previous);
                 }
-                warnings.push(format!("Campo inválido em config.json: {key}; usando o valor padrão."));
+                warnings.push(format!(
+                    "Campo inválido em config.json: {key}; usando o valor padrão."
+                ));
             }
         }
     }
@@ -277,44 +296,76 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
             Ok(()) => break,
             Err(error) if error.starts_with("config.site_url") => {
                 config.site_url = AppConfig::default().site_url;
-                warnings.push("Campo inválido em config.json: site_url; usando o valor padrão.".into());
+                warnings
+                    .push("Campo inválido em config.json: site_url; usando o valor padrão.".into());
             }
             Err(error) if error.starts_with("config.shortcut") => {
                 config.global_shortcut = AppConfig::default().global_shortcut;
-                warnings.push("Campo inválido em config.json: global_shortcut; usando o valor padrão.".into());
+                warnings.push(
+                    "Campo inválido em config.json: global_shortcut; usando o valor padrão.".into(),
+                );
             }
             Err(error) => {
-                warnings.push(format!("Configuração inválida; recuperando padrões: {error}"));
+                warnings.push(format!(
+                    "Configuração inválida; recuperando padrões: {error}"
+                ));
                 config = AppConfig::default();
                 break;
             }
         }
         normalization_retries += 1;
         if normalization_retries >= 3 {
-            warnings.push("A configuração permaneceu inválida após várias tentativas; usando os padrões.".into());
+            warnings.push(
+                "A configuração permaneceu inválida após várias tentativas; usando os padrões."
+                    .into(),
+            );
             config = AppConfig::default();
             break;
         }
     }
-    if before_normalize.site_url != config.site_url { warnings.push("Valor de site_url normalizado.".into()); }
-    if before_normalize.global_shortcut != config.global_shortcut { warnings.push("Valor de global_shortcut normalizado.".into()); }
-    if before_normalize.language != config.language { warnings.push("Valor de language inválido; usando o idioma padrão.".into()); }
-    if before_normalize.opacity != config.opacity { warnings.push("Valor de opacity ajustado aos limites suportados.".into()); }
-    if before_normalize.zoom != config.zoom { warnings.push("Valor de zoom ajustado aos limites suportados.".into()); }
-    if before_normalize.width != config.width { warnings.push("Valor de width ajustado aos limites suportados.".into()); }
-    if before_normalize.height != config.height { warnings.push("Valor de height ajustado aos limites suportados.".into()); }
-    if before_normalize.auto_reload_minutes != config.auto_reload_minutes { warnings.push("Valor de auto_reload_minutes ajustado aos limites suportados.".into()); }
-    if before_normalize.corner_radius != config.corner_radius { warnings.push("Valor de corner_radius ajustado aos limites suportados.".into()); }
+    if before_normalize.site_url != config.site_url {
+        warnings.push("Valor de site_url normalizado.".into());
+    }
+    if before_normalize.global_shortcut != config.global_shortcut {
+        warnings.push("Valor de global_shortcut normalizado.".into());
+    }
+    if before_normalize.language != config.language {
+        warnings.push("Valor de language inválido; usando o idioma padrão.".into());
+    }
+    if before_normalize.opacity != config.opacity {
+        warnings.push("Valor de opacity ajustado aos limites suportados.".into());
+    }
+    if before_normalize.zoom != config.zoom {
+        warnings.push("Valor de zoom ajustado aos limites suportados.".into());
+    }
+    if before_normalize.width != config.width {
+        warnings.push("Valor de width ajustado aos limites suportados.".into());
+    }
+    if before_normalize.height != config.height {
+        warnings.push("Valor de height ajustado aos limites suportados.".into());
+    }
+    if before_normalize.auto_reload_minutes != config.auto_reload_minutes {
+        warnings.push("Valor de auto_reload_minutes ajustado aos limites suportados.".into());
+    }
+    if before_normalize.corner_radius != config.corner_radius {
+        warnings.push("Valor de corner_radius ajustado aos limites suportados.".into());
+    }
     (config, warnings, true)
 }
 
 pub fn save(dir: &Path, config: &AppConfig) -> Result<(), String> {
-    let _guard = SAVE_LOCK.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+    let _guard = SAVE_LOCK
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     fs::create_dir_all(dir).map_err(|error| error.to_string())?;
     let bytes = serde_json::to_vec_pretty(config).map_err(|error| error.to_string())?;
     let target = dir.join("config.json");
     let counter = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
-    let temp = dir.join(format!("config.json.{}.{}.tmp", std::process::id(), counter));
+    let temp = dir.join(format!(
+        "config.json.{}.{}.tmp",
+        std::process::id(),
+        counter
+    ));
     let write_result = (|| -> Result<(), String> {
         let mut file = OpenOptions::new()
             .write(true)
@@ -342,7 +393,9 @@ pub fn save(dir: &Path, config: &AppConfig) -> Result<(), String> {
         }
     }
     let _ = fs::remove_file(&temp);
-    Err(last_error.map(|error| error.to_string()).unwrap_or_else(|| "Não foi possível substituir config.json.".into()))
+    Err(last_error
+        .map(|error| error.to_string())
+        .unwrap_or_else(|| "Não foi possível substituir config.json.".into()))
 }
 
 #[cfg(test)]
@@ -470,17 +523,28 @@ mod tests {
         assert_eq!(config.site_url, DEFAULT_SITE);
         assert_eq!(config.width, DEFAULT_WIDTH);
         assert!(fs::read_dir(&dir).unwrap().any(|entry| {
-            entry.unwrap().file_name().to_string_lossy().starts_with("config.json.bad-")
+            entry
+                .unwrap()
+                .file_name()
+                .to_string_lossy()
+                .starts_with("config.json.bad-")
         }));
         fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]
     fn load_keeps_valid_fields_when_one_field_is_out_of_range() {
-        let dir = std::env::temp_dir().join(format!("widget-website-partial-config-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "widget-website-partial-config-{}",
+            std::process::id()
+        ));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
-        fs::write(dir.join("config.json"), r#"{"width":800,"opacity":300,"language":"en"}"#).unwrap();
+        fs::write(
+            dir.join("config.json"),
+            r#"{"width":800,"opacity":300,"language":"en"}"#,
+        )
+        .unwrap();
         let (config, warnings, safe_to_persist) = load_with_warnings(&dir);
         assert_eq!(config.width, 800);
         assert_eq!(config.opacity, 100);
@@ -492,10 +556,15 @@ mod tests {
 
     #[test]
     fn load_resets_only_invalid_site_url() {
-        let dir = std::env::temp_dir().join(format!("widget-website-invalid-url-{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("widget-website-invalid-url-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
-        fs::write(dir.join("config.json"), r#"{"site_url":"file:///invalid","width":860,"language":"es"}"#).unwrap();
+        fs::write(
+            dir.join("config.json"),
+            r#"{"site_url":"file:///invalid","width":860,"language":"es"}"#,
+        )
+        .unwrap();
         let (config, warnings, _) = load_with_warnings(&dir);
         assert_eq!(config.site_url, DEFAULT_SITE);
         assert_eq!(config.width, 860);
@@ -519,13 +588,19 @@ mod tests {
             ..AppConfig::default()
         };
         config.normalize().unwrap();
-        assert_eq!(config.site_url, "https://investing.com/x?u=https://example.com");
+        assert_eq!(
+            config.site_url,
+            "https://investing.com/x?u=https://example.com"
+        );
     }
 
     #[test]
     fn normalization_rejects_shift_only_shortcuts_and_canonicalizes_modifiers() {
         for shortcut in ["SHIFT+A", "TAB", "", "CTRL+"] {
-            let mut config = AppConfig { global_shortcut: shortcut.into(), ..AppConfig::default() };
+            let mut config = AppConfig {
+                global_shortcut: shortcut.into(),
+                ..AppConfig::default()
+            };
             assert!(config.normalize().is_err(), "accepted shortcut: {shortcut}");
         }
         let mut config = AppConfig {
@@ -544,7 +619,10 @@ mod tests {
 
     #[test]
     fn load_recovers_multiple_invalid_fields_without_losing_valid_preferences() {
-        let dir = std::env::temp_dir().join(format!("widget-website-multiple-invalid-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "widget-website-multiple-invalid-{}",
+            std::process::id()
+        ));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         fs::write(
@@ -557,15 +635,23 @@ mod tests {
         assert_eq!(config.width, 920);
         assert_eq!(config.language, "en");
         assert!(warnings.iter().any(|warning| warning.contains("site_url")));
-        assert!(warnings.iter().any(|warning| warning.contains("global_shortcut")));
+        assert!(warnings
+            .iter()
+            .any(|warning| warning.contains("global_shortcut")));
         fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]
     fn snapshot_recovers_config_from_a_poisoned_mutex() {
-        let dir = std::env::temp_dir().join(format!("widget-website-poisoned-state-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "widget-website-poisoned-state-{}",
+            std::process::id()
+        ));
         let state = AppState {
-            config: Mutex::new(AppConfig { width: 777, ..AppConfig::default() }),
+            config: Mutex::new(AppConfig {
+                width: 777,
+                ..AppConfig::default()
+            }),
             app_dir: dir.clone(),
             registered_shortcut: Mutex::new(String::new()),
             geometry_save_revision: AtomicU64::new(0),
@@ -585,14 +671,23 @@ mod tests {
 
     #[test]
     fn save_uses_unique_temp_files_and_leaves_valid_json() {
-        let dir = std::env::temp_dir().join(format!("widget-website-atomic-save-{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("widget-website-atomic-save-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
-        let config = AppConfig { width: 811, ..AppConfig::default() };
+        let config = AppConfig {
+            width: 811,
+            ..AppConfig::default()
+        };
         save(&dir, &config).unwrap();
-        let parsed: AppConfig = serde_json::from_slice(&fs::read(dir.join("config.json")).unwrap()).unwrap();
+        let parsed: AppConfig =
+            serde_json::from_slice(&fs::read(dir.join("config.json")).unwrap()).unwrap();
         assert_eq!(parsed.width, 811);
-        assert!(!fs::read_dir(&dir).unwrap().any(|entry| entry.unwrap().file_name().to_string_lossy().ends_with(".tmp")));
+        assert!(!fs::read_dir(&dir).unwrap().any(|entry| entry
+            .unwrap()
+            .file_name()
+            .to_string_lossy()
+            .ends_with(".tmp")));
         fs::remove_dir_all(&dir).unwrap();
     }
 }
