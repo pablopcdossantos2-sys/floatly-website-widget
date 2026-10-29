@@ -122,11 +122,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::get_config,
             commands::save_config,
-            commands::restore_default_size,
-            commands::close_settings,
-            commands::toggle_main_visibility,
-            commands::reload_site,
-            commands::quit_app
+            commands::close_settings
         ])
         .setup(move |app| {
             let dir = setup_dir.clone();
@@ -177,7 +173,7 @@ fn main() {
                 "INFO",
                 format!(
                     "Janela principal criada. URL configurada: {}",
-                    cfg.site_url
+                    diagnostics::safe_url_summary(&cfg.site_url)
                 ),
             );
             let handle = app.handle().clone();
