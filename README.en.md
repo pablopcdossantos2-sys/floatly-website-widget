@@ -16,7 +16,7 @@ A small Windows desktop widget that keeps the Investing.com economic calendar op
 
 ## Requirements
 
-- Windows 10/11 x64, Node.js and npm.
+- Windows 10/11 x64, Node.js 22 or newer (LTS) and npm.
 - Stable Rust 1.90 or newer.
 - Microsoft Edge WebView2 Runtime: https://developer.microsoft.com/microsoft-edge/webview2/
 - To compile locally: Visual Studio Build Tools with Desktop development with C++ and the Windows SDK.
@@ -25,13 +25,13 @@ A small Windows desktop widget that keeps the Investing.com economic calendar op
 
 Run these commands in PowerShell (generating the icons is required before the first build):
 
-    npm install
+    npm ci
     npm run icons
     npm run tauri dev
 
 ## Build / package
 
-    npm install
+    npm ci
     npm run icons
     npm run tauri build
 
@@ -48,7 +48,7 @@ The GitHub Actions workflow supports optional Authenticode signing. To enable it
 - WINDOWS_PFX_BASE64: the PFX certificate file encoded as Base64.
 - WINDOWS_PFX_PASSWORD: the password for that PFX file.
 
-Never put a private key in the repository or in this README. During the build, the workflow imports the certificate, signs with SHA-256 and a timestamp, then removes the temporary PFX file. Without both secrets, CI warns that the artifact is unsigned and continues building.
+Never put a private key in the repository or this README. The build runs without access to the signing certificate. A separate job uses `signtool` to sign and verify the NSIS installer and the separately published executable with SHA-256 and a timestamp; it removes the temporary PFX file afterward. The separately published executable is signed, but the copy embedded inside the already-packaged installer was bundled unsigned. Without both secrets, the artifacts are published unsigned.
 
 **Important:** a valid signature cannot guarantee that Microsoft Defender SmartScreen will never show a warning. New apps or files may still display a warning until publisher and file reputation are established. Publishing through the Microsoft Store is the most direct way to avoid SmartScreen download warnings. See [Microsoft's SmartScreen reputation guidance](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) and [Tauri's Windows code-signing guide](https://tauri.app/distribute/sign/windows/).
 
@@ -73,11 +73,15 @@ The app does not read, copy or store passwords. The default WebView2 user agent 
 
 - No telemetry. The main navigation is restricted to the configured website and recognized authentication resources; other HTTP/HTTPS links are opened in the default browser.
 - A corrupt configuration file is replaced with defaults. **Restore default size** only changes the dimensions to 500 × 700 px; other preferences are preserved.
-- CI runs automated tests for defaults, normalization, URL validation, legacy language configuration and recovery from corrupt configuration; it also builds the Windows installer.
+- CI checks Tauri version alignment, the command manifest and capabilities; it runs `npm ci`, type checking, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` and `cargo test`, then builds the Windows installer.
 - The secondary sign-in window shares the WebView2 data folder and has an injected address bar. Navigation to unapproved domains is opened in the default browser. Automatic closing depends on the sign-in provider returning to the configured website; some social sign-in flows may require closing the window manually.
 - Zoom uses the native WebView2 zoom control. Opacity and rounded corners use CSS/native clipping; corner appearance may vary on Windows 10.
 - Network checks show a custom status panel before the main navigation and monitor connectivity while the site is open. Tauri's default wrapper cannot replace every Chromium navigation failure in every scenario.
 - Real sign-in, saved filters, shortcut conflicts, 125%/150% scaling, multiple monitors, DPI changes and memory use still need to be tested on Windows hardware.
+
+## Uninstalling and stored data
+
+The NSIS uninstaller offers a **Delete the application data** checkbox. When selected, it removes `%APPDATA%\\WidgetWebsite` (configuration, logs and WebView2 session data) and `%LOCALAPPDATA%\\WidgetWebsite` if present. If left unchecked, these files are preserved for a later reinstall. The Windows startup entry is always removed when the app is uninstalled.
 
 ## Structure
 
