@@ -274,11 +274,7 @@ pub fn save_config(
     crate::tray::update_language(&app, &c.language);
     let _ = app.emit("config-changed", &c);
     if let Some(settings) = app.get_webview_window("settings") {
-        let title = match c.language.as_str() {
-            "en" => "Settings — Widget Website",
-            "es" => "Configuración — Widget Website",
-            _ => "Configurações — Widget Website",
-        };
+        let title = crate::i18n::settings_title(&c.language);
         let _ = settings.set_title(title);
     }
     if old.site_url != c.site_url {
@@ -313,11 +309,15 @@ pub fn toggle_main_visibility(app: AppHandle) {
     window::toggle_main_visibility(&app)
 }
 pub fn reload_site(app: AppHandle) {
-    if let Some(w) = app.get_webview_window("main") {
-        let _ = w.eval("location.reload()");
+    let dir = app.state::<AppState>().app_dir.clone();
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = crate::diagnostics::log_err(&dir, "Não foi possível recarregar o site pela bandeja", window.eval("location.reload()"));
+    } else {
+        crate::diagnostics::log(&dir, "WARN", "A solicitação de recarga foi ignorada porque a janela principal não existe.");
     }
 }
 pub fn quit_app(app: AppHandle) {
+    app.state::<AppState>().shutdown_requested.store(true, std::sync::atomic::Ordering::SeqCst);
     window::flush_pending_config(&app);
     app.exit(0)
 }
