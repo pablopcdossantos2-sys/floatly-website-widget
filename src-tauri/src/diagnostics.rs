@@ -86,7 +86,9 @@ pub fn log(dir: &Path, level: &str, message: impl AsRef<str>) {
 
     // This is visible when the app is started from a console-attached process.
     // The file above remains the reliable source for GUI-subsystem builds.
-    print!("{line}");
+    if let Ok(mut output) = std::io::stdout().lock().write_all(line.as_bytes()) {
+        let _ = output;
+    }
 }
 
 pub fn log_navigation(dir: &Path, url: &url::Url) {
