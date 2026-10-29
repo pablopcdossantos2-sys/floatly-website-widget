@@ -150,6 +150,9 @@ pub struct AppState {
     pub config: Mutex<AppConfig>,
     pub app_dir: PathBuf,
     pub registered_shortcut: Mutex<String>,
+    /// Incremented for each geometry update; the worker persists after a quiet interval.
+    pub geometry_save_revision: AtomicU64,
+    pub geometry_save_worker_running: AtomicBool,
     /// Per-process token accepted only by the minimal remote heartbeat command.
     pub heartbeat_token: String,
 }
