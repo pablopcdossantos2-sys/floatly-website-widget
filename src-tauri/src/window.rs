@@ -1070,20 +1070,6 @@ pub fn open_settings(app: &AppHandle) {
     });
 }
 
-pub fn open_login_from_tray(app: &AppHandle) {
-    let text = app
-        .state::<AppState>()
-        .config
-        .lock()
-        .map(|c| c.site_url.clone())
-        .unwrap_or_else(|_| crate::config::DEFAULT_SITE.to_owned());
-    if let Ok(url) = Url::parse(&text) {
-        let a = app.clone();
-        thread::spawn(move || {
-            let _ = open_login(&a, url);
-        });
-    }
-}
 fn schedule_debounced_config_save(app: &AppHandle) {
     {
         let state = app.state::<AppState>();
