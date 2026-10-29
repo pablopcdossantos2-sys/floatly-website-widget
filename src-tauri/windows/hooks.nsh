@@ -1,13 +1,15 @@
 !macro NSIS_HOOK_POSTUNINSTALL
-  ; The standard Tauri NSIS checkbox sets this variable when the user opts
-  ; into deleting application data. Keep data intact when it is unchecked.
-  ${If} $DeleteAppDataCheckboxState == 1
-    SetShellVarContext current
-    RmDir /r "$APPDATA\WidgetWebsite"
-    RmDir /r "$LOCALAPPDATA\WidgetWebsite"
-  ${EndIf}
+  ; Tauri uses Cargo package name "widget-website" for the default autostart entry.
+  ; Keep the old display-name value removal as a migration safeguard.
+  ; Never remove startup settings or data when the uninstaller is running in update mode.
+  ${If} $UpdateMode <> 1
+    ${If} $DeleteAppDataCheckboxState == 1
+      SetShellVarContext current
+      RmDir /r "$APPDATA\WidgetWebsite"
+      RmDir /r "$LOCALAPPDATA\WidgetWebsite"
+    ${EndIf}
 
-  ; Autostart is an installation setting, not user session data. Always remove
-  ; the startup entry when the application itself is uninstalled.
-  DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "Widget Website"
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "widget-website"
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "Widget Website"
+  ${EndIf}
 !macroend
