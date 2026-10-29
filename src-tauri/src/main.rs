@@ -133,11 +133,25 @@ fn main() {
             std::fs::create_dir_all(dir.join("webview-data"))?;
             diagnostics::log(&dir, "INFO", "Preparando configuração e janela principal.");
 
-            let mut cfg = config::load(&dir);
+            let config_file_existed = dir.join("config.json").exists();
+            let (mut cfg, load_warnings, safe_to_persist) = config::load_with_warnings(&dir);
+            for warning in &load_warnings {
+                diagnostics::log(&dir, "WARN", warning);
+            }
+            let saved_autostart = cfg.autostart;
             if let Ok(enabled) = app.autolaunch().is_enabled() {
                 cfg.autostart = enabled;
             }
-            let _ = config::save(&dir, &cfg);
+            let config_needs_persist = !config_file_existed
+                || !load_warnings.is_empty()
+                || cfg.autostart != saved_autostart;
+            if safe_to_persist && config_needs_persist {
+                if let Err(error) = config::save(&dir, &cfg) {
+                    diagnostics::log(&dir, "ERRO", format!("Não foi possível persistir a configuração inicial: {error}"));
+                }
+            } else if !safe_to_persist {
+                diagnostics::log(&dir, "ERRO", "A configuração inicial não será sobrescrita porque o arquivo original não pôde ser preservado.");
+            }
             app.manage(AppState {
                 config: std::sync::Mutex::new(cfg.clone()),
                 app_dir: dir.clone(),
@@ -146,24 +160,40 @@ fn main() {
             });
 
             let shortcut_text = cfg.global_shortcut.clone();
-            let registered = Shortcut::from_str(&shortcut_text)
-                .ok()
-                .is_some_and(|shortcut| app.global_shortcut().register(shortcut).is_ok());
-            if let Ok(mut current) = app.state::<AppState>().registered_shortcut.lock() {
-                *current = if registered {
-                    shortcut_text
-                } else {
-                    String::new()
-                };
+            let mut active_shortcut: Option<String> = None;
+            match Shortcut::from_str(&shortcut_text) {
+                Ok(shortcut) => match app.global_shortcut().register(shortcut) {
+                    Ok(()) => active_shortcut = Some(shortcut_text.clone()),
+                    Err(error) => diagnostics::log(&dir, "WARN", format!("O atalho configurado não pôde ser registrado: {error}")),
+                },
+                Err(error) => diagnostics::log(&dir, "WARN", format!("O atalho salvo é inválido: {error}")),
             }
-            if !registered {
-                diagnostics::log(
-                    &dir,
-                    "WARN",
-                    "O atalho configurado não pôde ser registrado; tentando CTRL+ALT+C.",
-                );
-                if let Ok(shortcut) = Shortcut::from_str("CTRL+ALT+C") {
-                    let _ = app.global_shortcut().register(shortcut);
+            if active_shortcut.is_none() && shortcut_text != "CTRL+ALT+C" {
+                match Shortcut::from_str("CTRL+ALT+C") {
+                    Ok(shortcut) => match app.global_shortcut().register(shortcut) {
+                        Ok(()) => {
+                            diagnostics::log(&dir, "WARN", "Atalho alternativo CTRL+ALT+C ativado porque o atalho salvo não pôde ser registrado.");
+                            active_shortcut = Some("CTRL+ALT+C".to_owned());
+                        }
+                        Err(error) => diagnostics::log(&dir, "ERRO", format!("O atalho alternativo CTRL+ALT+C também falhou: {error}")),
+                    },
+                    Err(error) => diagnostics::log(&dir, "ERRO", format!("O atalho alternativo CTRL+ALT+C não pôde ser interpretado: {error}")),
+                }
+            }
+            if let Ok(mut current) = app.state::<AppState>().registered_shortcut.lock() {
+                *current = active_shortcut.clone().unwrap_or_default();
+            }
+            if let Some(active) = active_shortcut {
+                if cfg.global_shortcut != active {
+                    cfg.global_shortcut = active.clone();
+                    if let Ok(mut stored) = app.state::<AppState>().config.lock() {
+                        *stored = cfg.clone();
+                    }
+                    if safe_to_persist {
+                        if let Err(error) = config::save(&dir, &cfg) {
+                            diagnostics::log(&dir, "ERRO", format!("Não foi possível salvar o atalho alternativo ativo: {error}"));
+                        }
+                    }
                 }
             }
 
