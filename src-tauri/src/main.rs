@@ -15,7 +15,7 @@ fn webview2_runtime_present() -> bool {
     let bases = ["ProgramFiles(x86)", "ProgramFiles", "LOCALAPPDATA"];
     bases
         .iter()
-        .filter_map(|key| std::env::var_os(key))
+        .filter_map(std::env::var_os)
         .any(|base| {
             let folder = std::path::PathBuf::from(base)
                 .join("Microsoft")
