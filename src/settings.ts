@@ -24,6 +24,7 @@ type S = { config: C; warning: string | null };
 const translations: Record<Language, Record<string, string>> = {
   "pt-BR": {
     pageTitle: "Configurações", subtitle: "Personalize a janela do calendário.",
+    themeGroup: "Tema da interface", themeLight: "Modo claro", themeDark: "Modo escuro",
     languageSection: "Idioma", languageLabel: "Idioma do programa",
     languageHelp: "Altera o idioma das configurações e dos menus do Widget Website.",
     siteSection: "Site", siteUrl: "URL do site", width: "Largura (px)", height: "Altura (px)",
@@ -32,7 +33,7 @@ const translations: Record<Language, Record<string, string>> = {
     alwaysOnTop: "Sempre no topo", alwaysOnTopHelp: "Mantém o widget acima de outras janelas.",
     taskbar: "Mostrar na barra de tarefas", taskbarHelp: "Se desativado, use o ícone da bandeja para reabrir.",
     locked: "Travar mover e redimensionar",
-    lockedHelp: "Desative para mover a janela com a alça ou segurando Alt enquanto arrasta.",
+    lockedHelp: "Ative para bloquear o movimento e o redimensionamento. Desative para habilitar o arraste pela borda azul ao redor do widget.",
     autostart: "Iniciar com o Windows", autostartHelp: "Usa o registro do usuário atual, sem exigir administrador.",
     appearanceSection: "Aparência e atualização", opacity: "Opacidade",
     zoom: "Zoom do navegador embutido",
@@ -50,6 +51,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   en: {
     pageTitle: "Settings", subtitle: "Customize the calendar window.",
+    themeGroup: "Settings appearance", themeLight: "Light mode", themeDark: "Dark mode",
     languageSection: "Language", languageLabel: "Application language",
     languageHelp: "Changes the language of Widget Website settings and menus.",
     siteSection: "Website", siteUrl: "Website URL", width: "Width (px)", height: "Height (px)",
@@ -58,7 +60,7 @@ const translations: Record<Language, Record<string, string>> = {
     alwaysOnTop: "Always on top", alwaysOnTopHelp: "Keeps the widget above other windows.",
     taskbar: "Show in taskbar", taskbarHelp: "When disabled, use the system tray icon to show the widget again.",
     locked: "Lock moving and resizing",
-    lockedHelp: "Turn this off to drag the handle or hold Alt while dragging any area of the widget.",
+    lockedHelp: "Enable this option to lock movement and resizing. Turn it off to move the widget using its blue border.",
     autostart: "Start with Windows", autostartHelp: "Uses the current user's startup settings; administrator rights are not required.",
     appearanceSection: "Appearance and refresh", opacity: "Opacity",
     zoom: "Embedded browser zoom",
@@ -76,6 +78,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   es: {
     pageTitle: "Configuración", subtitle: "Personaliza la ventana del calendario.",
+    themeGroup: "Tema de la interfaz", themeLight: "Modo claro", themeDark: "Modo oscuro",
     languageSection: "Idioma", languageLabel: "Idioma del programa",
     languageHelp: "Cambia el idioma de la configuración y los menús de Widget Website.",
     siteSection: "Sitio web", siteUrl: "URL del sitio", width: "Ancho (px)", height: "Alto (px)",
@@ -84,7 +87,7 @@ const translations: Record<Language, Record<string, string>> = {
     alwaysOnTop: "Siempre visible", alwaysOnTopHelp: "Mantiene el widget por encima de otras ventanas.",
     taskbar: "Mostrar en la barra de tareas", taskbarHelp: "Si está desactivado, usa el icono de la bandeja para volver a mostrarlo.",
     locked: "Bloquear movimiento y cambio de tamaño",
-    lockedHelp: "Desactiva esta opción para arrastrar el asa o mantener Alt mientras arrastras cualquier zona del widget.",
+    lockedHelp: "Activa esta opción para bloquear el movimiento y el cambio de tamaño. Desactívala para mover el widget desde el borde azul.",
     autostart: "Iniciar con Windows", autostartHelp: "Usa la configuración de inicio del usuario actual, sin permisos de administrador.",
     appearanceSection: "Apariencia y actualización", opacity: "Opacidad",
     zoom: "Zoom del navegador integrado",
@@ -111,6 +114,19 @@ const ids = [
 ];
 let current: C | null = null;
 let activeLanguage: Language = "pt-BR";
+type SettingsTheme = "light" | "dark";
+const themePreferenceKey = "widget-website-settings-theme";
+
+function setSettingsTheme(theme: SettingsTheme, persist = true) {
+  document.body.dataset.theme = theme;
+  const lightButton = document.getElementById("theme-light") as HTMLButtonElement;
+  const darkButton = document.getElementById("theme-dark") as HTMLButtonElement;
+  lightButton.setAttribute("aria-pressed", String(theme === "light"));
+  darkButton.setAttribute("aria-pressed", String(theme === "dark"));
+  if (persist) {
+    try { localStorage.setItem(themePreferenceKey, theme); } catch { /* Storage may be unavailable. */ }
+  }
+}
 
 function f<T extends HTMLInputElement | HTMLSelectElement = HTMLInputElement>(id: string): T {
   return document.getElementById(id) as T;
@@ -131,6 +147,10 @@ function applyLanguage(language: string) {
   document.querySelectorAll<HTMLElement>("[data-i18n]").forEach((element) => {
     const key = element.dataset.i18n;
     if (key) element.textContent = t(key);
+  });
+  document.querySelectorAll<HTMLElement>("[data-i18n-aria-label]").forEach((element) => {
+    const key = element.dataset.i18nAriaLabel;
+    if (key) element.setAttribute("aria-label", t(key));
   });
 }
 function display(config: C) {
@@ -232,4 +252,13 @@ document.getElementById("reset")!.addEventListener("click", async () => {
 document.getElementById("close")!.addEventListener("click", () => {
   void invoke("close_settings");
 });
+
+document.getElementById("theme-light")!.addEventListener("click", () => setSettingsTheme("light"));
+document.getElementById("theme-dark")!.addEventListener("click", () => setSettingsTheme("dark"));
+try {
+  setSettingsTheme(localStorage.getItem(themePreferenceKey) === "dark" ? "dark" : "light", false);
+} catch {
+  setSettingsTheme("light", false);
+}
+
 void load().catch((error) => say(t("loadFailed") + String(error), "error"));
