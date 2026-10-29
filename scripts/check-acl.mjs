@@ -17,9 +17,9 @@ const expected = ["close_settings", "get_config", "heartbeat", "save_config"].so
 if (JSON.stringify(registered) !== JSON.stringify(expected)) throw new Error("Unexpected app command exposure: " + JSON.stringify(registered));
 if (!tauriConfig.app.security.capabilities.includes("main-local") || !tauriConfig.app.security.capabilities.includes("settings-local") || !tauriConfig.app.security.capabilities.includes("main-remote-heartbeat")) throw new Error("Configured capability set is incomplete.");
 if (mainCapability.permissions.some((p) => p === "core:default" || p.includes("start-dragging"))) throw new Error("Main local capability has broader permissions than expected.");
-if (!mainCapability.permissions.includes("allow-heartbeat")) throw new Error("Local main window must be allowed to report heartbeat.");
+if (!mainCapability.permissions.includes("allow-heartbeat") || !mainCapability.permissions.includes("allow-get-config")) throw new Error("Local main window permissions are incomplete.");
 if (!settingsCapability.permissions.includes("allow-save-config") || !settingsCapability.permissions.includes("allow-close-settings")) throw new Error("Settings command permissions are incomplete.");
 if (settingsCapability.permissions.includes("allow-heartbeat")) throw new Error("Settings window must not be allowed to invoke heartbeat.");
 if (settingsCapability.permissions.includes("core:default")) throw new Error("Settings capability must not enable core:default.");
-if (remoteCapability.remote?.urls?.length !== 1 || remoteCapability.remote.urls[0] !== "https://br.investing.com" || JSON.stringify(remoteCapability.permissions) !== JSON.stringify(["allow-heartbeat"])) throw new Error("Remote Investing.com capability must permit only the dedicated heartbeat command.");
+if (remoteCapability.remote?.urls?.length !== 1 || remoteCapability.remote.urls[0] !== "https://br.investing.com" || JSON.stringify(remoteCapability.permissions) !== JSON.stringify(["allow-heartbeat"]) || remoteCapability.permissions.some((p) => p.startsWith("core:event:"))) throw new Error("Remote Investing.com capability must permit only the dedicated heartbeat command.");
 console.log("ACL smoke check passed: app commands are scoped and remote Investing.com can invoke only the dedicated heartbeat command.");
