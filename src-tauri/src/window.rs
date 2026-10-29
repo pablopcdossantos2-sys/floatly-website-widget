@@ -206,58 +206,129 @@ function addToolbar(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addToolbar,{once:true});else addToolbar();
 })();"#;
 
-fn allowed(host: &str, c: &AppConfig) -> bool {
-    let target = Url::parse(&c.site_url)
-        .ok()
-        .and_then(|u| u.host_str().map(str::to_ascii_lowercase));
-    let h = host.to_ascii_lowercase();
-    let site = target
-        .as_ref()
-        .is_some_and(|t| h == *t || h.ends_with(&format!(".{t}")));
-    let auth = h == "accounts.google.com"
-        || h == "appleid.apple.com"
-        || h == "login.microsoftonline.com"
-        || h == "facebook.com"
-        || h.ends_with(".facebook.com")
-        || h == "google.com"
-        || h.ends_with(".google.com")
-        || h == "investing.com"
-        || h.ends_with(".investing.com");
-    site || auth
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum NavAction {
+    Allow,
+    OpenLogin,
+    External,
+    Block,
 }
+
+const LOGIN_SEGMENTS: &[&str] = &[
+    "login", "log-in", "signin", "sign-in", "account", "accounts", "auth", "oauth", "callback",
+];
+
+fn normalized_host(host: &str) -> String {
+    host.trim().trim_end_matches('.').to_ascii_lowercase()
+}
+
+/// Match an exact host or a real DNS subdomain, never a text-only suffix.
+fn host_matches(host: &str, target: &str) -> bool {
+    let host = normalized_host(host);
+    let target = normalized_host(target);
+    if host.is_empty() || target.is_empty() {
+        return false;
+    }
+    if host == target {
+        return true;
+    }
+    // IP literals and single host labels must not be treated as registrable domains.
+    if host.parse::<std::net::IpAddr>().is_ok() || target.parse::<std::net::IpAddr>().is_ok() {
+        return false;
+    }
+    host.ends_with(&format!(".{target}"))
+}
+
+fn configured_host(c: &AppConfig) -> Option<String> {
+    Url::parse(&c.site_url)
+        .ok()
+        .and_then(|url| url.host_str().map(normalized_host))
+}
+
+fn is_auth_provider(host: &str, path: &str) -> bool {
+    let host = normalized_host(host);
+    match host.as_str() {
+        "accounts.google.com"
+        | "appleid.apple.com"
+        | "login.microsoftonline.com"
+        | "login.live.com" => true,
+        "facebook.com" | "www.facebook.com" | "m.facebook.com" => {
+            let path = path.to_ascii_lowercase();
+            let segments = path.split('/').filter(|segment| !segment.is_empty()).collect::<Vec<_>>();
+            segments.iter().any(|segment| {
+                matches!(*segment, "login" | "log-in" | "signin" | "sign-in" | "dialog" | "oauth" | "authorize")
+            })
+        }
+        _ => false,
+    }
+}
+
+fn is_login_path(path: &str) -> bool {
+    path.split('/')
+        .filter(|segment| !segment.is_empty())
+        .any(|segment| LOGIN_SEGMENTS.contains(&segment.to_ascii_lowercase().as_str()))
+}
+
 fn is_auth_page(host: &str, path: &str, c: &AppConfig) -> bool {
-    let h = host.to_ascii_lowercase();
-    let p = path.to_ascii_lowercase();
-    let configured = Url::parse(&c.site_url)
-        .ok()
-        .and_then(|u| u.host_str().map(str::to_ascii_lowercase));
-    let same_site = configured
-        .as_ref()
-        .is_some_and(|t| h == *t || h.ends_with(&format!(".{t}")));
-    let provider = h == "accounts.google.com"
-        || h == "google.com"
-        || h.ends_with(".google.com")
-        || h == "facebook.com"
-        || h.ends_with(".facebook.com")
-        || h == "appleid.apple.com"
-        || h == "login.microsoftonline.com"
-        || h == "login.live.com";
-    let investing_auth = (h == "investing.com" || h.ends_with(".investing.com")) && !same_site;
-    let login_path = [
-        "/login",
-        "/log-in",
-        "/signin",
-        "/sign-in",
-        "/account",
-        "/accounts",
-        "/auth",
-        "/oauth",
-        "/callback",
-    ]
-    .iter()
-    .any(|part| p.contains(part));
-    provider || investing_auth || (same_site && login_path)
+    if is_auth_provider(host, path) {
+        return true;
+    }
+    configured_host(c).is_some_and(|target| host_matches(host, &target) && is_login_path(path))
 }
+
+fn is_configured_page(url: &Url, c: &AppConfig) -> bool {
+    let Some(target_host) = configured_host(c) else {
+        return false;
+    };
+    let host = url.host_str().unwrap_or("");
+    host_matches(host, &target_host) && !is_auth_page(host, url.path(), c)
+}
+
+fn is_exact_configured_page(url: &Url, c: &AppConfig) -> bool {
+    let Ok(target) = Url::parse(&c.site_url) else {
+        return false;
+    };
+    host_matches(url.host_str().unwrap_or(""), target.host_str().unwrap_or(""))
+        && url.path().trim_end_matches('/') == target.path().trim_end_matches('/')
+}
+
+fn decide_main(url: &Url, c: &AppConfig) -> NavAction {
+    if url.scheme() != "http" && url.scheme() != "https" {
+        return NavAction::Block;
+    }
+    let host = url.host_str().unwrap_or("");
+    if is_auth_provider(host, url.path()) {
+        return NavAction::OpenLogin;
+    }
+    if let Some(target) = configured_host(c) {
+        if host_matches(host, &target) {
+            if is_login_path(url.path()) && !is_exact_configured_page(url, c) {
+                return NavAction::OpenLogin;
+            }
+            return NavAction::Allow;
+        }
+    }
+    NavAction::External
+}
+
+fn decide_login(url: &Url, c: &AppConfig) -> NavAction {
+    if url.scheme() != "http" && url.scheme() != "https" {
+        return NavAction::Block;
+    }
+    let host = url.host_str().unwrap_or("");
+    if is_auth_provider(host, url.path())
+        || configured_host(c).is_some_and(|target| host_matches(host, &target))
+    {
+        NavAction::Allow
+    } else {
+        NavAction::External
+    }
+}
+
+fn should_close_login(seen_auth: bool, url: &Url, c: &AppConfig) -> bool {
+    seen_auth && is_configured_page(url, c)
+}
+
 fn is_internal_app_url(url: &Url) -> bool {
     if url.scheme() == "tauri" {
         return true;
@@ -306,6 +377,60 @@ fn authorized_widget_action<'a>(url: &'a Url, expected_token: &str) -> Option<&'
     ]
     .contains(&direction)
     .then_some(action)
+}
+
+#[derive(Debug, Default)]
+struct ExternalOpenState {
+    last_open_ms: u64,
+    last_url: String,
+}
+
+fn external_open_allowed(state: &mut ExternalOpenState, url: &str, now_ms: u64) -> bool {
+    let elapsed = now_ms.saturating_sub(state.last_open_ms);
+    if state.last_open_ms != 0 && elapsed < 2_000 {
+        return false;
+    }
+    if state.last_url == url && state.last_open_ms != 0 && elapsed < 10_000 {
+        return false;
+    }
+    state.last_open_ms = now_ms;
+    state.last_url = url.to_owned();
+    true
+}
+
+static EXTERNAL_OPEN_STATE: std::sync::OnceLock<Mutex<ExternalOpenState>> = std::sync::OnceLock::new();
+static LOGIN_WINDOW_LOCK: Mutex<()> = Mutex::new(());
+
+fn open_external_limited(dir: std::path::PathBuf, url: String) {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+        .min(u64::MAX as u128) as u64;
+    let allowed = {
+        let mut state = EXTERNAL_OPEN_STATE
+            .get_or_init(|| Mutex::new(ExternalOpenState::default()))
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        external_open_allowed(&mut state, &url, now)
+    };
+    if !allowed {
+        crate::diagnostics::log(&dir, "WARN", "Abertura externa descartada pelo limite contra navegações repetidas.");
+        return;
+    }
+    thread::spawn(move || {
+        if let Err(error) = open::that(&url) {
+            crate::diagnostics::log(&dir, "ERRO", format!("Não foi possível abrir o link no navegador padrão: {error}"));
+        }
+    });
+}
+
+fn open_login_limited(app: AppHandle, url: Url, dir: std::path::PathBuf) {
+    thread::spawn(move || {
+        if let Err(error) = open_login(&app, url) {
+            crate::diagnostics::log(&dir, "ERRO", format!("Não foi possível abrir/reutilizar a janela de autenticação: {error}"));
+        }
+    });
 }
 
 pub fn create_main(
@@ -383,12 +508,35 @@ if u.scheme()=="widget-action"{
 }
 if u.scheme()!="https"&&u.scheme()!="http"{crate::diagnostics::log(&diag_dir,"WARN",format!("Navegação bloqueada por esquema não HTTP(S): {}",u.scheme()));return false}
 crate::diagnostics::log_navigation(&diag_dir,u);
-let cfg=nav_app.state::<AppState>().snapshot();let host=u.host_str().unwrap_or("");let target=Url::parse(&cfg.site_url).ok().and_then(|v|v.host_str().map(str::to_owned)).unwrap_or_default();
-if host==target||host.ends_with(&format!(".{target}")){return true}
-if allowed(host,&cfg){crate::diagnostics::log(&diag_dir,"INFO",format!("Abrindo fluxo de autenticação em janela secundária (host={host})."));let a=nav_app.clone();let dest=u.clone();thread::spawn(move||{let _=open_login(&a,dest);});return false}
-crate::diagnostics::log(&diag_dir,"INFO",format!("Encaminhando link externo ao navegador padrão (host={host})."));let _=open::that(u.as_str());false
+let cfg=nav_app.state::<AppState>().snapshot();
+match decide_main(u,&cfg) {
+    NavAction::Allow => true,
+    NavAction::OpenLogin => {
+        crate::diagnostics::log(&diag_dir,"INFO",format!("Abrindo fluxo de autenticação (host={}).",u.host_str().unwrap_or("sem host")));
+        open_login_limited(nav_app.clone(),u.clone(),diag_dir.clone());
+        false
+    }
+    NavAction::External => {
+        crate::diagnostics::log(&diag_dir,"INFO",format!("Encaminhando link externo ao navegador padrão (host={}).",u.host_str().unwrap_or("sem host")));
+        open_external_limited(diag_dir.clone(),u.as_str().to_owned());
+        false
+    }
+    NavAction::Block => {
+        crate::diagnostics::log(&diag_dir,"WARN",format!("Navegação bloqueada por política: {}",crate::diagnostics::sanitize_url(u)));
+        false
+    }
+}
 })
-.on_new_window(move|u,_|{if u.scheme()=="http"||u.scheme()=="https"{crate::diagnostics::log_navigation(&popup_diag_dir,&u);let cfg=popup_app.state::<AppState>().snapshot();if allowed(u.host_str().unwrap_or(""),&cfg){let a=popup_app.clone();thread::spawn(move||{let _=open_login(&a,u);});}else{let _=open::that(u.as_str());}}NewWindowResponse::Deny}).build().map_err(|error|{crate::diagnostics::log(&build_diag_dir,"ERRO",format!("Falha ao criar a janela WebView2 principal: {error}"));error})?;
+.on_new_window(move|u,_|{
+    crate::diagnostics::log_navigation(&popup_diag_dir,&u);
+    let cfg=popup_app.state::<AppState>().snapshot();
+    match decide_main(&u,&cfg) {
+        NavAction::OpenLogin => open_login_limited(popup_app.clone(),u,popup_diag_dir.clone()),
+        NavAction::Allow | NavAction::External => open_external_limited(popup_diag_dir.clone(),u.as_str().to_owned()),
+        NavAction::Block => crate::diagnostics::log(&popup_diag_dir,"WARN","Pop-up bloqueado por esquema não HTTP(S)."),
+    }
+    NewWindowResponse::Deny
+}).build().map_err(|error|{crate::diagnostics::log(&build_diag_dir,"ERRO",format!("Falha ao criar a janela WebView2 principal: {error}"));error})?;
     restore_position(&w, c);
     apply_config(app, c, true);
     Ok(w)
