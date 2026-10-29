@@ -37,8 +37,8 @@
     <h2 data-i18n="siteSection">Site</h2>
     <label class="full"><span data-i18n="siteUrl">URL do site</span><input id="site_url" type="text" required></label>
     <div class="two-col">
-      <label><span data-i18n="width">Largura (px)</span><input id="width" type="number" min="150" max="2000" required></label>
-      <label><span data-i18n="height">Altura (px)</span><input id="height" type="number" min="100" max="1600" required></label>
+      <label><span data-i18n="width">Largura (px)</span><input id="width" type="number" min="150" max="2000" step="1" required></label>
+      <label><span data-i18n="height">Altura (px)</span><input id="height" type="number" min="100" max="1600" step="1" required></label>
     </div>
   </section>
   <section class="settings-section">
@@ -62,6 +62,7 @@
     <h2 data-i18n="shortcutSection">Atalho global</h2>
     <label class="full"><span data-i18n="shortcutCombination">Combinação de teclas</span><input id="global_shortcut" type="text" readonly autocomplete="off" spellcheck="false"></label>
     <p class="muted" data-i18n="shortcutHelp">Esse atalho mostra ou oculta o widget mesmo quando você está usando outro programa. Clique no campo e pressione a combinação desejada (ex.: Ctrl + Alt + C).</p>
+    <button type="button" id="reset-shortcut" class="secondary shortcut-reset" data-i18n="shortcutReset">Restaurar atalho padrão</button>
   </section>
   <div id="message" class="message" role="status" aria-live="polite"></div>
   <footer class="settings-actions">
