@@ -211,7 +211,7 @@ let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into()))
     let url=payload.url();
     if url.scheme()!="https"&&url.scheme()!="http"{return;}
     let config=page_load_app.state::<AppState>().config.lock().map(|value|value.clone()).unwrap_or_default();
-    let language=serde_json::to_string(&config.language).unwrap_or_else(|_|"\\"pt-BR\\"".to_owned());
+    let language=serde_json::to_string(&config.language).unwrap_or_else(|_|"\"pt-BR\"".to_owned());
     let script=format!("(function(){{function apply(){{const root=document.documentElement;if(!root)return;root.style.opacity='{}';root.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});}}if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{{once:true}});}})();",config.opacity as f64/100.0,config.corner_radius,language,config.locked);
     let _=window.eval(&script);
 })
