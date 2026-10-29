@@ -105,6 +105,8 @@ pub struct AppState {
     pub config: Mutex<AppConfig>,
     pub app_dir: PathBuf,
     pub registered_shortcut: Mutex<String>,
+    /// Per-process token accepted only by the minimal remote heartbeat command.
+    pub heartbeat_token: String,
 }
 
 pub fn app_directory() -> PathBuf {
