@@ -9,7 +9,7 @@ use std::{
     thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 
 const HEARTBEAT_TIMEOUT_MS: u64 = 20_000;
 const REPEAT_WARNING_MS: u64 = 60_000;
@@ -292,7 +292,7 @@ pub fn install_panic_hook() {
     }));
 }
 
-pub fn start_watchdog(app: AppHandle, dir: PathBuf) {
+pub fn start_watchdog(_app: AppHandle, dir: PathBuf) {
     // If the first page load is still in progress, the initial grace period starts now.
     let now = now_ms();
     let _ = LAST_HEARTBEAT_MS.compare_exchange(0, now, Ordering::SeqCst, Ordering::SeqCst);
