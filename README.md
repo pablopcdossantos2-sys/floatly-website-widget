@@ -39,7 +39,7 @@ O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é 
 
 ## Diagnóstico de congelamentos
 
-- O aplicativo grava registros persistentes em `%APPDATA%\\WidgetWebsite\\diagnostics.log` (normalmente, `C:\\Users\\<usuário>\\AppData\\Roaming\\WidgetWebsite\\diagnostics.log`). O arquivo anterior é rotacionado para `diagnostics.log.1` quando o log atinge aproximadamente 1 MB.
+- O aplicativo grava registros persistentes em \`%APPDATA%\WidgetWebsite\diagnostics.log\` (normalmente, \`C:\Users\<usuário>\AppData\Roaming\WidgetWebsite\diagnostics.log\`). As datas do log estão em UTC. O arquivo anterior é rotacionado para \`diagnostics.log.1\` quando o log atinge aproximadamente 1 MB.
 - A página envia um sinal de atividade a cada 5 segundos. Se o sinal deixar de chegar por 20 segundos, o monitor registra um aviso e, no Windows, verifica também se a janela nativa está marcada como sem resposta.
 - O log inclui início do app, detecção do WebView2 Runtime, navegações, falhas de inicialização e recuperação da atividade. URLs são registradas sem parâmetros de consulta ou fragmentos para reduzir o risco de guardar tokens de sessão.
 - As mensagens também são enviadas à saída padrão quando há um console anexado. Em builds gráficos do Windows, o terminal pode não estar disponível; por isso, o arquivo de log é a fonte confiável. Abra o arquivo com o Bloco de Notas depois de reproduzir o congelamento.
