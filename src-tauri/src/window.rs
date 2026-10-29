@@ -106,7 +106,29 @@ if is_internal_app_url(&u){
     }
     return true;
 }
-if u.scheme()=="widget-action"{let state=nav_app.state::<AppState>();let locked=state.config.lock().map(|v|v.locked).unwrap_or(true);if !locked{if let Some(w)=nav_app.get_webview_window("main"){let host=u.host_str().unwrap_or("");if host=="drag"{let _=w.start_dragging();}else if host=="resize"{begin_native_resize(&w,u.path().trim_matches('/'));}}}return false}
+if u.scheme()=="widget-action"{
+    let action=u.host_str().unwrap_or("");
+    let state=nav_app.state::<AppState>();
+    let locked=state.config.lock().map(|config|config.locked).unwrap_or(true);
+    if locked {
+        crate::diagnostics::log(&diag_dir,"WARN",format!("Ação de janela ignorada porque mover/redimensionar está travado: {action}"));
+    } else if let Some(window)=nav_app.get_webview_window("main") {
+        if action=="drag" {
+            crate::diagnostics::log(&diag_dir,"INFO","Comando de movimento recebido; iniciando arraste nativo do Windows.");
+            if let Err(error)=begin_native_drag(&window) {
+                crate::diagnostics::log(&diag_dir,"ERRO",format!("O arraste nativo falhou: {error}"));
+                let _=window.start_dragging();
+            }
+        } else if action=="resize" {
+            begin_native_resize(&window,u.path().trim_matches('/'));
+        } else {
+            crate::diagnostics::log(&diag_dir,"WARN",format!("Ação de janela desconhecida: {action}"));
+        }
+    } else {
+        crate::diagnostics::log(&diag_dir,"ERRO","Comando de movimento recebido sem a janela principal disponível.");
+    }
+    return false
+}
 if u.scheme()!="https"&&u.scheme()!="http"{crate::diagnostics::log(&diag_dir,"WARN",format!("Navegação bloqueada por esquema não HTTP(S): {}",u.scheme()));return false}
 crate::diagnostics::log_navigation(&diag_dir,&u);
 let cfg=nav_app.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();let host=u.host_str().unwrap_or("");let target=Url::parse(&cfg.site_url).ok().and_then(|v|v.host_str().map(str::to_owned)).unwrap_or_default();
@@ -117,6 +139,39 @@ crate::diagnostics::log(&diag_dir,"INFO",format!("Encaminhando link externo ao n
 .on_new_window(move|u,_|{if u.scheme()=="http"||u.scheme()=="https"{crate::diagnostics::log_navigation(&popup_diag_dir,&u);let cfg=popup_app.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();if allowed(u.host_str().unwrap_or(""),&cfg){let a=popup_app.clone();thread::spawn(move||{let _=open_login(&a,u);});}else{let _=open::that(u.as_str());}}NewWindowResponse::Deny}).build().map_err(|error|{crate::diagnostics::log(&build_diag_dir,"ERRO",format!("Falha ao criar a janela WebView2 principal: {error}"));error})?;
 restore_position(&w,c);apply_config(app,c);Ok(w)
 }
+#[cfg(windows)]
+fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
+    use windows_sys::Win32::Foundation::POINT;
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        GetCursorPos, SendMessageW, HTCAPTION, WM_NCLBUTTONDOWN,
+    };
+
+    let raw_hwnd = window.hwnd().map_err(|error| error.to_string())?;
+    let mut cursor: POINT = unsafe { std::mem::zeroed() };
+    if unsafe { GetCursorPos(&mut cursor) } == 0 {
+        return Err("Não foi possível obter a posição do ponteiro do mouse.".into());
+    }
+    let packed_position = ((cursor.x as u16 as u32)
+        | ((cursor.y as u16 as u32) << 16)) as isize;
+
+    unsafe {
+        ReleaseCapture();
+        SendMessageW(
+            raw_hwnd.0,
+            WM_NCLBUTTONDOWN,
+            HTCAPTION as usize,
+            packed_position,
+        );
+    }
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
+    window.start_dragging().map_err(|error| error.to_string())
+}
+
 #[cfg(windows)]
 fn begin_native_resize(window:&WebviewWindow, direction:&str) {
     use windows_sys::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
