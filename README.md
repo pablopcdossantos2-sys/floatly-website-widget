@@ -1,10 +1,14 @@
 # Widget Website — Windows
 
+**Idiomas / Languages / Idiomas:** Português (Brasil) · [English](README.en.md) · [Español](README.es.md)
+
 Widget desktop para manter o calendário econômico do Investing.com aberto em uma pequena janela WebView2, sem moldura. Projeto Tauri 2 direcionado a Windows 10/11 x64.
 
 ## Recursos
 - Janela sem barra de título, bandeja do sistema, instância única e atalho global padrão CTRL+ALT+C. Fechar pela tecla/ botão de fechar esconde o widget na bandeja; use Sair para encerrar o processo.
 - Sessão WebView2 persistente em %APPDATA%\WidgetWebsite\webview-data; configuração em %APPDATA%\WidgetWebsite\config.json.
+- Interface em português do Brasil, inglês ou espanhol, selecionável nas configurações.
+- Arraste pela alça visível no topo ou segure `Alt` enquanto arrasta para mover a janela; as opções de tamanho e posição também ficam nas configurações.
 - URL, tamanho, posição, travamento, sempre no topo, barra de tarefas, opacidade, zoom, cantos e recarga automática configuráveis.
 - Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária com uma barra de endereço simples e a pasta de dados compartilhada do WebView2. A janela tenta fechar quando o fluxo retorna ao endereço configurado após a autenticação.
 - Workflow de compilação Windows x64 e instalador NSIS.
@@ -28,6 +32,21 @@ Execute:
     npm run tauri build
 
 O instalador aparece em src-tauri/target/release/bundle/nsis e o executável em src-tauri/target/release. O workflow Build Windows compila a saída no GitHub Actions e publica-a como artefato.
+
+## Idioma da interface
+
+Abra **Configurações → Idioma** e escolha Português (Brasil), English ou Español. A escolha é salva em `%APPDATA%\\WidgetWebsite\\config.json` e afeta a janela de configurações, menus da bandeja, a janela auxiliar de login e as mensagens próprias do widget. O conteúdo do Investing.com continua no idioma fornecido pelo próprio site.
+
+## Assinatura digital e alerta do Windows
+
+A compilação no GitHub Actions oferece assinatura Authenticode opcional. Para ativá-la, obtenha um **certificado confiável de assinatura de código para Windows** e crie estes dois segredos nas configurações do repositório, em **Settings → Secrets and variables → Actions**:
+
+- `WINDOWS_PFX_BASE64`: conteúdo do arquivo PFX codificado em Base64.
+- `WINDOWS_PFX_PASSWORD`: senha desse arquivo PFX.
+
+A chave privada não deve ser colocada no repositório nem no README. O workflow importa o certificado durante a compilação, assina usando SHA-256 e timestamp e remove o arquivo PFX temporário. Sem os dois segredos, o workflow avisa que o artefato é não assinado e continua a compilação.
+
+**Importante:** não é possível prometer que o Microsoft Defender SmartScreen nunca exibirá um aviso. Mesmo uma aplicação assinada por um certificado válido pode receber um aviso até que a reputação do editor e do arquivo se estabeleça. Publicar pela Microsoft Store é a forma mais direta de evitar avisos de download do SmartScreen. Consulte a [documentação de reputação do SmartScreen](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) e o [guia de assinatura do Tauri para Windows](https://tauri.app/distribute/sign/windows/).
 
 ## Primeiro login
 1. Abra o widget e aguarde o calendário carregar.
