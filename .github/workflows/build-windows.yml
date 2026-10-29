@@ -36,12 +36,15 @@ jobs:
       - name: Test configuration and diagnostics
         run: cargo test --manifest-path src-tauri/Cargo.toml
       - name: Prepare Windows code-signing certificate
-        if: ${{ secrets.WINDOWS_PFX_BASE64 != '' && secrets.WINDOWS_PFX_PASSWORD != '' }}
         shell: pwsh
         env:
           WINDOWS_PFX_BASE64: ${{ secrets.WINDOWS_PFX_BASE64 }}
           WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
         run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_PFX_BASE64) -or [string]::IsNullOrWhiteSpace($env:WINDOWS_PFX_PASSWORD)) {
+            Write-Warning "Building an unsigned artifact. Windows SmartScreen may display an unknown-publisher warning."
+            exit 0
+          }
           $bytes = [Convert]::FromBase64String(($env:WINDOWS_PFX_BASE64 -replace '\\s', ''))
           $pfxPath = Join-Path $env:RUNNER_TEMP "widget-website-codesign.pfx"
           [System.IO.File]::WriteAllBytes($pfxPath, $bytes)
@@ -63,11 +66,6 @@ jobs:
           "TAURI_WINDOWS_SIGNING_CONFIG=$configPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Remove-Item $pfxPath -Force
           Write-Host "A trusted code-signing certificate is installed for this build."
-      - name: Warn when code signing is not configured
-        if: ${{ secrets.WINDOWS_PFX_BASE64 == '' || secrets.WINDOWS_PFX_PASSWORD == '' }}
-        shell: pwsh
-        run: |
-          Write-Warning "Building an unsigned artifact. Windows SmartScreen may display an unknown-publisher warning."
       - name: Compile Windows app and NSIS installer
         shell: pwsh
         run: |
