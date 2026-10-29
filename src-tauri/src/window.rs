@@ -9,7 +9,7 @@ use std::{
 use tauri::{
     utils::config::WebviewUrl,
     webview::{NewWindowResponse, PageLoadEvent, WebviewWindowBuilder},
-    AppHandle, Emitter, Listener, LogicalSize, Manager, PhysicalPosition, PhysicalSize,
+    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, PhysicalSize,
     WebviewWindow, WindowEvent,
 };
 use url::Url;
