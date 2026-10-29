@@ -439,10 +439,13 @@ pub fn create_main(
     dir: &std::path::Path,
 ) -> tauri::Result<WebviewWindow> {
     let data = dir.join("webview-data");
-    std::fs::create_dir_all(&data).ok();
     let diag_dir = dir.to_path_buf();
+    if let Err(error) = std::fs::create_dir_all(&data) {
+        crate::diagnostics::log(&diag_dir, "ERRO", format!("Não foi possível criar o diretório de dados do WebView2 principal: {error}"));
+    }
     let build_diag_dir = dir.to_path_buf();
     let popup_diag_dir = dir.to_path_buf();
+    let page_load_diag_dir = dir.to_path_buf();
     let nav_app = app.clone();
     let popup_app = app.clone();
     let action_token = uuid::Uuid::new_v4().simple().to_string();
@@ -462,7 +465,9 @@ pub fn create_main(
     let config=page_load_app.state::<AppState>().snapshot();
     let language=serde_json::to_string(&config.language).unwrap_or_else(|_|"\"pt-BR\"".to_owned());
     let script=format!("(function(){{function apply(){{const root=document.documentElement;if(!root)return;root.style.opacity='{}';root.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});}}if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{{once:true}});}})();",config.opacity as f64/100.0,config.corner_radius,language,config.locked);
-    let _=window.eval(&script);
+    if let Err(error)=window.eval(&script) {
+        crate::diagnostics::log(&page_load_diag_dir,"WARN",format!("Não foi possível aplicar idioma/aparência à página carregada: {error}"));
+    }
 })
 .on_navigation(move|u|{
 if is_internal_app_url(u){
@@ -490,7 +495,9 @@ if u.scheme()=="widget-action"{
             crate::diagnostics::log(&diag_dir,"INFO","Comando de movimento autenticado recebido; iniciando arraste nativo do Windows.");
             if let Err(error)=begin_native_drag(&window) {
                 crate::diagnostics::log(&diag_dir,"ERRO",format!("O arraste nativo falhou: {error}"));
-                let _=window.start_dragging();
+                if let Err(fallback_error) = window.start_dragging() {
+                    crate::diagnostics::log(&diag_dir, "ERRO", format!("O arraste nativo e a alternativa do Tauri falharam: {fallback_error}"));
+                }
             }
         } else if let Some(direction)=action.strip_prefix("resize/") {
             if ["north","south","east","west","north-east","north-west","south-east","south-west"].contains(&direction) {
@@ -761,7 +768,8 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                 }
             }
         })
-        .build()
+        .build()?;
+    Ok(())
 }
 
 pub fn open_login_from_tray(app: &AppHandle) {
