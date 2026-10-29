@@ -1,6 +1,6 @@
 use crate::config::{AppConfig,AppState};
 use std::{sync::{atomic::{AtomicBool,AtomicU64,Ordering},Arc},thread};
-use tauri::{utils::config::WebviewUrl,webview::{NewWindowResponse,WebviewWindowBuilder},AppHandle,LogicalSize,Manager,PhysicalPosition,PhysicalSize,WebviewWindow,WindowEvent};
+use tauri::{utils::config::WebviewUrl,webview::{NewWindowResponse,PageLoadEvent,WebviewWindowBuilder},AppHandle,Emitter,Listener,LogicalSize,Manager,PhysicalPosition,PhysicalSize,WebviewWindow,WindowEvent};
 use url::Url;
 static LOGIN_ID:AtomicU64=AtomicU64::new(1);
 const INIT:&str=r#"(function boot(){
@@ -8,10 +8,11 @@ if(!/^https?:$/.test(location.protocol)||window.top!==window)return;
 if(!document.documentElement){document.addEventListener('DOMContentLoaded',boot,{once:true});return;}
 let UI_LANGUAGE='__WIDGET_LANGUAGE__';
 let DRAG_LOCKED='__WIDGET_LOCKED__'==='true';
+const ACTION_TOKEN='__WIDGET_ACTION_TOKEN__';
 const UI_COPY={
- 'pt-BR':{dragTitle:'Arraste a borda azul ou a alça superior para mover o widget.',dragLabel:'Mover o widget pela borda azul ou pela alça superior',offlineTitle:'Sem conexão com o calendário',offlineMessage:'O site não respondeu. Verifique a internet e tente novamente.',retry:'Tentar novamente'},
- en:{dragTitle:'Drag the blue border or top handle to move the widget.',dragLabel:'Move the widget using the blue border or top handle',offlineTitle:'Calendar connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
- es:{dragTitle:'Arrastra el borde azul o el asa superior para mover el widget.',dragLabel:'Mover el widget desde el borde azul o el asa superior',offlineTitle:'Sin conexión con el calendario',offlineMessage:'El sitio no respondió. Comprueba la conexión e inténtalo de nuevo.',retry:'Reintentar'}
+ 'pt-BR':{dragTitle:'Arraste a borda azul para mover o widget.',dragLabel:'Mover o widget pela borda azul',offlineTitle:'Sem conexão com o calendário',offlineMessage:'O site não respondeu. Verifique a internet e tente novamente.',retry:'Tentar novamente'},
+ en:{dragTitle:'Drag the blue border to move the widget.',dragLabel:'Move the widget using the blue border',offlineTitle:'Calendar connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
+ es:{dragTitle:'Arrastra el borde azul para mover el widget.',dragLabel:'Mover el widget desde el borde azul',offlineTitle:'Sin conexión con el calendario',offlineMessage:'El sitio no respondió. Comprueba la conexión e inténtalo de nuevo.',retry:'Reintentar'}
 };
 function setUiLanguage(language){UI_LANGUAGE=UI_COPY[language]?language:'pt-BR';const copy=UI_COPY[UI_LANGUAGE];const drag=document.getElementById('__widget_drag');if(drag){drag.title=copy.dragTitle;drag.setAttribute('aria-label',copy.dragLabel)}document.querySelectorAll('#__widget_drag_frame .__widget_drag_edge').forEach(edge=>{edge.title=copy.dragTitle;edge.setAttribute('aria-label',copy.dragLabel)});const overlay=document.getElementById('__widget_offline');if(overlay){const heading=overlay.querySelector('h2');const paragraph=overlay.querySelector('p');const button=overlay.querySelector('button');if(heading)heading.textContent=copy.offlineTitle;if(paragraph)paragraph.textContent=copy.offlineMessage;if(button)button.textContent=copy.retry}}
 window.__widgetSetLanguage=setUiLanguage;
@@ -42,7 +43,7 @@ html.__widget_scroll_active,html.__widget_scroll_active body,html.__widget_scrol
 html.__widget_scroll_active::-webkit-scrollbar-thumb,html.__widget_scroll_active body::-webkit-scrollbar-thumb,html.__widget_scroll_active *::-webkit-scrollbar-thumb{background-color:rgba(100,116,139,.78)!important}
 `;
 (document.head||document.documentElement).appendChild(style);
-function action(p){location.href='widget-action://'+p}
+function action(p){location.href='widget-action://'+ACTION_TOKEN+'/'+p}
 function setUiLocked(locked){
  DRAG_LOCKED=Boolean(locked);
  const frame=document.getElementById('__widget_drag_frame');
@@ -52,19 +53,11 @@ function setUiLocked(locked){
 }
 window.__widgetSetLocked=setUiLocked;
 function dragWindow(event){
- if(event.button!==0)return;
+ if(!event.isTrusted||event.button!==0)return;
  if(DRAG_LOCKED){event.preventDefault();event.stopPropagation();if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();return;}
  event.preventDefault();
  event.stopPropagation();
  if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();
- try{
-  const api=window.__TAURI__&&window.__TAURI__.window;
-  const current=api&&typeof api.getCurrentWindow==='function'?api.getCurrentWindow():null;
-  if(current&&typeof current.startDragging==='function'){
-   current.startDragging().catch(()=>action('drag'));
-   return;
-  }
- }catch(_){}
  action('drag');
 }
 function install(){
@@ -83,18 +76,27 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 const dragObserver=new MutationObserver(()=>install());
 dragObserver.observe(document.documentElement,{childList:true,subtree:true});
 document.addEventListener('pointerdown',e=>{
- if(e.button!==0)return;
+ if(!e.isTrusted||e.button!==0||DRAG_LOCKED)return;
  const x=e.clientX,y=e.clientY,w=innerWidth,h=innerHeight;
  if(x<6||x>w-6||y<6||y>h-6){
   const ns=y<6?'north':y>h-6?'south':'';
   const ew=x<6?'west':x>w-6?'east':'';
   const dir=ns&&ew?ns+'-'+ew:(ns||ew);
   if(dir){e.preventDefault();action('resize/'+dir)}
-  return;
  }
 },true);
-document.addEventListener('contextmenu',e=>e.preventDefault(),true);
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['l','t','n','w','p','j','u','s'].includes(e.key.toLowerCase())){e.preventDefault();e.stopImmediatePropagation()}else if(e.key==='F5'){e.preventDefault();location.reload()}},true);
+document.addEventListener('contextmenu',e=>{
+ const target=e.target;
+ if(target instanceof Element&&target.closest('input,textarea,select,[contenteditable=""],[contenteditable="true"]'))return;
+ if(window.getSelection()&&window.getSelection().toString())return;
+ e.preventDefault();
+},true);
+document.addEventListener('keydown',e=>{
+ const target=e.target;
+ if(target instanceof Element&&target.closest('input,textarea,select,[contenteditable=""],[contenteditable="true"]'))return;
+ if((e.ctrlKey||e.metaKey)&&['l','t','n','w','p','j','u','s'].includes(e.key.toLowerCase())){e.preventDefault();e.stopImmediatePropagation()}
+ else if(e.key==='F5'){e.preventDefault();location.reload()}
+},true);
 let scrollHideTimer=0;
 function revealScrollbar(){const root=document.documentElement;if(!root)return;root.classList.add('__widget_scroll_active');if(scrollHideTimer)clearTimeout(scrollHideTimer);scrollHideTimer=setTimeout(()=>root.classList.remove('__widget_scroll_active'),1200)}
 document.addEventListener('wheel',revealScrollbar,{passive:true,capture:true});
@@ -104,7 +106,7 @@ async function check(){try{const c=new AbortController(),t=setTimeout(()=>c.abor
 }
 addEventListener('offline',check);
 setInterval(check,30000);
-function heartbeat(){try{location.href='widget-diagnostic://heartbeat?ts='+Date.now()}catch(_){}}
+function heartbeat(){try{const events=window.__TAURI__&&window.__TAURI__.event;if(events&&typeof events.emit==='function')events.emit('widget-heartbeat',ACTION_TOKEN).catch(()=>{})}catch(_){}}
 setTimeout(heartbeat,1000);
 setInterval(heartbeat,5000)
 })();"#;
@@ -169,32 +171,62 @@ fn is_configured_page(url:&Url,c:&AppConfig)->bool{
 }
 pub fn create_main(app:&AppHandle,c:&AppConfig,dir:&std::path::Path)->tauri::Result<WebviewWindow>{
 let data=dir.join("webview-data");std::fs::create_dir_all(&data).ok();let diag_dir=dir.to_path_buf();let build_diag_dir=dir.to_path_buf();let popup_diag_dir=dir.to_path_buf();let nav_app=app.clone();let popup_app=app.clone();
-let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(INIT.replace("__WIDGET_LANGUAGE__",&c.language).replace("__WIDGET_LOCKED__",&c.locked.to_string()))
+let action_token=uuid::Uuid::new_v4().simple().to_string();
+let init_script=INIT.replace("__WIDGET_LANGUAGE__",&c.language).replace("__WIDGET_LOCKED__",&c.locked.to_string()).replace("__WIDGET_ACTION_TOKEN__",&action_token);
+let navigation_action_token=action_token.clone();
+let heartbeat_token=action_token.clone();
+let heartbeat_dir=dir.to_path_buf();
+let _heartbeat_listener=app.listen("widget-heartbeat",move|event|{
+    let payload=event.payload();
+    let value=serde_json::from_str::<String>(payload).unwrap_or_else(|_|payload.to_owned());
+    if value==heartbeat_token{crate::diagnostics::record_heartbeat(&heartbeat_dir);}
+});
+let page_load_app=app.clone();
+let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(init_script)
+.on_page_load(move|window,payload|{
+    if payload.event()!=PageLoadEvent::Finished{return;}
+    let url=payload.url();
+    if url.scheme()!="https"&&url.scheme()!="http"{return;}
+    let config=page_load_app.state::<AppState>().config.lock().map(|value|value.clone()).unwrap_or_default();
+    let language=serde_json::to_string(&config.language).unwrap_or_else(|_|"\\"pt-BR\\"".to_owned());
+    let script=format!("(function(){{function apply(){{const root=document.documentElement;if(!root)return;root.style.opacity='{}';root.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});}}if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{{once:true}});}})();",config.opacity as f64/100.0,config.corner_radius,language,config.locked);
+    let _=window.eval(&script);
+})
 .on_navigation(move|u|{
-if u.scheme()=="widget-diagnostic"{crate::diagnostics::record_heartbeat(&diag_dir);return false}
-if is_internal_app_url(&u){
+if u.scheme()=="widget-action"{
     if u.host_str()==Some("tauri.localhost"){
         crate::diagnostics::log(&diag_dir,"INFO","Origem interna do Tauri autorizada; carregando a interface local.");
     }
     return true;
 }
 if u.scheme()=="widget-action"{
-    let action=u.host_str().unwrap_or("");
+    let supplied_token=u.host_str().unwrap_or("");
+    let action=u.path().trim_matches('/');
+    if supplied_token!=navigation_action_token {
+        crate::diagnostics::log(&diag_dir,"WARN","Comando de janela ignorado: token inválido.");
+        return false;
+    }
     let state=nav_app.state::<AppState>();
     let locked=state.config.lock().map(|config|config.locked).unwrap_or(true);
     if locked {
         crate::diagnostics::log(&diag_dir,"WARN",format!("Ação de janela ignorada porque mover/redimensionar está travado: {action}"));
-    } else if let Some(window)=nav_app.get_webview_window("main") {
+        return false;
+    }
+    if let Some(window)=nav_app.get_webview_window("main") {
         if action=="drag" {
-            crate::diagnostics::log(&diag_dir,"INFO","Comando de movimento recebido; iniciando arraste nativo do Windows.");
+            crate::diagnostics::log(&diag_dir,"INFO","Comando de movimento autenticado recebido; iniciando arraste nativo do Windows.");
             if let Err(error)=begin_native_drag(&window) {
                 crate::diagnostics::log(&diag_dir,"ERRO",format!("O arraste nativo falhou: {error}"));
                 let _=window.start_dragging();
             }
-        } else if action=="resize" {
-            begin_native_resize(&window,u.path().trim_matches('/'));
+        } else if let Some(direction)=action.strip_prefix("resize/") {
+            if ["north","south","east","west","north-east","north-west","south-east","south-west"].contains(&direction) {
+                begin_native_resize(&window,direction);
+            } else {
+                crate::diagnostics::log(&diag_dir,"WARN","Comando de redimensionamento ignorado: direção inválida.");
+            }
         } else {
-            crate::diagnostics::log(&diag_dir,"WARN",format!("Ação de janela desconhecida: {action}"));
+            crate::diagnostics::log(&diag_dir,"WARN","Comando de janela ignorado: ação inválida.");
         }
     } else {
         crate::diagnostics::log(&diag_dir,"ERRO","Comando de movimento recebido sem a janela principal disponível.");
@@ -344,7 +376,7 @@ pub fn refresh_native_corners(app:&AppHandle){
 pub fn apply_config(app:&AppHandle,c:&AppConfig){if let Some(w)=app.get_webview_window("main"){let _=w.set_always_on_top(c.always_on_top);let _=w.set_skip_taskbar(!c.show_in_taskbar);let _=w.set_resizable(!c.locked);let _=w.set_min_size(Some(LogicalSize::new(150.0,100.0)));let _=w.set_size(LogicalSize::new(c.width as f64,c.height as f64));let _=w.set_zoom(c.zoom as f64/100.0);let language=serde_json::to_string(&c.language).unwrap_or_else(|_|"\"pt-BR\"".to_owned());let script=format!("document.documentElement.style.opacity='{}';document.documentElement.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});",c.opacity as f64/100.0,c.corner_radius,language,c.locked);let _=w.eval(&script);let _=w.set_shadow(c.corner_radius>0);apply_native_corners(&w,c.corner_radius);}}
 pub fn open_settings(app:&AppHandle){if let Some(w)=app.get_webview_window("settings"){let _=w.show();let _=w.set_focus();return}let a=app.clone();thread::spawn(move||{let language=a.state::<AppState>().config.lock().map(|config|config.language.clone()).unwrap_or_else(|_|"pt-BR".to_owned());let title=match language.as_str(){"en"=>"Settings — Widget Website","es"=>"Configuración — Widget Website",_=>"Configurações — Widget Website"};let dir=a.state::<AppState>().app_dir.join("settings-data");std::fs::create_dir_all(&dir).ok();let _=WebviewWindowBuilder::new(&a,"settings",WebviewUrl::App("settings.html".into())).title(title).inner_size(760.0,850.0).min_inner_size(520.0,550.0).resizable(true).data_directory(dir).build();});}
 pub fn open_login_from_tray(app:&AppHandle){let text=app.state::<AppState>().config.lock().map(|c|c.site_url.clone()).unwrap_or_else(|_|crate::config::DEFAULT_SITE.to_owned());if let Ok(url)=Url::parse(&text){let a=app.clone();thread::spawn(move||{let _=open_login(&a,url);});}}
-pub fn save_window_state(app:&AppHandle,e:&WindowEvent){let state=app.state::<AppState>();let scale=app.get_webview_window("main").and_then(|w|w.scale_factor().ok()).unwrap_or(1.0);let mut c=match state.config.lock(){Ok(v)=>v,Err(_)=>return};if !c.remember_position{return}match e{WindowEvent::Moved(p)=>{c.x=Some(p.x);c.y=Some(p.y)},WindowEvent::Resized(z)=>{c.width=((z.width as f64/scale).round() as u32).clamp(150,2000);c.height=((z.height as f64/scale).round() as u32).clamp(100,1600)},_=>return}let copy=c.clone();drop(c);let _=crate::config::save(&state.app_dir,&copy);if let Some(window)=app.get_webview_window("main"){apply_native_corners(&window,copy.corner_radius);}}
+pub fn save_window_state(app:&AppHandle,e:&WindowEvent){let state=app.state::<AppState>();let scale=app.get_webview_window("main").and_then(|w|w.scale_factor().ok()).unwrap_or(1.0);let mut c=match state.config.lock(){Ok(v)=>v,Err(_)=>return};if !c.remember_position{return}match e{WindowEvent::Moved(p)=>{c.x=Some(p.x);c.y=Some(p.y)},WindowEvent::Resized(z)=>{c.width=((z.width as f64/scale).round() as u32).clamp(150,2000);c.height=((z.height as f64/scale).round() as u32).clamp(100,1600)},_=>return}let copy=c.clone();drop(c);let _=crate::config::save(&state.app_dir,&copy);let _=app.emit("config-changed",&copy);if let Some(window)=app.get_webview_window("main"){apply_native_corners(&window,copy.corner_radius);}}
 pub fn start_auto_reload(app:AppHandle){thread::spawn(move||{let mut seconds:u32=0;loop{thread::sleep(std::time::Duration::from_secs(10));let mins=app.state::<AppState>().config.lock().map(|c|c.auto_reload_minutes).unwrap_or(0)as u32;if mins==0{seconds=0;continue}seconds+=10;if seconds>=mins*60{seconds=0;if let Some(w)=app.get_webview_window("main"){let _=w.eval("location.reload()");}}}});}
 #[cfg(test)]
 mod internal_app_navigation_tests {
