@@ -16,7 +16,12 @@ fn create_menu(app: &AppHandle, language: &str) -> tauri::Result<Menu<tauri::Wry
     let top = MenuItem::with_id(app, "top", text.topmost, true, None::<&str>)?;
     let login = MenuItem::with_id(app, "login", text.login, true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", text.quit, true, None::<&str>)?;
-    Menu::with_items(app, &[&toggle, &reload, &settings, &separator, &lock, &top, &login, &quit])
+    Menu::with_items(
+        app,
+        &[
+            &toggle, &reload, &settings, &separator, &lock, &top, &login, &quit,
+        ],
+    )
 }
 
 pub fn update_language(app: &AppHandle, language: &str) {
@@ -24,14 +29,26 @@ pub fn update_language(app: &AppHandle, language: &str) {
         match create_menu(app, language) {
             Ok(menu) => {
                 if let Err(error) = tray.set_menu(Some(menu)) {
-                    diagnostics::log(&app.state::<AppState>().app_dir, "WARN", format!("Não foi possível atualizar o menu da bandeja: {error}"));
+                    diagnostics::log(
+                        &app.state::<AppState>().app_dir,
+                        "WARN",
+                        format!("Não foi possível atualizar o menu da bandeja: {error}"),
+                    );
                 }
             }
-            Err(error) => diagnostics::log(&app.state::<AppState>().app_dir, "WARN", format!("Não foi possível reconstruir o menu da bandeja: {error}")),
+            Err(error) => diagnostics::log(
+                &app.state::<AppState>().app_dir,
+                "WARN",
+                format!("Não foi possível reconstruir o menu da bandeja: {error}"),
+            ),
         }
         let text = i18n::tray_labels(language, false);
         if let Err(error) = tray.set_tooltip(Some(text.tooltip)) {
-            diagnostics::log(&app.state::<AppState>().app_dir, "WARN", format!("Não foi possível atualizar a dica da bandeja: {error}"));
+            diagnostics::log(
+                &app.state::<AppState>().app_dir,
+                "WARN",
+                format!("Não foi possível atualizar a dica da bandeja: {error}"),
+            );
         }
     }
 }
