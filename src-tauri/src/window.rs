@@ -389,7 +389,7 @@ crate::diagnostics::log(&diag_dir,"INFO",format!("Encaminhando link externo ao n
 })
 .on_new_window(move|u,_|{if u.scheme()=="http"||u.scheme()=="https"{crate::diagnostics::log_navigation(&popup_diag_dir,&u);let cfg=popup_app.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();if allowed(u.host_str().unwrap_or(""),&cfg){let a=popup_app.clone();thread::spawn(move||{let _=open_login(&a,u);});}else{let _=open::that(u.as_str());}}NewWindowResponse::Deny}).build().map_err(|error|{crate::diagnostics::log(&build_diag_dir,"ERRO",format!("Falha ao criar a janela WebView2 principal: {error}"));error})?;
     restore_position(&w, c);
-    apply_config(app, c);
+    apply_config(app, c, true);
     Ok(w)
 }
 #[cfg(windows)]
@@ -664,13 +664,15 @@ pub fn refresh_native_corners(app: &AppHandle) {
         apply_native_corners(&window, radius);
     }
 }
-pub fn apply_config(app: &AppHandle, c: &AppConfig) {
+pub fn apply_config(app: &AppHandle, c: &AppConfig, resize: bool) {
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.set_always_on_top(c.always_on_top);
         let _ = w.set_skip_taskbar(!c.show_in_taskbar);
         let _ = w.set_resizable(!c.locked);
         let _ = w.set_min_size(Some(LogicalSize::new(150.0, 100.0)));
-        let _ = w.set_size(LogicalSize::new(c.width as f64, c.height as f64));
+        if resize {
+            let _ = w.set_size(LogicalSize::new(c.width as f64, c.height as f64));
+        }
         let _ = w.set_zoom(c.zoom as f64 / 100.0);
         let language =
             serde_json::to_string(&c.language).unwrap_or_else(|_| "\"pt-BR\"".to_owned());
