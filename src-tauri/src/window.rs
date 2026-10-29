@@ -10,7 +10,7 @@ let data=dir.join("webview-data");std::fs::create_dir_all(&data).ok();let nav_ap
 let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(INIT)
 .on_navigation(move|u|{
 if u.scheme()=="tauri"||(cfg!(debug_assertions)&&u.host_str()==Some("127.0.0.1")){return true}
-if u.scheme()=="widget-action"{let state=nav_app.state::<AppState>();let locked=state.config.lock().map(|v|v.locked).unwrap_or(true);if !locked{if let Some(w)=nav_app.get_webview_window("main"){let host=u.host_str().unwrap_or("");if host=="drag"{let _=w.start_dragging();}else if host=="resize"{use tauri::window::ResizeDirection::*;let dir=match u.path().trim_matches('/'){ "north"=>Some(North),"south"=>Some(South),"east"=>Some(East),"west"=>Some(West),"north-east"=>Some(NorthEast),"north-west"=>Some(NorthWest),"south-east"=>Some(SouthEast),"south-west"=>Some(SouthWest),_=>None};if let Some(d)=dir{let _=w.start_resize_dragging(d);}}}}return false}
+if u.scheme()=="widget-action"{let state=nav_app.state::<AppState>();let locked=state.config.lock().map(|v|v.locked).unwrap_or(true);if !locked{if let Some(w)=nav_app.get_webview_window("main"){let host=u.host_str().unwrap_or("");if host=="drag"{let _=w.start_dragging();}else if host=="resize"{begin_native_resize(&w,u.path().trim_matches('/'));}}}return false}
 if u.scheme()!="https"&&u.scheme()!="http"{return false}
 let cfg=nav_app.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();let host=u.host_str().unwrap_or("");let target=Url::parse(&cfg.site_url).ok().and_then(|v|v.host_str().map(str::to_owned)).unwrap_or_default();
 if host==target||host.ends_with(&format!(".{target}")){return true}
@@ -20,12 +20,72 @@ let _=open::that(u.as_str());false
 .on_new_window(move|u,_|{if u.scheme()=="http"||u.scheme()=="https"{let cfg=popup_app.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();if allowed(u.host_str().unwrap_or(""),&cfg){let a=popup_app.clone();thread::spawn(move||{let _=open_login(&a,u);});}else{let _=open::that(u.as_str());}}NewWindowResponse::Deny}).build()?;
 restore_position(&w,c);apply_config(app,c);Ok(w)
 }
+#[cfg(windows)]
+fn begin_native_resize(window:&WebviewWindow, direction:&str) {
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        ReleaseCapture, SendMessageW, WM_NCLBUTTONDOWN, HTBOTTOM, HTBOTTOMLEFT,
+        HTBOTTOMRIGHT, HTLEFT, HTRIGHT, HTTOP, HTTOPLEFT, HTTOPRIGHT,
+    };
+    let hit_test = match direction {
+        "north" => HTTOP,
+        "south" => HTBOTTOM,
+        "east" => HTRIGHT,
+        "west" => HTLEFT,
+        "north-east" => HTTOPRIGHT,
+        "north-west" => HTTOPLEFT,
+        "south-east" => HTBOTTOMRIGHT,
+        "south-west" => HTBOTTOMLEFT,
+        _ => return,
+    };
+    if let Ok(hwnd) = window.hwnd() {
+        unsafe {
+            ReleaseCapture();
+            SendMessageW(hwnd, WM_NCLBUTTONDOWN, hit_test as usize, 0);
+        }
+    }
+}
+#[cfg(not(windows))]
+fn begin_native_resize(_window:&WebviewWindow, _direction:&str) {}
+
 fn open_login(app:&AppHandle,url:Url)->tauri::Result<()>{let id=LOGIN_ID.fetch_add(1,Ordering::Relaxed);let label=format!("login-{id}");let state=app.state::<AppState>();let dir=state.app_dir.join("webview-data");std::fs::create_dir_all(&dir).ok();let nav=app.clone();let pop=app.clone();let host=url.host_str().unwrap_or("Login").to_owned();
 WebviewWindowBuilder::new(app,label,WebviewUrl::External(url)).title(format!("Entrar — {host}")).inner_size(960.0,760.0).min_inner_size(600.0,450.0).decorations(true).resizable(true).skip_taskbar(false).data_directory(dir).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false)
 .on_navigation(move|u|{if u.scheme()!="http"&&u.scheme()!="https"{return false}let c=nav.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();if allowed(u.host_str().unwrap_or(""),&c){true}else{let _=open::that(u.as_str());false}})
 .on_new_window(move|u,_|{if u.scheme()=="http"||u.scheme()=="https"{let c=pop.state::<AppState>().config.lock().map(|v|v.clone()).unwrap_or_default();if allowed(u.host_str().unwrap_or(""),&c){let a=pop.clone();thread::spawn(move||{let _=open_login(&a,u);});}else{let _=open::that(u.as_str());}}NewWindowResponse::Deny}).build()?;Ok(())}
-fn restore_position(w:&WebviewWindow,c:&AppConfig){if !c.remember_position{let _=w.center();return}let(Some(x),Some(y))=(c.x,c.y)else{let _=w.center();return};let Ok(monitors)=w.available_monitors()else{let _=w.center();return};let scale=w.scale_factor().unwrap_or(1.0);let s=PhysicalSize::new((c.width as f64*scale)as u32,(c.height as f64*scale)as u32);let visible=monitors.iter().any(|m|{let p=m.position();let z=m.size();(x+s.width as i32).min(p.x+z.width as i32)>x.max(p.x)&&(y+s.height as i32).min(p.y+z.height as i32)>y.max(p.y)});if visible{let _=w.set_position(PhysicalPosition::new(x,y));}else{let _=w.center()}}
-pub fn apply_config(app:&AppHandle,c:&AppConfig){if let Some(w)=app.get_webview_window("main"){let _=w.set_always_on_top(c.always_on_top);let _=w.set_skip_taskbar(!c.show_in_taskbar);let _=w.set_resizable(!c.locked);let _=w.set_min_size(Some(LogicalSize::new(150.0,100.0)));let _=w.set_size(LogicalSize::new(c.width as f64,c.height as f64));let _=w.set_zoom(c.zoom as f64/100.0);let script=format!("document.documentElement.style.opacity='{}';document.documentElement.style.borderRadius='{}px';document.documentElement.style.overflow='hidden';",c.opacity as f64/100.0,c.corner_radius);let _=w.eval(&script);let _=w.set_shadow(c.corner_radius>0);}}
+fn restore_position(w:&WebviewWindow,c:&AppConfig){if !c.remember_position{let _=w.center();return}let(Some(x),Some(y))=(c.x,c.y)else{let _=w.center();return};let Ok(monitors)=w.available_monitors()else{let _=w.center();return};let scale=w.scale_factor().unwrap_or(1.0);let s=PhysicalSize::new((c.width as f64*scale)as u32,(c.height as f64*scale)as u32);let visible=monitors.iter().any(|m|{let p=m.position();let z=m.size();(x+s.width as i32).min(p.x+z.width as i32)>x.max(p.x)&&(y+s.height as i32).min(p.y+z.height as i32)>y.max(p.y)});if visible{let _=w.set_position(PhysicalPosition::new(x,y));}else{let _=w.center();}}
+#[cfg(windows)]
+fn apply_native_corners(window:&WebviewWindow, radius:u8) {
+    use std::ffi::c_void;
+    use windows_sys::Win32::Foundation::HWND;
+    use windows_sys::Win32::Graphics::Dwm::{DwmSetWindowAttribute,DWMWA_WINDOW_CORNER_PREFERENCE};
+    use windows_sys::Win32::Graphics::Gdi::{CreateRoundRectRgn,SetWindowRgn};
+    use windows_sys::Win32::UI::WindowsAndMessaging::{GetWindowRect,RECT};
+    if let Ok(raw_hwnd)=window.hwnd() {
+        let hwnd:HWND=raw_hwnd as *mut c_void;
+        let preference:u32=if radius==0 {1} else {2};
+        unsafe { let _=DwmSetWindowAttribute(hwnd,DWMWA_WINDOW_CORNER_PREFERENCE,&preference as *const u32 as *const c_void,std::mem::size_of::<u32>() as u32); }
+        if let Ok(size)=window.inner_size() {
+            let scale=window.scale_factor().unwrap_or(1.0);
+            let w=size.width.min(i32::MAX as u32) as i32;
+            let h=size.height.min(i32::MAX as u32) as i32;
+            let r=((radius as f64*scale).round() as i32).clamp(0,w.min(h)/2);
+            unsafe {
+                if r==0 { let _=SetWindowRgn(hwnd,std::ptr::null_mut(),1); }
+                else {
+                    let region=CreateRoundRectRgn(0,0,w+1,h+1,r*2,r*2);
+                    if !region.is_null() && SetWindowRgn(hwnd,region,1)==0 {
+                        // SetWindowRgn takes ownership only when it succeeds.
+                        use windows_sys::Win32::Graphics::Gdi::DeleteObject;
+                        let _=DeleteObject(region);
+                    }
+                }
+            }
+        }
+    }
+}
+#[cfg(not(windows))]
+fn apply_native_corners(_window:&WebviewWindow,_radius:u8) {}
+
+pub fn apply_config(app:&AppHandle,c:&AppConfig){if let Some(w)=app.get_webview_window("main"){let _=w.set_always_on_top(c.always_on_top);let _=w.set_skip_taskbar(!c.show_in_taskbar);let _=w.set_resizable(!c.locked);let _=w.set_min_size(Some(LogicalSize::new(150.0,100.0)));let _=w.set_size(LogicalSize::new(c.width as f64,c.height as f64));let _=w.set_zoom(c.zoom as f64/100.0);let script=format!("document.documentElement.style.opacity='{}';document.documentElement.style.borderRadius='{}px';document.documentElement.style.overflow='hidden';",c.opacity as f64/100.0,c.corner_radius);let _=w.eval(&script);let _=w.set_shadow(c.corner_radius>0);apply_native_corners(&w,c.corner_radius);}}
 pub fn open_settings(app:&AppHandle){if let Some(w)=app.get_webview_window("settings"){let _=w.show();let _=w.set_focus();return}let a=app.clone();thread::spawn(move||{let dir=a.state::<AppState>().app_dir.join("settings-data");std::fs::create_dir_all(&dir).ok();let _=WebviewWindowBuilder::new(&a,"settings",WebviewUrl::App("settings.html".into())).title("Configurações — Widget Website").inner_size(760.0,850.0).min_inner_size(520.0,550.0).resizable(true).data_directory(dir).build();});}
 pub fn open_login_from_tray(app:&AppHandle){let text=app.state::<AppState>().config.lock().map(|c|c.site_url.clone()).unwrap_or_else(|_|crate::config::DEFAULT_SITE.to_owned());if let Ok(url)=Url::parse(&text){let a=app.clone();thread::spawn(move||{let _=open_login(&a,url);});}}
 pub fn save_window_state(app:&AppHandle,e:&WindowEvent){let state=app.state::<AppState>();let scale=app.get_webview_window("main").and_then(|w|w.scale_factor().ok()).unwrap_or(1.0);let mut c=match state.config.lock(){Ok(v)=>v,Err(_)=>return};if !c.remember_position{return}match e{WindowEvent::Moved(p)=>{c.x=Some(p.x);c.y=Some(p.y)},WindowEvent::Resized(z)=>{c.width=((z.width as f64/scale).round() as u32).clamp(150,2000);c.height=((z.height as f64/scale).round() as u32).clamp(100,1600)},_=>return}let copy=c.clone();drop(c);let _=crate::config::save(&state.app_dir,&copy);}
