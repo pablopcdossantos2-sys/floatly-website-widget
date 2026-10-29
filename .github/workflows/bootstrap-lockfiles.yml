@@ -23,7 +23,7 @@ jobs:
       - name: Generate and commit lockfiles only when missing
         shell: pwsh
         env:
-          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if ((Test-Path package-lock.json) -and (Test-Path src-tauri/Cargo.lock)) {
             Write-Host "Both dependency lockfiles already exist; no changes are needed."
