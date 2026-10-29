@@ -14,20 +14,20 @@ Widget desktop para manter o calendário econômico do Investing.com aberto em u
 - Workflow de compilação Windows x64 e instalador NSIS.
 
 ## Pré-requisitos
-- Windows 10/11 x64, Node.js LTS e npm.
+- Windows 10/11 x64, Node.js 22 ou mais recente (LTS) e npm.
 - Rust estável 1.90 ou mais recente.
 - Microsoft Edge WebView2 Runtime: https://developer.microsoft.com/microsoft-edge/webview2/. O aplicativo verifica as pastas usuais do Runtime e mostra esse endereço se não o encontrar.
 - Para compilar localmente: Visual Studio Build Tools com Desenvolvimento para desktop com C++ e Windows SDK.
 
 ## Desenvolvimento
 Execute no PowerShell (a geração dos ícones é necessária na primeira compilação):
-    npm install
+    npm ci
     npm run icons
     npm run tauri dev
 
 ## Instalar / empacotar
 Execute:
-    npm install
+    npm ci
     npm run icons
     npm run tauri build
 
@@ -44,7 +44,7 @@ A compilação no GitHub Actions oferece assinatura Authenticode opcional. Para 
 - `WINDOWS_PFX_BASE64`: conteúdo do arquivo PFX codificado em Base64.
 - `WINDOWS_PFX_PASSWORD`: senha desse arquivo PFX.
 
-A chave privada não deve ser colocada no repositório nem no README. O workflow importa o certificado durante a compilação, assina usando SHA-256 e timestamp e remove o arquivo PFX temporário. Sem os dois segredos, o workflow avisa que o artefato é não assinado e continua a compilação.
+A chave privada não deve ser colocada no repositório nem no README. A compilação roda sem acesso ao certificado. Em um job separado, o workflow usa `signtool` para assinar e verificar o instalador NSIS e o executável publicado separadamente, com SHA-256 e timestamp; o arquivo PFX temporário é removido ao final. O executável distribuído separadamente é assinado, mas a cópia já embutida no instalador foi empacotada sem assinatura. Sem os dois segredos, os artefatos são publicados sem assinatura.
 
 **Importante:** não é possível prometer que o Microsoft Defender SmartScreen nunca exibirá um aviso. Mesmo uma aplicação assinada por um certificado válido pode receber um aviso até que a reputação do editor e do arquivo se estabeleça. Publicar pela Microsoft Store é a forma mais direta de evitar avisos de download do SmartScreen. Consulte a [documentação de reputação do SmartScreen](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) e o [guia de assinatura do Tauri para Windows](https://tauri.app/distribute/sign/windows/).
 
@@ -67,13 +67,17 @@ O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é 
 ## Privacidade, decisões e limitações
 - Sem telemetria. A navegação principal é limitada ao site configurado e a recursos de autenticação conhecidos; links HTTP/HTTPS para outros domínios abrem no navegador padrão.
 - Arquivo de configuração corrompido é substituído por valores padrão. O botão “Restaurar tamanho padrão” muda somente largura e altura para 500 × 700 px; as outras preferências são preservadas.
-- O workflow executa testes automatizados para valores padrão, normalização e validação da URL e recuperação de configuração corrompida. O instalador é compilado no Windows do GitHub Actions.
+- A CI verifica a compatibilidade das versões Tauri, o manifesto de permissões e as capabilities; executa `npm ci`, verificação de tipos, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` e `cargo test`; por fim, compila o instalador no Windows.
 - A janela de login secundária compartilha a pasta de dados do WebView2 e inclui uma barra de endereço injetada. A navegação para domínios não autorizados continua bloqueada dentro do app e abre no navegador padrão. O fechamento automático depende de o provedor retornar ao caminho configurado; alguns fluxos sociais podem exigir fechar a janela manualmente.
 - O zoom é aplicado pelo controle nativo de ampliação do WebView2, afetando a renderização da página de forma semelhante ao zoom de um navegador. Opacidade e recorte dos cantos continuam usando CSS; o arredondamento pode variar no Windows 10.
 - A verificação de rede mostra uma tela própria antes da navegação e monitora a conexão enquanto o site está aberto. O wrapper padrão do Tauri não fornece um evento portátil que permita substituir toda falha de navegação do Chromium em todas as situações.
 - É necessário testar login real, filtros, atalho em conflito, escalas 125%/150%, monitores múltiplos, DPI e consumo de memória em Windows. O ambiente de desenvolvimento atual não permite comprovar esses comportamentos gráficos.
 
+## Desinstalação e dados
+
+O desinstalador NSIS oferece a opção **Delete the application data**. Quando marcada, ela remove `%APPDATA%\\WidgetWebsite` (configuração, logs e sessão WebView2) e `%LOCALAPPDATA%\\WidgetWebsite`, se existir. Se a opção ficar desmarcada, esses dados são preservados para uma futura reinstalação. A entrada de início automático do Windows é removida sempre que o aplicativo é desinstalado.
+
 ## Estrutura
-- src-tauri/src: configuração, janela, comandos e bandeja em Rust.
+- src-tauri/src: configuração, janela, comandos, diagnósticos e bandeja em Rust.
 - src: inicialização e painel de configurações em TypeScript.
 - icons/widget.svg: ícone-fonte vetorial usado para gerar os ícones nativos do Windows.
