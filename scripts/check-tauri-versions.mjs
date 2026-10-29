@@ -1,5 +1,13 @@
 import fs from "node:fs";
+const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
 const packageLock = JSON.parse(fs.readFileSync("package-lock.json", "utf8"));
+const tauriConfig = JSON.parse(fs.readFileSync("src-tauri/tauri.conf.json", "utf8"));
+const cargoToml = fs.readFileSync("src-tauri/Cargo.toml", "utf8");
+const cargoVersion = /^version = "([^"]+)"/m.exec(cargoToml)?.[1];
+const versions = [packageJson.version, packageLock.version, cargoVersion, tauriConfig.version];
+if (versions.some((v) => !v) || new Set(versions).size !== 1) {
+  throw new Error("App versions differ across package.json, package-lock.json, Cargo.toml and tauri.conf.json: " + JSON.stringify(versions));
+}
 const cargoLock = fs.readFileSync("src-tauri/Cargo.lock", "utf8");
 const npmVersions = { api: packageLock.packages?.["node_modules/@tauri-apps/api"]?.version, cli: packageLock.packages?.["node_modules/@tauri-apps/cli"]?.version };
 function cargoVersion(name) {
