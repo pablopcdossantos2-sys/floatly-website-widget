@@ -3,3 +3,11 @@ dist/
 src-tauri/target/
 src-tauri/icons/
 *.log
+*.pfx
+*.p12
+*.key
+*.pem
+.env
+.env.*
+!.env.example
+src-tauri/gen/
