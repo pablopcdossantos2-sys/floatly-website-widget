@@ -23,9 +23,9 @@ let DRAG_LOCKED='__WIDGET_LOCKED__'==='true';
 const ACTION_TOKEN='__WIDGET_ACTION_TOKEN__';
 const HEARTBEAT_TOKEN='__WIDGET_HEARTBEAT_TOKEN__';
 const UI_COPY={
- 'pt-BR':{dragTitle:'Arraste a borda azul para mover o widget.',dragLabel:'Mover o widget pela borda azul',offlineTitle:'Sem conexão com o calendário',offlineMessage:'O site não respondeu. Verifique a internet e tente novamente.',retry:'Tentar novamente'},
- en:{dragTitle:'Drag the blue border to move the widget.',dragLabel:'Move the widget using the blue border',offlineTitle:'Calendar connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
- es:{dragTitle:'Arrastra el borde azul para mover el widget.',dragLabel:'Mover el widget desde el borde azul',offlineTitle:'Sin conexión con el calendario',offlineMessage:'El sitio no respondió. Comprueba la conexión e inténtalo de nuevo.',retry:'Reintentar'}
+ 'pt-BR':{dragTitle:'Arraste a aba superior para mover o widget.',dragLabel:'Mover o widget pela aba superior',offlineTitle:'Sem conexão com o calendário',offlineMessage:'O site não respondeu. Verifique a internet e tente novamente.',retry:'Tentar novamente'},
+ en:{dragTitle:'Drag the top handle to move the widget.',dragLabel:'Move the widget using the top handle',offlineTitle:'Calendar connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
+ es:{dragTitle:'Arrastra el tirador superior para mover el widget.',dragLabel:'Mover el widget desde el tirador superior',offlineTitle:'Sin conexión con el calendario',offlineMessage:'El sitio no respondió. Comprueba la conexión e inténtalo de nuevo.',retry:'Reintentar'}
 };
 function setUiLanguage(language){UI_LANGUAGE=UI_COPY[language]?language:'pt-BR';const copy=UI_COPY[UI_LANGUAGE];const drag=document.getElementById('__widget_drag');if(drag){drag.title=copy.dragTitle;drag.setAttribute('aria-label',copy.dragLabel)}document.querySelectorAll('#__widget_drag_frame .__widget_drag_edge').forEach(edge=>{edge.title=copy.dragTitle;edge.setAttribute('aria-label',copy.dragLabel)});const overlay=document.getElementById('__widget_offline');if(overlay){const heading=overlay.querySelector('h2');const paragraph=overlay.querySelector('p');const button=overlay.querySelector('button');if(heading)heading.textContent=copy.offlineTitle;if(paragraph)paragraph.textContent=copy.offlineMessage;if(button)button.textContent=copy.retry}}
 window.__widgetSetLanguage=setUiLanguage;
@@ -34,9 +34,9 @@ style.textContent=`
 #__widget_drag{position:fixed;z-index:2147483647;left:50%;transform:translateX(-50%);top:8px;width:78px;height:20px;display:flex;align-items:center;justify-content:center;background:rgba(33,52,75,.22);border:1px solid rgba(255,255,255,.72);border-radius:999px;opacity:.78;cursor:move;transition:background .12s,opacity .12s,box-shadow .12s;box-shadow:0 1px 4px rgba(0,0,0,.14);user-select:none;-webkit-user-select:none;touch-action:none}
 #__widget_drag:hover{opacity:1;background:rgba(24,105,210,.88);box-shadow:0 2px 8px rgba(0,0,0,.2)}
 #__widget_drag.__widget_drag_locked{opacity:.28;cursor:not-allowed;pointer-events:none}
-#__widget_drag_frame{position:fixed;z-index:2147483644;inset:10px;border:4px solid #1683ff;border-radius:8px;box-sizing:border-box;pointer-events:none;box-shadow:0 0 0 1px rgba(255,255,255,.9),0 0 8px rgba(22,131,255,.38),inset 0 0 0 1px rgba(255,255,255,.45);transition:border-color .12s,box-shadow .12s}
-#__widget_drag_frame:hover{border-color:#005fd4;box-shadow:0 0 0 1px rgba(255,255,255,.96),0 0 10px rgba(22,131,255,.52),inset 0 0 0 1px rgba(255,255,255,.55)}
-#__widget_drag_frame.__widget_drag_locked{border-color:rgba(115,126,139,.6);box-shadow:none}
+#__widget_drag_frame{position:fixed;z-index:2147483644;inset:10px;border:4px solid transparent;border-radius:8px;box-sizing:border-box;pointer-events:none;box-shadow:0 0 0 1px rgba(255,255,255,.9),0 0 8px rgba(22,131,255,.38),inset 0 0 0 1px rgba(255,255,255,.45);transition:none}
+#__widget_drag_frame:hover{border-color:transparent;box-shadow:none}
+#__widget_drag_frame.__widget_drag_locked{border-color:transparent;box-shadow:none}
 #__widget_drag_frame.__widget_drag_locked .__widget_drag_edge{pointer-events:none;cursor:default}
 #__widget_drag_frame .__widget_drag_edge{position:absolute;display:block;pointer-events:auto;background:transparent;touch-action:none;user-select:none;-webkit-user-select:none}
 #__widget_drag_frame .__widget_drag_edge:hover{background:rgba(24,105,210,.16)}
@@ -63,8 +63,8 @@ function applyDragLockedUi(){
  const locked=DRAG_LOCKED,frame=document.getElementById('__widget_drag_frame'),handle=document.getElementById('__widget_drag');
  if(frame){
   frame.classList.toggle('__widget_drag_locked',locked);
-  frame.style.setProperty('border-color',locked?'rgba(115,126,139,.72)':'#1683ff');
-  frame.style.setProperty('box-shadow',locked?'none':'0 0 0 1px rgba(255,255,255,.9),0 0 8px rgba(22,131,255,.38),inset 0 0 0 1px rgba(255,255,255,.45)');
+  frame.style.setProperty('border-color','transparent');
+  frame.style.setProperty('box-shadow','none');
   frame.querySelectorAll('.__widget_drag_edge').forEach(edge=>{
    edge.style.setProperty('pointer-events',locked?'none':'auto');
    edge.style.setProperty('cursor',locked?'default':'move');
@@ -94,9 +94,9 @@ function install(){
   frame.setAttribute('aria-label','Borda para mover o widget');
   setInlineStyles(frame,{
    position:'fixed','z-index':'2147483646',top:'10px',right:'10px',bottom:'10px',left:'10px',
-   border:'4px solid #1683ff','border-radius':'8px','box-sizing':'border-box','pointer-events':'none',
-   'box-shadow':'0 0 0 1px rgba(255,255,255,.9),0 0 8px rgba(22,131,255,.38),inset 0 0 0 1px rgba(255,255,255,.45)',
-   transition:'border-color .12s,box-shadow .12s'
+   border:'4px solid transparent','border-radius':'8px','box-sizing':'border-box','pointer-events':'none',
+   'box-shadow':'none',
+   transition:'none'
   });
   const positions={
    top:{top:'-3px',left:'0',right:'0',height:'9px'},
