@@ -11,7 +11,6 @@ type C = {
   remember_position: boolean;
   autostart: boolean;
   always_on_top: boolean;
-  opacity: number;
   zoom: number;
   auto_reload_minutes: number;
   show_in_taskbar: boolean;
@@ -24,7 +23,7 @@ type S = { config: C; warning: string | null };
 
 const translations: Record<Language, Record<string, string>> = {
   "pt-BR": {
-    pageTitle: "Configurações", subtitle: "Personalize a janela do calendário.",
+    pageTitle: "Configurações", subtitle: "Personalize a janela do site escolhido.",
     themeGroup: "Tema da interface", themeLight: "Modo claro", themeDark: "Modo escuro",
     languageSection: "Idioma", languageLabel: "Idioma do programa",
     languageHelp: "Altera o idioma das configurações e dos menus do Widget Website.",
@@ -36,7 +35,7 @@ const translations: Record<Language, Record<string, string>> = {
     locked: "Travar mover e redimensionar",
     lockedHelp: "Ative para bloquear o movimento e o redimensionamento. Desative para mover o widget pela aba superior; as bordas transparentes também aceitam arraste.",
     autostart: "Iniciar com o Windows", autostartHelp: "Usa o registro do usuário atual, sem exigir administrador.",
-    appearanceSection: "Aparência e atualização", opacity: "Opacidade",
+    appearanceSection: "Aparência e atualização",
     zoom: "Zoom do navegador embutido",
     zoomHelp: "Ampliação do WebView2 entre 50% e 200%, independente do CSS do site.",
     cornerRadius: "Raio dos cantos (px)", reload: "Recarregar a cada (min)",
@@ -54,7 +53,7 @@ const translations: Record<Language, Record<string, string>> = {
     shortcutDragHint: "Clique no campo e pressione a combinação desejada (ex.: Ctrl + Alt + C)."
   },
   en: {
-    pageTitle: "Settings", subtitle: "Customize the calendar window.",
+    pageTitle: "Settings", subtitle: "Customize the window for your chosen website.",
     themeGroup: "Settings appearance", themeLight: "Light mode", themeDark: "Dark mode",
     languageSection: "Language", languageLabel: "Application language",
     languageHelp: "Changes the language of Widget Website settings and menus.",
@@ -66,7 +65,7 @@ const translations: Record<Language, Record<string, string>> = {
     locked: "Lock moving and resizing",
     lockedHelp: "Enable this option to lock movement and resizing. Turn it off to move the widget using the top handle; the transparent edges also remain draggable.",
     autostart: "Start with Windows", autostartHelp: "Uses the current user's startup settings; administrator rights are not required.",
-    appearanceSection: "Appearance and refresh", opacity: "Opacity",
+    appearanceSection: "Appearance and refresh",
     zoom: "Embedded browser zoom",
     zoomHelp: "Controls WebView2 zoom from 50% to 200%, independently of the website's CSS.",
     cornerRadius: "Corner radius (px)", reload: "Reload every (min)",
@@ -84,7 +83,7 @@ const translations: Record<Language, Record<string, string>> = {
     shortcutDragHint: "Click the field and press the desired combination (e.g. Ctrl + Alt + C)."
   },
   es: {
-    pageTitle: "Configuración", subtitle: "Personaliza la ventana del calendario.",
+    pageTitle: "Configuración", subtitle: "Personaliza la ventana del sitio web elegido.",
     themeGroup: "Tema de la interfaz", themeLight: "Modo claro", themeDark: "Modo oscuro",
     languageSection: "Idioma", languageLabel: "Idioma del programa",
     languageHelp: "Cambia el idioma de la configuración y los menús de Widget Website.",
@@ -96,7 +95,7 @@ const translations: Record<Language, Record<string, string>> = {
     locked: "Bloquear movimiento y cambio de tamaño",
     lockedHelp: "Activa esta opción para bloquear el movimiento y el cambio de tamaño. Desactívala para mover el widget desde el tirador superior; los bordes transparentes también permiten arrastrarlo.",
     autostart: "Iniciar con Windows", autostartHelp: "Usa la configuración de inicio del usuario actual, sin permisos de administrador.",
-    appearanceSection: "Apariencia y actualización", opacity: "Opacidad",
+    appearanceSection: "Apariencia y actualización",
     zoom: "Zoom del navegador integrado",
     zoomHelp: "Controla el zoom de WebView2 entre el 50 % y el 200 %, independientemente del CSS del sitio.",
     cornerRadius: "Radio de las esquinas (px)", reload: "Actualizar cada (min)",
@@ -119,7 +118,7 @@ const form = document.querySelector<HTMLFormElement>("#settings-form")!;
 const msg = document.querySelector<HTMLDivElement>("#message")!;
 const ids = [
   "site_url", "width", "height", "remember_position", "autostart", "always_on_top",
-  "opacity", "zoom", "auto_reload_minutes", "show_in_taskbar", "locked",
+  "zoom", "auto_reload_minutes", "show_in_taskbar", "locked",
   "global_shortcut", "corner_radius", "language"
 ];
 let current: C | null = null;
@@ -190,7 +189,6 @@ function displayField(config: C, id: string) {
   } else {
     element.value = String(value ?? "");
   }
-  if (id === "opacity") document.getElementById("opacity-value")!.textContent = config.opacity + "%";
   if (id === "zoom") document.getElementById("zoom-value")!.textContent = config.zoom + "%";
   if (id === "language") applyLanguage(config.language);
 }
@@ -220,7 +218,6 @@ function read(): C {
     remember_position: checked("remember_position"),
     autostart: checked("autostart"),
     always_on_top: checked("always_on_top"),
-    opacity: Number(value("opacity")),
     zoom: Number(value("zoom")),
     auto_reload_minutes: readInt("auto_reload_minutes", 0, 1440),
     show_in_taskbar: checked("show_in_taskbar"),
@@ -242,7 +239,6 @@ function readPatch(): ConfigPatch {
   if (candidate.remember_position !== current.remember_position) patch.remember_position = candidate.remember_position;
   if (candidate.autostart !== current.autostart) patch.autostart = candidate.autostart;
   if (candidate.always_on_top !== current.always_on_top) patch.always_on_top = candidate.always_on_top;
-  if (candidate.opacity !== current.opacity) patch.opacity = candidate.opacity;
   if (candidate.zoom !== current.zoom) patch.zoom = candidate.zoom;
   if (candidate.auto_reload_minutes !== current.auto_reload_minutes) patch.auto_reload_minutes = candidate.auto_reload_minutes;
   if (candidate.show_in_taskbar !== current.show_in_taskbar) patch.show_in_taskbar = candidate.show_in_taskbar;
@@ -288,9 +284,6 @@ form.addEventListener("submit", async (event) => {
 f<HTMLSelectElement>("language").addEventListener("change", () => {
   applyLanguage(f<HTMLSelectElement>("language").value);
   say("");
-});
-f("opacity").addEventListener("input", (event) => {
-  document.getElementById("opacity-value")!.textContent = (event.target as HTMLInputElement).value + "%";
 });
 f("zoom").addEventListener("input", (event) => {
   document.getElementById("zoom-value")!.textContent = (event.target as HTMLInputElement).value + "%";
