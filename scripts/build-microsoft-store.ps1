@@ -166,7 +166,7 @@ try {
     $storeConfig.bundle.windows | Add-Member -NotePropertyName signCommand -NotePropertyValue $signCommand -Force
     $runtimeConfigPath = Join-Path ([System.IO.Path]::GetTempPath()) ("tauri-store-config-" + [guid]::NewGuid().ToString("N") + ".json")
     $runtimeJson = $storeConfig | ConvertTo-Json -Depth 10
-    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
     [System.IO.File]::WriteAllText($runtimeConfigPath, $runtimeJson, $utf8NoBom)
 
     # First bundle materializes Tauri's cached NSIS toolset. Tauri currently has
