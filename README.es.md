@@ -45,6 +45,10 @@ Al abrir el widget por primera vez, se te pedirá que elijas un sitio web. Haz c
 
 Para ver una URL de ejemplo concreta, consulta la sección de ejemplo a continuación.
 
+## Microsoft Store
+
+La guía detallada paso a paso está disponible en [portugués](GUIA_PUBLICACAO_MICROSOFT_STORE.md), junto con un [borrador multilingüe de la ficha de la Store](MICROSOFT_STORE_LISTING_DRAFT.md). La compilación para Store es manual y requiere la identidad real del publisher y los secretos del certificado. El workflow no significa que la aplicación esté lista para enviarse ni que haya sido aprobada.
+
 ## Idioma de la interfaz
 
 Abre **Configuración → Idioma** y elige Portugués (Brasil), English o Español. La selección se guarda en %APPDATA%\WidgetWebsite\config.json y traduce la ventana de configuración, el menú de la bandeja del sistema, la barra de inicio de sesión y los mensajes de conexión propios del widget. El contenido del sitio elegido seguirá usando el idioma que proporcione el propio sitio.
