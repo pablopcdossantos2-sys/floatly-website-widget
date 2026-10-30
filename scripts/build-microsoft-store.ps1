@@ -13,14 +13,41 @@ function Invoke-Checked {
     }
 }
 
+function Test-PortableExecutable {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $stream = [System.IO.File]::OpenRead($Path)
+    $reader = $null
+    try {
+        if ($stream.Length -lt 64) { return $false }
+        $reader = [System.IO.BinaryReader]::new($stream)
+        if ($reader.ReadUInt16() -ne 0x5A4D) { return $false }
+        $stream.Position = 0x3c
+        $peOffset = $reader.ReadInt32()
+        if ($peOffset -lt 64 -or $peOffset -gt ($stream.Length - 4)) { return $false }
+        $stream.Position = $peOffset
+        return $reader.ReadUInt32() -eq 0x00004550
+    }
+    catch {
+        return $false
+    }
+    finally {
+        if ($null -ne $reader) {
+            $reader.Dispose()
+        } else {
+            $stream.Dispose()
+        }
+    }
+}
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Push-Location $repoRoot
 
 $pfxPath = $null
-$importedThumbprints = @()
-$signtool = $null
 $runtimeConfigPath = $null
 $storeExtractDir = $null
+$importedThumbprints = @()
+$signtool = $null
 
 try {
     if ([string]::IsNullOrWhiteSpace($env:WINDOWS_PFX_BASE64) -or
@@ -51,8 +78,9 @@ try {
     Remove-Item -Recurse -Force "src-tauri/target/release/bundle" -ErrorAction SilentlyContinue
     Remove-Item -Force "src-tauri/target/release/widget-website.exe" -ErrorAction SilentlyContinue
 
-    # Compile the app without bundling. It must be signed before NSIS embeds it.
-    Invoke-Checked "Compile the Windows application without bundling" { npm run tauri build -- --no-bundle }
+    Invoke-Checked "Compile the Windows application without bundling" {
+        npm run tauri build -- --no-bundle
+    }
 
     $appBinary = Join-Path $repoRoot "src-tauri/target/release/widget-website.exe"
     if (!(Test-Path $appBinary)) {
@@ -92,7 +120,8 @@ try {
         ForEach-Object { $_.Thumbprint }
     )
 
-    $sdkBin = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
+    $programFilesX86 = (Get-Item -Path "Env:ProgramFiles(x86)" -ErrorAction SilentlyContinue).Value
+    $sdkBin = Join-Path $programFilesX86 "Windows Kits\10\bin"
     $signtool = Get-ChildItem $sdkBin -Recurse -Filter "signtool.exe" -File -ErrorAction SilentlyContinue |
         Where-Object { $_.Directory.Name -eq "x64" } |
         Sort-Object {
@@ -120,12 +149,11 @@ try {
         }
     }
 
-    # Sign the application binary before NSIS packages it.
+    # Sign the app binary before the NSIS installer embeds it.
     Sign-And-Verify -Path $appBinary
 
-    # Tauri's custom signing command is invoked for the NSIS uninstaller and the
-    # final installer. The static Store config is augmented with the resolved
-    # signtool path and certificate thumbprint for this build only.
+    # Tauri's custom sign command signs the NSIS uninstaller and outer installer.
+    # Add it to a temporary Store config; never persist the certificate path/hash.
     $signCommand = @{
         cmd = $signtool.FullName
         args = @(
@@ -141,9 +169,10 @@ try {
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($runtimeConfigPath, $runtimeJson, $utf8NoBom)
 
-    # The Tauri NSIS bundler may sign plugin copies that makensis does not load.
-    # First run materializes the toolchain. Sign the original plugin directory
-    # in that toolchain, then rebuild so makensis embeds the signed DLLs.
+    # First bundle materializes Tauri's cached NSIS toolset. Tauri currently has
+    # an upstream-reported issue where makensis can load unsigned original plugin
+    # DLLs even though a signed copy was prepared. Sign the originals before the
+    # final pass; the extraction check below remains the definitive acceptance gate.
     Invoke-Checked "Materialize the NSIS toolchain" {
         npm run tauri bundle -- --config $runtimeConfigPath
     }
@@ -154,146 +183,7 @@ try {
     )
     $preferredMakensis = @(
         $makensisCandidates |
-        Where-Object { $_.FullName -match '\\release\\.tauri\\NSIS\\makensis\.exe    $installers = @(Get-ChildItem $installerDirectory -Filter "*.exe" -File -ErrorAction SilentlyContinue)
-    if ($installers.Count -ne 1) {
-        throw "Expected exactly one new NSIS installer; found $($installers.Count)."
-    }
-
-    # Tauri has already signed the NSIS uninstaller and outer installer using
-    # bundle.windows.signCommand. Verify the outer signature before publishing.
-    & $signtool.FullName verify /pa /v $installers[0].FullName
-    if ($LASTEXITCODE -ne 0) {
-        throw "The Authenticode signature did not verify for the NSIS installer."
-    }
-
-    foreach ($signedFile in @($appBinary, $installers[0].FullName)) {
-        $signature = Get-AuthenticodeSignature -FilePath $signedFile
-        if ($signature.Status -ne "Valid") {
-            throw "Windows reports a non-valid signature for $signedFile: $($signature.StatusMessage)"
-        }
-    }
-
-    # Microsoft Store requires every PE file embedded in the installer to be
-    # signed. Tauri/NSIS can leave stock NSIS plugins unsigned even when the
-    # outer installer is signed. Inspect the extracted payload before publishing.
-    $sevenZipPath = (Get-Command "7z.exe" -ErrorAction SilentlyContinue).Source
-    if ([string]::IsNullOrWhiteSpace($sevenZipPath)) {
-        $sevenZipCandidates = @(
-            (Join-Path $env:ProgramFiles "7-Zip\7z.exe"),
-            (Join-Path ${env:ProgramFiles(x86)} "7-Zip\7z.exe")
-        )
-        foreach ($candidate in $sevenZipCandidates) {
-            if (Test-Path $candidate) {
-                $sevenZipPath = $candidate
-                break
-            }
-        }
-    }
-    if ([string]::IsNullOrWhiteSpace($sevenZipPath)) {
-        throw "7-Zip is required to inspect the NSIS payload. Install 7-Zip and ensure 7z.exe is available."
-    }
-
-    function Test-PortableExecutable {
-        param([Parameter(Mandatory = $true)][string]$Path)
-
-        $stream = [System.IO.File]::OpenRead($Path)
-        $reader = $null
-        try {
-            if ($stream.Length -lt 64) { return $false }
-            $reader = [System.IO.BinaryReader]::new($stream)
-            if ($reader.ReadUInt16() -ne 0x5A4D) { return $false }
-            $stream.Position = 0x3c
-            $peOffset = $reader.ReadInt32()
-            if ($peOffset -lt 64 -or $peOffset -gt ($stream.Length - 4)) { return $false }
-            $stream.Position = $peOffset
-            return $reader.ReadUInt32() -eq 0x00004550
-        }
-        catch {
-            return $false
-        }
-        finally {
-            if ($null -ne $reader) {
-                $reader.Dispose()
-            } else {
-                $stream.Dispose()
-            }
-        }
-    }
-
-    $storeExtractDir = Join-Path ([System.IO.Path]::GetTempPath()) ("widget-website-store-payload-" + [guid]::NewGuid().ToString("N"))
-    New-Item -ItemType Directory -Path $storeExtractDir -Force | Out-Null
-    Write-Host "Extracting installer payload to inspect all embedded PE files..."
-    & $sevenZipPath x -y "-o$storeExtractDir" $installers[0].FullName
-    if ($LASTEXITCODE -ne 0) {
-        throw "7-Zip could not extract the NSIS installer payload (exit code $LASTEXITCODE)."
-    }
-
-    $embeddedPeFiles = @(
-        Get-ChildItem $storeExtractDir -Recurse -File |
-        Where-Object { Test-PortableExecutable -Path $_.FullName }
-    )
-    if ($embeddedPeFiles.Count -eq 0) {
-        throw "No embedded PE files were discovered in the extracted NSIS installer. Refusing to treat the package as validated."
-    }
-
-    $unsignedPeFiles = @()
-    foreach ($peFile in $embeddedPeFiles) {
-        $signature = Get-AuthenticodeSignature -FilePath $peFile.FullName
-        if ($signature.Status -ne "Valid") {
-            $unsignedPeFiles += [pscustomobject]@{
-                Path = $peFile.FullName.Substring($storeExtractDir.Length).TrimStart('\')
-                Status = $signature.Status.ToString()
-                Message = $signature.StatusMessage
-            }
-        }
-    }
-    if ($unsignedPeFiles.Count -gt 0) {
-        $details = ($unsignedPeFiles | ForEach-Object { "$($_.Path) [$($_.Status)]" }) -join "; "
-        throw "The NSIS package contains PE files without a valid Authenticode signature. This fails Microsoft Store requirements: $details"
-    }
-
-    $installerHash = (Get-FileHash -FilePath $installers[0].FullName -Algorithm SHA256).Hash
-    $manifestLines = @(
-        "Widget Website Microsoft Store package",
-        "Version: $($tauriConfig.version)",
-        "Installer: $($installers[0].Name)",
-        "SHA256: $installerHash",
-        "Embedded PE files verified: $($embeddedPeFiles.Count)",
-        "",
-        "Embedded PE files:"
-    )
-    foreach ($peFile in $embeddedPeFiles) {
-        $signature = Get-AuthenticodeSignature -FilePath $peFile.FullName
-        $relative = $peFile.FullName.Substring($storeExtractDir.Length).TrimStart('\')
-        $manifestLines += "$relative | $($signature.SignerCertificate.Subject)"
-    }
-    $manifestPath = Join-Path $installerDirectory "SHA256SUMS.txt"
-    $manifestLines | Set-Content -Path $manifestPath -Encoding UTF8
-
-    Write-Host ""
-    Write-Host "Microsoft Store installer created and signed:" -ForegroundColor Green
-    Write-Host $installers[0].FullName
-    Write-Host "Silent install parameter for Partner Center: /S"
-    Write-Warning "This script does not upload the installer or submit the product. Test silent install, Add/Remove Programs, updates and Store package validation before submission."
-}
-finally {
-    if ($null -ne $pfxPath) {
-        Remove-Item $pfxPath -Force -ErrorAction SilentlyContinue
-    }
-    if ($null -ne $runtimeConfigPath) {
-        Remove-Item $runtimeConfigPath -Force -ErrorAction SilentlyContinue
-    }
-    if ($null -ne $storeExtractDir) {
-        Remove-Item $storeExtractDir -Recurse -Force -ErrorAction SilentlyContinue
-    }
-    foreach ($thumbprint in $importedThumbprints) {
-        Remove-Item ("Cert:\CurrentUser\My\" + $thumbprint) -Force -ErrorAction SilentlyContinue
-    }
-    Remove-Item Env:WINDOWS_PFX_BASE64 -ErrorAction SilentlyContinue
-    Remove-Item Env:WINDOWS_PFX_PASSWORD -ErrorAction SilentlyContinue
-    Pop-Location
-}
- }
+        Where-Object { $_.FullName -match '\\release\\.tauri\\NSIS\\makensis\.exe$' }
     )
     if ($preferredMakensis.Count -eq 1) {
         $makensis = $preferredMakensis[0]
@@ -332,8 +222,6 @@ finally {
         throw "Expected exactly one new NSIS installer; found $($installers.Count)."
     }
 
-    # Tauri has already signed the NSIS uninstaller and outer installer using
-    # bundle.windows.signCommand. Verify the outer signature before publishing.
     & $signtool.FullName verify /pa /v $installers[0].FullName
     if ($LASTEXITCODE -ne 0) {
         throw "The Authenticode signature did not verify for the NSIS installer."
@@ -346,14 +234,13 @@ finally {
         }
     }
 
-    # Microsoft Store requires every PE file embedded in the installer to be
-    # signed. Tauri/NSIS can leave stock NSIS plugins unsigned even when the
-    # outer installer is signed. Inspect the extracted payload before publishing.
+    # Microsoft Store requires every PE file embedded in the installer to be signed.
+    # Extract the actual NSIS payload and validate all EXE/DLL/other PE files.
     $sevenZipPath = (Get-Command "7z.exe" -ErrorAction SilentlyContinue).Source
     if ([string]::IsNullOrWhiteSpace($sevenZipPath)) {
         $sevenZipCandidates = @(
             (Join-Path $env:ProgramFiles "7-Zip\7z.exe"),
-            (Join-Path ${env:ProgramFiles(x86)} "7-Zip\7z.exe")
+            (Join-Path $programFilesX86 "7-Zip\7z.exe")
         )
         foreach ($candidate in $sevenZipCandidates) {
             if (Test-Path $candidate) {
@@ -364,33 +251,6 @@ finally {
     }
     if ([string]::IsNullOrWhiteSpace($sevenZipPath)) {
         throw "7-Zip is required to inspect the NSIS payload. Install 7-Zip and ensure 7z.exe is available."
-    }
-
-    function Test-PortableExecutable {
-        param([Parameter(Mandatory = $true)][string]$Path)
-
-        $stream = [System.IO.File]::OpenRead($Path)
-        $reader = $null
-        try {
-            if ($stream.Length -lt 64) { return $false }
-            $reader = [System.IO.BinaryReader]::new($stream)
-            if ($reader.ReadUInt16() -ne 0x5A4D) { return $false }
-            $stream.Position = 0x3c
-            $peOffset = $reader.ReadInt32()
-            if ($peOffset -lt 64 -or $peOffset -gt ($stream.Length - 4)) { return $false }
-            $stream.Position = $peOffset
-            return $reader.ReadUInt32() -eq 0x00004550
-        }
-        catch {
-            return $false
-        }
-        finally {
-            if ($null -ne $reader) {
-                $reader.Dispose()
-            } else {
-                $stream.Dispose()
-            }
-        }
     }
 
     $storeExtractDir = Join-Path ([System.IO.Path]::GetTempPath()) ("widget-website-store-payload-" + [guid]::NewGuid().ToString("N"))
