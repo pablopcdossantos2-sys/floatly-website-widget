@@ -520,7 +520,7 @@ pub fn create_main(
     if url.scheme()!="https"&&url.scheme()!="http"{return;}
     let config=page_load_app.state::<AppState>().snapshot();
     let language=serde_json::to_string(&config.language).unwrap_or_else(|_|"\"pt-BR\"".to_owned());
-    let script=format!("(function(){{function apply(){{const root=document.documentElement;if(!root)return;root.style.opacity='{}';root.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});}}if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{{once:true}});}})();",config.opacity as f64/100.0,config.corner_radius,language,config.locked);
+    let script=format!("(function(){{function apply(){{const root=document.documentElement;if(!root)return;root.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});}}if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{{once:true}});}})();",config.corner_radius,language,config.locked);
     if let Err(error)=window.eval(&script) {
         crate::diagnostics::log(&page_load_diag_dir,"WARN",format!("Não foi possível aplicar idioma/aparência à página carregada: {error}"));
     }
@@ -1190,7 +1190,7 @@ pub fn apply_config(app: &AppHandle, c: &AppConfig, resize: bool) {
         let _ = w.set_zoom(c.zoom as f64 / 100.0);
         let language =
             serde_json::to_string(&c.language).unwrap_or_else(|_| "\"pt-BR\"".to_owned());
-        let script=format!("document.documentElement.style.opacity='{}';document.documentElement.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});",c.opacity as f64/100.0,c.corner_radius,language,c.locked);
+        let script=format!("document.documentElement.style.borderRadius='{}px';if(typeof window.__widgetSetLanguage==='function')window.__widgetSetLanguage({});if(typeof window.__widgetSetLocked==='function')window.__widgetSetLocked({});",c.corner_radius,language,c.locked);
         let _ = w.eval(&script);
         let _ = w.set_shadow(c.corner_radius > 0);
         apply_native_corners(&w, c.corner_radius);
