@@ -7,21 +7,23 @@ Este guia foi escrito para que o desenvolvedor consiga executar a preparação e
 
 ## 1. Entenda o caminho de publicação escolhido
 
-O Widget Website é um utilitário desktop Windows: mantém um site escolhido pela pessoa usuária em uma janela flutuante, independente do navegador principal. O produto tem recursos próprios de desktop, como aba para movimentar a janela, redimensionamento, opção de manter no topo, bandeja do sistema, atalho global, sessão WebView2 persistente e zoom.
+O Widget Website é um **navegador compacto para desktop Windows**, desenvolvido para manter um endereço HTTP/HTTPS escolhido pela pessoa usuária em uma janela flutuante. Ele pode exibir um site próprio, uma ferramenta hospedada pela própria pessoa ou outro site compatível. Não é um aplicativo dedicado a um serviço específico e não vem associado a nenhum domínio.
+
+A janela oferece integração própria com o desktop: aba para movimentação, redimensionamento, opção de manter no topo, bandeja do sistema, atalho global, sessão WebView2 persistente e zoom. Seu escopo é intencionalmente compacto: a pessoa configura o endereço nas Configurações e usa uma janela dedicada, em vez de substituir um navegador completo com abas e histórico.
 
 O projeto usa Tauri 2 e, no momento, gera um instalador **NSIS EXE**. Por isso, o caminho técnico preparado é o tipo de produto **EXE or MSI app** do Partner Center. A Microsoft também aceita MSIX e recomenda esse formato em vários cenários, mas migrar este projeto para MSIX exigiria uma etapa própria de empacotamento e validação.
 
 A publicação EXE/MSI é diferente de enviar um ZIP ou um artefato do GitHub Actions. O Partner Center recebe uma URL HTTPS direta para o instalador EXE/MSI hospedado pelo desenvolvedor ou em sua infraestrutura/CDN. A Microsoft baixa e valida esse arquivo.
 
-### Uma decisão de política precisa ser confirmada antes de investir na publicação
+### Enquadramento nas políticas da Microsoft Store
 
-A política Microsoft Store 10.1.1 determina que produtos enviados como *web apps* devem ser publicados pelo proprietário do domínio ou site. O Widget Website é um utilitário Win32 que permite à pessoa usuária escolher o endereço, e não um cliente oficial do Investing.com ou de qualquer outro site. Ainda assim, como a funcionalidade central exibe páginas de terceiros, **não devemos presumir que a Microsoft classificará automaticamente o produto como um utilitário nativo e o aceitará**.
+A regra 10.1.1 que exige que aplicativos da Web sejam publicados pelo proprietário do domínio é destinada a produtos enviados como web apps. O Widget Website não é a publicação de um site dentro de um invólucro: é um aplicativo Win32 genérico, distribuído como EXE, cuja função é fornecer uma janela de navegação configurável. O usuário escolhe o destino; o produto não depende de um site ou serviço específico. Portanto, essa regra não deve ser tratada como um bloqueio prévio para este projeto.
 
-Antes da submissão, peça orientação à Microsoft pelo Partner Center sobre esta descrição concreta:
+Como o Widget Website navega na Web, a regra diretamente relevante é a **10.2.1**: o mecanismo deve ser Chromium ou Gecko e precisa permanecer dentro de duas versões principais do projeto de código aberto correspondente. O Tauri usa WebView2, baseado em Chromium. A configuração de Store seleciona offlineInstaller, que instala o Evergreen WebView2 Runtime; ela não fixa uma versão privada do Chromium. O Evergreen recebe atualizações automáticas da Microsoft.
 
-> “Aplicativo Win32/Tauri que oferece uma janela flutuante de desktop e permite ao usuário escolher um endereço HTTP/HTTPS para exibição. Não representa nem republica um serviço específico. O valor próprio do produto está na integração com o desktop: sempre no topo, movimentação e redimensionamento, bandeja, atalho global, zoom e sessão WebView2.”
+Há, porém, um detalhe operacional: uma instância do aplicativo que já está aberta pode continuar usando a versão anterior do Runtime até ser reiniciada. O processo de validação deve confirmar a versão efetivamente carregada e verificar que o aplicativo adota a versão atualizada após reiniciar. Se a pessoa mantiver o widget aberto por períodos longos, convém avaliar um aviso de reinicialização quando uma nova versão do Runtime estiver disponível.
 
-Guarde a resposta. Se a Microsoft entender que o produto é um web app de terceiros ou que o modelo de exibição viola as políticas, será necessário ajustar o escopo ou escolher outro canal de distribuição. Também é responsabilidade do desenvolvedor verificar se o uso de cada site respeita os respectivos termos e permissões.
+O produto deve ser apresentado com precisão como navegador compacto de um endereço por vez, não como navegador completo. A compatibilidade de páginas, autenticação e recursos depende do site escolhido; a pessoa usuária continua responsável por respeitar os termos de cada serviço. A Microsoft fará a certificação final do pacote enviado, como ocorre com qualquer aplicativo da Store.
 
 ## 2. O que já está preparado no repositório
 
@@ -41,28 +43,16 @@ Esses recursos são preparação, não aprovação de certificação. O build de
 
 ## 3. Tarefas que exigem o desenvolvedor humano
 
-### Etapa 1 — Escolher o tipo de conta Microsoft
+### Etapa 1 — Acessar a conta Partner Center existente
 
-1. Acesse [storedeveloper.microsoft.com](https://storedeveloper.microsoft.com/).
-2. Clique em **Get started for free**.
-3. Entre com a conta Microsoft que será usada para administrar a publicação.
-4. Escolha o tipo correto:
-   - **Individual** se a publicação for em seu próprio nome e não estiver relacionada ao exercício de uma atividade comercial/profissional.
-   - **Company** se a publicação estiver relacionada ao seu negócio, profissão ou a uma empresa/entidade legal.
-5. Conclua a verificação solicitada pela Microsoft. Para contas individuais, o fluxo atual pode solicitar documento oficial e selfie. Para contas de empresa, siga a verificação da entidade e apresente os documentos empresariais pedidos.
-6. Abra o Partner Center e confirme que o espaço **Apps and Games** está disponível.
+O desenvolvedor já possui uma conta em storedeveloper.microsoft.com e já publicou outro widget por meio dela. Portanto, **não é necessário criar outra conta nem repetir o cadastro de desenvolvedor**.
 
-**Atenção:** a nova experiência de cadastro informada pela Microsoft não cobra taxa de registro. A Microsoft também informa que uma conta Individual não pode simplesmente ser convertida em Company; uma escolha errada pode exigir uma nova conta. Não selecione Individual apenas por ser mais simples.
+1. Acesse o Partner Center com a mesma conta Microsoft usada na publicação anterior.
+2. Abra **Apps and Games**.
+3. Confirme que a conta e o painel de publicação continuam acessíveis.
+4. Continue usando essa conta para reservar e administrar o Widget Website.
 
-### Etapa 2 — Obter orientação sobre a política para o produto
-
-Antes de reservar o nome, abra uma solicitação de suporte/consulta no Partner Center, descrevendo o produto conforme a seção 1 deste guia. Pergunte especificamente se a Microsoft o considera um aplicativo Win32 com funcionalidade própria de desktop ou um web app que deve ser publicado pelo dono do domínio.
-
-Anexe ou descreva os recursos nativos. Não apresente o produto como um widget do Investing.com. Não use o nome, logotipo, capturas de tela ou outros elementos de marca de terceiros como identidade do produto.
-
-**Não avance para uma submissão pública se houver dúvida material sobre a elegibilidade.** A resposta da Microsoft deve orientar o posicionamento final.
-
-### Etapa 3 — Reservar o nome do produto
+### Etapa 2 — Reservar o nome do produto
 
 1. No Partner Center, abra **Apps and Games**.
 2. Escolha **New Product**.
@@ -72,7 +62,7 @@ Anexe ou descreva os recursos nativos. Não apresente o produto como um widget d
 
 O nome **Widget Website** é o nome atual no código, não uma garantia de disponibilidade na Store. Se a reserva exigir outro nome, decida a marca final antes da primeira submissão. A listagem deve usar um nome único, sem empilhar palavras-chave ou descrições no título.
 
-### Etapa 4 — Definir a identidade do publisher
+### Etapa 3 — Definir a identidade do publisher
 
 O Tauri exige que o nome do publisher seja diferente do nome do produto. O valor deve representar a pessoa ou entidade que realmente publica o aplicativo e deve ser coerente com a identidade usada no certificado de assinatura e no Partner Center.
 
@@ -95,7 +85,7 @@ Não copie literalmente o texto de exemplo. Não use um nome fictício. Preserve
 
 **Esta etapa não pode ser concluída automaticamente:** o repositório não contém e não deve inventar a identidade legal/comercial do publicador.
 
-### Etapa 5 — Obter um certificado de assinatura de código
+### Etapa 4 — Obter um certificado de assinatura de código
 
 Para o caminho EXE/MSI, a Microsoft exige que o instalador e todos os arquivos PE que ele contém sejam assinados por um certificado de assinatura de código que encadeie até uma autoridade certificadora participante do Microsoft Trusted Root Program.
 
@@ -120,7 +110,7 @@ O script de Store verifica a validade do certificado, a finalidade Code Signing,
 
 **Importante:** os segredos Authenticode acima são diferentes da chave que será usada pelo atualizador Tauri. Não os confunda nem reutilize uma chave privada em finalidades diferentes.
 
-### Etapa 6 — Definir como as atualizações serão entregues
+### Etapa 5 — Definir como as atualizações do aplicativo serão entregues
 
 Esta é uma pendência técnica real. O projeto ainda não tem o plugin Tauri Updater configurado, não possui chave pública/privada de atualização, endpoint de atualização nem artefatos assinados de atualização.
 
@@ -146,7 +136,7 @@ A chave privada do atualizador nunca deve ser publicada. Se for perdida, os usu�
 
 Não configure um endpoint de exemplo ou uma chave falsa: o atualizador só deve ser ativado quando o endpoint, o feed, as chaves e o processo de release forem reais e testados.
 
-### Etapa 7 — Conferir a versão do aplicativo
+### Etapa 6 — Conferir a versão do aplicativo
 
 Antes de cada pacote que será enviado à Store, mantenha os seguintes valores sincronizados:
 
@@ -396,10 +386,11 @@ Para cada atualização:
 
 ## Fontes oficiais consultadas
 
-- [Microsoft Store Policies — versão 7.20 (publicada em 15/09/2026; efetiva em 22/10/2026)](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies).
-- [Abrir conta de desenvolvedor Microsoft Store](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/open-a-developer-account) — tipos Individual/Company, critérios de escolha e ausência de taxa de registro no fluxo atual.
+- [Microsoft Store Policies — versão 7.20 (publicada em 15/09/2026; efetiva em 22/10/2026)](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies), especialmente as regras 10.1.1 (representação correta do produto) e 10.2.1 (mecanismo de navegação Web).
+- [WebView2: boas práticas de desenvolvimento](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/developer-guide) — uso do Evergreen Runtime e adoção de atualizações.
 - [Guia Tauri 2 — Microsoft Store](https://v2.tauri.app/distribute/microsoft-store/).
 - [Tauri 2 — Windows Installer](https://v2.tauri.app/distribute/windows-installer/).
+- [Tauri 2 — versões dos mecanismos WebView](https://v2.tauri.app/reference/webview-versions/).
 - [Requisitos de pacote EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/app-package-requirements).
 - [Validação de pacotes EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/package-validation-pre-check).
 - [Validação manual de instaladores EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/manual-package-validation).
