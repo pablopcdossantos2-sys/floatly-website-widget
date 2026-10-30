@@ -26,7 +26,7 @@ Use-o para acompanhar seu próprio site, uma ferramenta que você hospeda ou qua
 - Preserve a sessão local do WebView2 entre execuções.
 - Use a interface em português (Brasil), inglês ou espanhol.
 
-**Limitações:** o Widget Website é um navegador compacto focado em uma janela de navegação configurada pelo usuário; não substitui um navegador completo com abas e histórico. A compatibilidade de páginas, recursos e autenticação depende do website escolhido. Alguns sites podem restringir determinadas formas de acesso. Verifique os termos e permissões aplicáveis a cada serviço.
+**Limitações:** o Widget Website é um navegador compacto focado em um endereço principal configurado pelo usuário; não substitui um navegador completo com abas e histórico. Links para outros domínios são encaminhados ao navegador padrão, enquanto fluxos de autenticação reconhecidos podem abrir em uma janela auxiliar. A compatibilidade de páginas, recursos e autenticação depende do website escolhido. Alguns sites podem restringir determinadas formas de acesso. Verifique os termos e permissões aplicáveis a cada serviço.
 
 O Widget Website não é afiliado, patrocinado ou endossado pelos websites que o usuário escolher abrir.
 
@@ -52,7 +52,7 @@ Use it for your own website, a tool you host, or any compatible page. Adjust the
 - Preserve the local WebView2 session between launches.
 - Use the interface in Brazilian Portuguese, English or Spanish.
 
-**Limitations:** Widget Website is a compact browser focused on a user-configured browsing window; it does not replace a full browser with tabs and history. Page compatibility, features and sign-in behavior depend on the website you choose. Some websites may restrict certain forms of access. Check the terms and permissions that apply to each service.
+**Limitations:** Widget Website is a compact browser focused on one user-configured primary address; it does not replace a full browser with tabs and history. Links to other domains are sent to the default browser, while recognized sign-in flows may open in a helper window. Page compatibility, features and sign-in behavior depend on the website you choose. Some websites may restrict certain forms of access. Check the terms and permissions that apply to each service.
 
 Widget Website is not affiliated with, sponsored by or endorsed by the websites users choose to open.
 
@@ -78,7 +78,7 @@ Widget Website es un navegador compacto para Windows. Introduce una dirección H
 - Conserva la sesión local de WebView2 entre ejecuciones.
 - Utiliza la interfaz en portugués de Brasil, inglés o español.
 
-**Limitaciones:** Widget Website es un navegador compacto centrado en una ventana configurada por el usuario; no sustituye a un navegador completo con pestañas e historial. La compatibilidad de páginas, funciones y el inicio de sesión dependen del sitio elegido. Algunos sitios pueden restringir determinadas formas de acceso. Consulta los términos y permisos aplicables a cada servicio.
+**Limitaciones:** Widget Website es un navegador compacto centrado en una dirección principal configurada por el usuario; no sustituye a un navegador completo con pestañas e historial. Los enlaces a otros dominios se envían al navegador predeterminado, mientras que los flujos de autenticación reconocidos pueden abrirse en una ventana auxiliar. La compatibilidad de páginas, funciones y el inicio de sesión dependen del sitio elegido. Algunos sitios pueden restringir determinadas formas de acceso. Consulta los términos y permisos aplicables a cada servicio.
 
 Widget Website no está afiliado, patrocinado ni respaldado por los sitios web que el usuario elija abrir.
 
