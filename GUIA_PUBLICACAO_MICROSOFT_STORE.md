@@ -219,7 +219,7 @@ O script `build-microsoft-store.ps1` tenta contornar esse problema assinando, ap
 
 Faça estes testes em uma máquina virtual ou computador Windows limpo, de preferência diferente do ambiente de desenvolvimento. Preserve uma cópia do instalador exato que será enviado.
 
-### Etapa 8 — Validar assinatura e integridade
+### Etapa 7 — Validar assinatura e integridade
 
 1. Confirme que `Get-AuthenticodeSignature` retorna `Valid` para o instalador e para o executável principal.
 2. Confira o nome do certificado e sua cadeia de confiança.
@@ -227,7 +227,7 @@ Faça estes testes em uma máquina virtual ou computador Windows limpo, de prefe
 4. Revise `SHA256SUMS.txt`, confirme que todos os PE extraídos constam como assinados e registre o nome do arquivo, versão, tamanho, data e SHA-256.
 5. Não altere o binário depois de validar e enviar essa versão.
 
-### Etapa 9 — Testar a instalação silenciosa
+### Etapa 8 — Testar a instalação silenciosa
 
 O projeto usa NSIS. Para o Partner Center, o parâmetro silencioso documentado pelo Tauri é **`/S`** (S maiúsculo).
 
@@ -239,7 +239,7 @@ Start-Process -FilePath ".\NOME-DO-INSTALADOR.exe" -ArgumentList "/S" -Wait -Pas
 
 O instalador deve completar sem exibir uma interface de instalação. Um aviso do UAC pode ser permitido pelo requisito Microsoft. Registre o código de saída e confirme que o aplicativo foi instalado.
 
-### Etapa 10 — Conferir a entrada do Windows e a desinstalação
+### Etapa 9 — Conferir a entrada do Windows e a desinstalação
 
 1. Abra **Configurações do Windows → Aplicativos → Aplicativos instalados** (ou **Painel de Controle → Programas e Recursos**).
 2. Confirme que nome do aplicativo, publisher e versão aparecem corretamente; nenhum campo pode ficar em branco ou mostrar uma identidade sem relação com o produto.
@@ -254,7 +254,7 @@ A instalação offline do WebView2 permite instalar o Runtime sem baixá-lo dura
 
 ## 6. Hospedar o instalador e criar a submissão
 
-### Etapa 11 — Hospedar uma URL HTTPS versionada
+### Etapa 10 — Hospedar uma URL HTTPS versionada
 
 A Microsoft exige um link HTTPS direto ao EXE/MSI. O instalador deve estar hospedado em infraestrutura própria ou CDN, sem login, cookies ou etapas intermediárias para baixá-lo.
 
@@ -271,10 +271,10 @@ https://downloads.seudominio.example/widget-website/0.1.0/widget-website-setup.e
 6. Depois de submeter o binário, não substitua o conteúdo dessa URL. Para uma nova versão, publique outro caminho versionado e atualize a submissão do Partner Center.
 7. Mantenha as versões antigas disponíveis enquanto forem referenciadas por uma submissão publicada.
 
-### Etapa 12 — Criar a submissão no Partner Center
+### Etapa 11 — Criar a submissão no Partner Center
 
 1. Entre em **Partner Center → Apps and Games**.
-2. Abra o produto reservado na Etapa 3.
+2. Abra o produto reservado na Etapa 2.
 3. Complete as seções da submissão:
    - **Availability:** mercados, disponibilidade, preço e agenda de publicação.
    - **Properties:** categoria, subcategoria quando disponível, requisitos de sistema e informações de produto.
@@ -287,7 +287,7 @@ https://downloads.seudominio.example/widget-website/0.1.0/widget-website-setup.e
 
 A Microsoft recomenda completar a listagem em todos os idiomas suportados pelo produto. Este projeto oferece interface PT-BR, inglês e espanhol; prepare textos e capturas coerentes nesses idiomas.
 
-### Etapa 13 — Preparar os materiais da página da Store
+### Etapa 12 — Preparar os materiais da página da Store
 
 Use o arquivo [MICROSOFT_STORE_LISTING_DRAFT.md](MICROSOFT_STORE_LISTING_DRAFT.md) como rascunho de título, descrições, palavras-chave e roteiro de screenshots.
 
@@ -302,7 +302,7 @@ Antes de publicar:
 - Informe um canal real de suporte e uma página de política de privacidade acessível.
 - Revise o texto e as capturas para garantir que o valor principal esteja claro já na primeira execução.
 
-### Etapa 14 — Política de privacidade e notas para certificação
+### Etapa 13 — Política de privacidade e notas para certificação
 
 O produto mantém uma sessão WebView2 local, grava configuração/logs no perfil do usuário e acessa o site escolhido por essa pessoa. O repositório informa que não há telemetria e que os logs omitem query strings e fragments das URLs. O desenvolvedor deve verificar se essa descrição continua precisa na versão que será enviada.
 
@@ -314,7 +314,7 @@ O produto mantém uma sessão WebView2 local, grava configuração/logs no perfi
 
 ## 7. Validação e envio
 
-### Etapa 15 — Executar a validação de pacote
+### Etapa 14 — Executar a validação de pacote
 
 Para produtos EXE/MSI, o Partner Center oferece a seção de **Package validation**. Na página **Manage Packages**, use **Run** no pacote e depois consulte **View status** para inspecionar os resultados.
 
@@ -329,7 +329,7 @@ Antes de enviar, confirme também manualmente:
 
 Se a validação indicar falhas, corrija o build e produza um novo instalador. Quando o binário mudar, use outra URL versionada e atualize o pacote no Partner Center.
 
-### Etapa 16 — Submeter para certificação
+### Etapa 15 — Submeter para certificação
 
 1. Revise todas as seções e confirme que não há campos pendentes.
 2. Clique em **Submit to the Store**.
@@ -355,9 +355,8 @@ Para cada atualização:
 
 | Tarefa | Responsável |
 |---|---|
-| Escolher conta Individual ou Company e concluir verificação | Desenvolvedor humano |
-| Obter uma resposta da Microsoft sobre a elegibilidade do widget genérico | Desenvolvedor humano |
-| Reservar nome e preencher Partner Center | Desenvolvedor humano |
+| Acessar a conta Partner Center já existente | Já concluído pelo desenvolvedor |
+| Reservar o nome do produto e preencher o Partner Center | Desenvolvedor humano |
 | Definir publisher real e preencher `bundle.publisher` | Desenvolvedor humano |
 | Obter certificado Authenticode de uma CA confiável | Desenvolvedor humano |
 | Guardar o PFX e criar GitHub Actions Secrets | Desenvolvedor humano |
@@ -372,12 +371,12 @@ Para cada atualização:
 
 ## 10. Bloqueios atuais — não marcar como pronto
 
-- [ ] Confirmação da Microsoft de que este modelo de widget genérico é elegível para a Store, dadas as regras sobre web apps e conteúdo de terceiros.
-- [ ] Conta Partner Center criada e nome do produto reservado.
+- [ ] Nome do produto reservado na conta Partner Center existente.
 - [ ] Nome real do publisher definido e configurado em `src-tauri/tauri.conf.json`.
 - [ ] Certificado Authenticode obtido e segredos GitHub configurados.
 - [ ] Integração do Tauri Updater, chaves e endpoint de atualização implementados e testados.
 - [ ] Build Store executado com sucesso no Windows usando certificado real, com `SHA256SUMS.txt` validando todos os PE extraídos.
+- [ ] WebView2 Evergreen validado em Windows limpo: versão Chromium dentro do limite da regra 10.2.1 e adoção da versão atualizada após reiniciar o aplicativo.
 - [ ] Instalador silencioso, atualização, desinstalação e teste em máquina limpa aprovados.
 - [ ] Instalador hospedado em URL HTTPS direta, versionada e imutável.
 - [ ] Capturas reais, textos finais, classificação etária, suporte e privacidade prontos.
