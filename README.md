@@ -2,7 +2,7 @@
 
 **Idiomas / Languages / Idiomas:** Português (Brasil) · [English](README.en.md) · [Español](README.es.md)
 
-Widget desktop para manter um site escolhido pelo usuário visível em uma pequena janela WebView2 sem moldura. O site é configurado na primeira execução; nenhum endereço de terceiros vem predefinido. Projeto Tauri 2 para Windows 10/11 x64.
+Navegador compacto para manter um endereço escolhido pelo usuário em uma janela flutuante WebView2 no desktop do Windows. O endereço é configurado na primeira execução; nenhum site de terceiros vem predefinido. Projeto Tauri 2 para Windows 10/11 x64.
 
 ## Recursos
 - Janela sem barra de título, bandeja do sistema, instância única e atalho global padrão CTRL+ALT+C. Fechar pela tecla/ botão de fechar esconde o widget na bandeja; use Sair para encerrar o processo.
