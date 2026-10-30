@@ -20,6 +20,7 @@ $pfxPath = $null
 $importedThumbprints = @()
 $signtool = $null
 $runtimeConfigPath = $null
+$storeExtractDir = $null
 
 try {
     if ([string]::IsNullOrWhiteSpace($env:WINDOWS_PFX_BASE64) -or
@@ -162,6 +163,103 @@ try {
         }
     }
 
+    # Microsoft Store requires every PE file embedded in the installer to be
+    # signed. Tauri/NSIS can leave stock NSIS plugins unsigned even when the
+    # outer installer is signed. Inspect the extracted payload before publishing.
+    $sevenZip = Get-Command "7z.exe" -ErrorAction SilentlyContinue
+    if ($null -eq $sevenZip) {
+        $sevenZipCandidates = @(
+            (Join-Path $env:ProgramFiles "7-Zip\7z.exe"),
+            (Join-Path \${env:ProgramFiles(x86)} "7-Zip\7z.exe")
+        )
+        foreach ($candidate in $sevenZipCandidates) {
+            if (Test-Path $candidate) {
+                $sevenZip = Get-Item $candidate
+                break
+            }
+        }
+    }
+    if ($null -eq $sevenZip) {
+        throw "7-Zip is required to inspect the NSIS payload. Install 7-Zip and ensure 7z.exe is available."
+    }
+
+    function Test-PortableExecutable {
+        param([Parameter(Mandatory = $true)][string]$Path)
+
+        $stream = [System.IO.File]::OpenRead($Path)
+        $reader = $null
+        try {
+            if ($stream.Length -lt 64) { return $false }
+            $reader = [System.IO.BinaryReader]::new($stream)
+            if ($reader.ReadUInt16() -ne 0x5A4D) { return $false }
+            $stream.Position = 0x3c
+            $peOffset = $reader.ReadInt32()
+            if ($peOffset -lt 64 -or $peOffset -gt ($stream.Length - 4)) { return $false }
+            $stream.Position = $peOffset
+            return $reader.ReadUInt32() -eq 0x00004550
+        }
+        catch {
+            return $false
+        }
+        finally {
+            if ($null -ne $reader) {
+                $reader.Dispose()
+            } else {
+                $stream.Dispose()
+            }
+        }
+    }
+
+    $storeExtractDir = Join-Path ([System.IO.Path]::GetTempPath()) ("widget-website-store-payload-" + [guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $storeExtractDir -Force | Out-Null
+    Write-Host "Extracting installer payload to inspect all embedded PE files..."
+    & $sevenZip.Source x -y "-o$storeExtractDir" $installers[0].FullName
+    if ($LASTEXITCODE -ne 0) {
+        throw "7-Zip could not extract the NSIS installer payload (exit code $LASTEXITCODE)."
+    }
+
+    $embeddedPeFiles = @(
+        Get-ChildItem $storeExtractDir -Recurse -File |
+        Where-Object { Test-PortableExecutable -Path $_.FullName }
+    )
+    if ($embeddedPeFiles.Count -eq 0) {
+        throw "No embedded PE files were discovered in the extracted NSIS installer. Refusing to treat the package as validated."
+    }
+
+    $unsignedPeFiles = @()
+    foreach ($peFile in $embeddedPeFiles) {
+        $signature = Get-AuthenticodeSignature -FilePath $peFile.FullName
+        if ($signature.Status -ne "Valid") {
+            $unsignedPeFiles += [pscustomobject]@{
+                Path = $peFile.FullName.Substring($storeExtractDir.Length).TrimStart('\')
+                Status = $signature.Status.ToString()
+                Message = $signature.StatusMessage
+            }
+        }
+    }
+    if ($unsignedPeFiles.Count -gt 0) {
+        $details = ($unsignedPeFiles | ForEach-Object { "$($_.Path) [$($_.Status)]" }) -join "; "
+        throw "The NSIS package contains PE files without a valid Authenticode signature. This fails Microsoft Store requirements: $details"
+    }
+
+    $installerHash = (Get-FileHash -FilePath $installers[0].FullName -Algorithm SHA256).Hash
+    $manifestLines = @(
+        "Widget Website Microsoft Store package",
+        "Version: $($tauriConfig.version)",
+        "Installer: $($installers[0].Name)",
+        "SHA256: $installerHash",
+        "Embedded PE files verified: $($embeddedPeFiles.Count)",
+        "",
+        "Embedded PE files:"
+    )
+    foreach ($peFile in $embeddedPeFiles) {
+        $signature = Get-AuthenticodeSignature -FilePath $peFile.FullName
+        $relative = $peFile.FullName.Substring($storeExtractDir.Length).TrimStart('\')
+        $manifestLines += "$relative | $($signature.SignerCertificate.Subject)"
+    }
+    $manifestPath = Join-Path $installerDirectory "SHA256SUMS.txt"
+    $manifestLines | Set-Content -Path $manifestPath -Encoding UTF8
+
     Write-Host ""
     Write-Host "Microsoft Store installer created and signed:" -ForegroundColor Green
     Write-Host $installers[0].FullName
@@ -174,6 +272,9 @@ finally {
     }
     if ($null -ne $runtimeConfigPath) {
         Remove-Item $runtimeConfigPath -Force -ErrorAction SilentlyContinue
+    }
+    if ($null -ne $storeExtractDir) {
+        Remove-Item $storeExtractDir -Recurse -Force -ErrorAction SilentlyContinue
     }
     foreach ($thumbprint in $importedThumbprints) {
         Remove-Item ("Cert:\CurrentUser\My\" + $thumbprint) -Force -ErrorAction SilentlyContinue
