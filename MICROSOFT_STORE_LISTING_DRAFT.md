@@ -1,21 +1,21 @@
 # Rascunho de listagem da Microsoft Store
 
-**Status:** texto inicial para revisão humana. Não publicar sem confirmar o nome reservado, a elegibilidade do produto, a categoria, a classificação etária e a política de privacidade.
+**Status:** texto inicial para revisão humana. Não publicar sem confirmar o nome reservado, a categoria, a classificação etária, o publisher, o suporte e a política de privacidade.
 
-O objetivo da listagem é apresentar o Widget Website como um utilitário de desktop que permite exibir um site escolhido pelo usuário em uma janela flutuante. A listagem não deve ser apresentada como produto oficial, cliente ou parceiro de qualquer website exibido.
+O objetivo da listagem é apresentar o Widget Website como um navegador compacto para Windows, baseado em WebView2, que mantém um endereço escolhido pelo usuário em uma janela flutuante. Não é um navegador completo com abas e histórico, nem um cliente ou produto oficial de qualquer website exibido.
 
 ## Português (Brasil)
 
 **Nome provisório:** Widget Website
 
 **Frase curta:**
-Mantenha um site escolhido por você em uma janela flutuante no desktop.
+Navegue em um site escolhido por você em uma janela compacta e flutuante no desktop.
 
 **Descrição:**
 
-O Widget Website transforma uma página da web escolhida por você em uma janela compacta no desktop do Windows.
+O Widget Website é um navegador compacto para Windows. Informe um endereço HTTP ou HTTPS escolhido por você e mantenha o site em uma janela flutuante enquanto utiliza outros programas.
 
-Abra as Configurações, informe o endereço do site e mantenha a página visível enquanto utiliza outros programas. Ajuste o tamanho e a posição da janela, escolha se ela deve permanecer sempre no topo e controle o zoom do conteúdo.
+Use-o para acompanhar seu próprio site, uma ferramenta que você hospeda ou qualquer página compatível. Ajuste o tamanho e a posição da janela, escolha se ela deve permanecer sempre no topo e controle o zoom do conteúdo.
 
 **Recursos**
 - Exiba um site HTTP ou HTTPS escolhido por você.
@@ -26,7 +26,7 @@ Abra as Configurações, informe o endereço do site e mantenha a página visív
 - Preserve a sessão local do WebView2 entre execuções.
 - Use a interface em português (Brasil), inglês ou espanhol.
 
-**Antes de usar:** o Widget Website é uma janela de exibição, não um navegador completo nem um serviço de conteúdo. A compatibilidade de páginas, recursos e autenticação depende do website escolhido. Alguns sites podem restringir ou não permitir determinadas formas de acesso. Verifique os termos e permissões aplicáveis a cada serviço.
+**Limitações:** o Widget Website é um navegador compacto focado em uma janela de navegação configurada pelo usuário; não substitui um navegador completo com abas e histórico. A compatibilidade de páginas, recursos e autenticação depende do website escolhido. Alguns sites podem restringir determinadas formas de acesso. Verifique os termos e permissões aplicáveis a cada serviço.
 
 O Widget Website não é afiliado, patrocinado ou endossado pelos websites que o usuário escolher abrir.
 
@@ -35,13 +35,13 @@ O Widget Website não é afiliado, patrocinado ou endossado pelos websites que o
 **Provisional name:** Widget Website
 
 **Short description:**
-Keep a website of your choice in a floating window on your Windows desktop.
+Browse a website of your choice in a compact floating window on your Windows desktop.
 
 **Description:**
 
-Widget Website turns a webpage you choose into a compact window on your Windows desktop.
+Widget Website is a compact browser for Windows. Enter an HTTP or HTTPS address of your choice and keep the website in a floating window while you work in other applications.
 
-Open Settings, enter a website address and keep that page visible while you work in other applications. Adjust the window size and position, choose whether it should stay on top, and control the embedded browser zoom.
+Use it for your own website, a tool you host, or any compatible page. Adjust the window size and position, choose whether it should stay on top, and control the embedded browser zoom.
 
 **Features**
 - Display an HTTP or HTTPS website chosen by you.
@@ -52,7 +52,7 @@ Open Settings, enter a website address and keep that page visible while you work
 - Preserve the local WebView2 session between launches.
 - Use the interface in Brazilian Portuguese, English or Spanish.
 
-**Before you use it:** Widget Website is a website display window, not a full web browser or a content service. Page compatibility, features and sign-in behavior depend on the website you choose. Some websites may restrict or disallow certain forms of access. Check the terms and permissions that apply to each service.
+**Limitations:** Widget Website is a compact browser focused on a user-configured browsing window; it does not replace a full browser with tabs and history. Page compatibility, features and sign-in behavior depend on the website you choose. Some websites may restrict certain forms of access. Check the terms and permissions that apply to each service.
 
 Widget Website is not affiliated with, sponsored by or endorsed by the websites users choose to open.
 
@@ -61,13 +61,13 @@ Widget Website is not affiliated with, sponsored by or endorsed by the websites 
 **Nombre provisional:** Widget Website
 
 **Descripción breve:**
-Mantén un sitio web de tu elección en una ventana flotante en el escritorio de Windows.
+Navega por un sitio web elegido por ti en una ventana compacta y flotante en el escritorio de Windows.
 
 **Descripción:**
 
-Widget Website convierte una página web elegida por ti en una ventana compacta en el escritorio de Windows.
+Widget Website es un navegador compacto para Windows. Introduce una dirección HTTP o HTTPS elegida por ti y mantén el sitio en una ventana flotante mientras utilizas otras aplicaciones.
 
-Abre Configuración, introduce la dirección del sitio y mantén la página visible mientras utilizas otras aplicaciones. Ajusta el tamaño y la posición de la ventana, decide si debe permanecer siempre encima y controla el zoom del navegador integrado.
+Úsalo con tu propio sitio, una herramienta que alojes o cualquier página compatible. Ajusta el tamaño y la posición de la ventana, decide si debe permanecer siempre encima y controla el zoom del navegador integrado.
 
 **Funciones**
 - Muestra un sitio HTTP o HTTPS elegido por ti.
@@ -78,7 +78,7 @@ Abre Configuración, introduce la dirección del sitio y mantén la página visi
 - Conserva la sesión local de WebView2 entre ejecuciones.
 - Utiliza la interfaz en portugués de Brasil, inglés o español.
 
-**Antes de usarlo:** Widget Website es una ventana para mostrar sitios web, no un navegador completo ni un servicio de contenido. La compatibilidad de páginas, funciones y el inicio de sesión dependen del sitio elegido. Algunos sitios pueden restringir o no permitir determinadas formas de acceso. Consulta los términos y permisos aplicables a cada servicio.
+**Limitaciones:** Widget Website es un navegador compacto centrado en una ventana configurada por el usuario; no sustituye a un navegador completo con pestañas e historial. La compatibilidad de páginas, funciones y el inicio de sesión dependen del sitio elegido. Algunos sitios pueden restringir determinadas formas de acceso. Consulta los términos y permisos aplicables a cada servicio.
 
 Widget Website no está afiliado, patrocinado ni respaldado por los sitios web que el usuario elija abrir.
 
@@ -86,11 +86,11 @@ Widget Website no está afiliado, patrocinado ni respaldado por los sitios web q
 
 Cada listagem pode ter até sete termos/frases únicos. Usar somente termos que descrevam o aplicativo, sem incluir marcas ou títulos de produtos alheios.
 
-**PT-BR:** widget de desktop; janela flutuante; site no desktop; sempre no topo; widget para Windows; atalho global; WebView2.
+**PT-BR:** navegador compacto; navegador flutuante; navegador para desktop; janela de navegação; sempre no topo; navegador para Windows; WebView2.
 
-**English:** desktop widget; floating window; website on desktop; always on top; Windows widget; global shortcut; WebView2.
+**English:** compact browser; floating browser; desktop browser; browsing window; always on top; Windows browser; WebView2.
 
-**Español:** widget de escritorio; ventana flotante; sitio web en escritorio; siempre visible; widget para Windows; atajo global; WebView2.
+**Español:** navegador compacto; navegador flotante; navegador de escritorio; ventana de navegación; siempre visible; navegador para Windows; WebView2.
 
 ## Categoria e classificação
 
@@ -113,7 +113,7 @@ Não usar capturas de páginas de terceiros sem permissão. Evitar logotipos, im
 ## Antes de aprovar a listagem
 
 - [ ] Nome confirmado como reservado no Partner Center.
-- [ ] Elegibilidade do widget genérico confirmada com a Microsoft.
+- [ ] Requisito da política 10.2.1 validado: mecanismo Chromium/WebView2 dentro do limite de duas versões principais e runtime Evergreen atualizado.
 - [ ] Descrição validada com as funcionalidades da versão realmente testada.
 - [ ] Publisher e suporte identificados corretamente.
 - [ ] Política de privacidade publicada e revisada.
