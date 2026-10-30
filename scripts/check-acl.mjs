@@ -1,6 +1,11 @@
 import fs from "node:fs";
 const read = (path) => fs.readFileSync(new URL(path, import.meta.url), "utf8");
 const main = read("../src-tauri/src/main.rs");
+const configSource = read("../src-tauri/src/config.rs");
+const windowSource = read("../src-tauri/src/window.rs");
+const startupSource = read("../src/main.ts");
+const settingsSource = read("../src/settings.ts");
+const settingsHtml = read("../settings.html");
 const build = read("../src-tauri/build.rs");
 const tauriConfig = JSON.parse(read("../src-tauri/tauri.conf.json"));
 const mainCapability = JSON.parse(read("../src-tauri/capabilities/main-local.json"));
@@ -22,4 +27,8 @@ if (!settingsCapability.permissions.includes("allow-save-config") || !settingsCa
 if (settingsCapability.permissions.includes("allow-heartbeat")) throw new Error("Settings window must not be allowed to invoke heartbeat.");
 if (settingsCapability.permissions.includes("core:default")) throw new Error("Settings capability must not enable core:default.");
 if (JSON.stringify(remoteCapability.remote?.urls) !== JSON.stringify(["http://*", "https://*"]) || JSON.stringify(remoteCapability.permissions) !== JSON.stringify(["allow-heartbeat"]) || remoteCapability.permissions.some((p) => p !== "allow-heartbeat")) throw new Error("Remote sites may invoke only the dedicated heartbeat command using HTTP(S) URL patterns.");
-console.log("ACL smoke check passed: app commands are scoped and remote Investing.com can invoke only the dedicated heartbeat command.");
+const defaultSite = configSource.match(/pub const DEFAULT_SITE: &str = "([^"]*)";/)?.[1];
+if (defaultSite !== "") throw new Error("The generic widget must not contain a preconfigured third-party website URL.");
+if (!startupSource.includes('let target = "";' ) || startupSource.includes("investing.com")) throw new Error("The startup page must prompt for a user-selected website, not default to a third party.");
+if (configSource.includes("pub opacity: u8") || settingsSource.includes("opacity") || settingsHtml.includes('id="opacity"') || settingsHtml.includes('id="opacity-value"') || windowSource.includes("config.opacity") || windowSource.includes("document.documentElement.style.opacity")) throw new Error("The removed opacity setting must not return to the UI, app configuration, or page styling.");
+console.log("ACL/generic-widget smoke checks passed: commands are scoped, the website URL is user-selected, opacity configuration is removed, and remote sites can invoke only the authenticated heartbeat command.");
