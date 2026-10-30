@@ -137,7 +137,9 @@ try {
     $storeConfig = Get-Content "src-tauri/tauri.microsoftstore.conf.json" -Raw | ConvertFrom-Json
     $storeConfig.bundle.windows | Add-Member -NotePropertyName signCommand -NotePropertyValue $signCommand -Force
     $runtimeConfigPath = Join-Path ([System.IO.Path]::GetTempPath()) ("tauri-store-config-" + [guid]::NewGuid().ToString("N") + ".json")
-    $storeConfig | ConvertTo-Json -Depth 10 | Set-Content -Path $runtimeConfigPath -Encoding UTF8
+    $runtimeJson = $storeConfig | ConvertTo-Json -Depth 10
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($runtimeConfigPath, $runtimeJson, $utf8NoBom)
 
     # The Tauri NSIS bundler may sign plugin copies that makensis does not load.
     # First run materializes the toolchain. Sign the original plugin directory
