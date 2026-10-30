@@ -34,7 +34,7 @@ Os itens abaixo foram implementados diretamente na branch `main`:
 - O tamanho padrão continua em 350 × 550 px e o zoom padrão em 80%.
 - `src-tauri/tauri.microsoftstore.conf.json` seleciona o instalador offline do WebView2 sem alterar a compilação normal.
 - `npm run check:store-config` verifica alguns requisitos locais de configuração.
-- `npm run build:store` executa o build e assinatura no Windows. Ele assina o executável principal antes do empacotamento e usa o `bundle.windows.signCommand` do Tauri para assinar o desinstalador NSIS e o instalador externo. Depois extrai o instalador e verifica a assinatura Authenticode de **todos os arquivos PE** encontrados. Se houver um executável ou DLL sem assinatura válida, interrompe o build. O processo gera `SHA256SUMS.txt` com a versão, o hash do instalador e a lista dos PE verificados.
+- `npm run build:store` executa o build e assinatura no Windows. Ele assina o executável principal antes do empacotamento; usa o `bundle.windows.signCommand` do Tauri para assinar o desinstalador NSIS e o instalador externo; faz uma primeira compilação para materializar o toolset NSIS; assina também as DLLs originais da pasta de plugins usada pelo `makensis`; e reconstrói o instalador. Depois extrai o EXE e verifica a assinatura Authenticode de **todos os arquivos PE** encontrados. Se houver um executável ou DLL sem assinatura válida, interrompe o build. O processo gera `SHA256SUMS.txt` com a versão, o hash do instalador e a lista dos PE verificados.
 - O workflow manual **Build Microsoft Store package** executa os testes e gera o instalador assinado como artefato temporário do GitHub Actions.
 
 Esses recursos são preparação, não aprovação de certificação. O build de Store para quando não encontra `bundle.publisher` preenchido com a identidade real do desenvolvedor ou quando faltam os segredos do certificado.
@@ -186,7 +186,7 @@ npm run build:store
 ```
 
 5. O script executa as verificações, compila o aplicativo sem empacotar, assina o executável principal, gera o instalador usando a configuração offline do WebView2 e assina o instalador final.
-6. O script também exige que o **7-Zip** esteja instalado e disponível em `PATH` ou em uma das pastas padrão do Windows. Ele é usado para extrair o conteúdo do NSIS e verificar as assinaturas de cada executável/DLL. O build falha caso não consiga fazer essa inspeção.
+6. O script faz uma primeira compilação para materializar o toolset NSIS, assina os DLLs originais da pasta `Plugins` usada pelo `makensis` e reconstrói o instalador. O script também exige que o **7-Zip** esteja instalado e disponível em `PATH` ou em uma das pastas padrão do Windows. Ele é usado para extrair o conteúdo do NSIS e verificar as assinaturas de cada executável/DLL. O build falha caso não consiga fazer essa inspeção.
 7. O instalador deverá estar em:
 
 ```text
@@ -224,7 +224,7 @@ O workflow é manual e não publica o aplicativo automaticamente na Store.
 
 Há um relato upstream no Tauri ([issue #16208](https://github.com/tauri-apps/tauri/issues/16208), aberto em 4 de outubro de 2026) em que algumas DLLs padrão de plugins NSIS — como `System.dll`, `nsDialogs.dll`, `StartMenu.dll` e `NSISdl.dll` — continuam sem assinatura no instalador, embora o empacotador informe que assinou cópias desses plugins. O relato descreve Tauri CLI 2.11.2 / NSIS 3.11; o projeto atualmente resolve uma versão mais recente da CLI, então não se deve presumir que o mesmo comportamento esteja presente ou corrigido sem inspeção real.
 
-Por esse motivo, o script `build-microsoft-store.ps1` não confia apenas nos logs do Tauri: extrai o EXE com 7-Zip e verifica os cabeçalhos PE e a assinatura de cada binário. **Se qualquer PE estiver sem assinatura válida, não publique o pacote.** Será necessário corrigir a integração de assinatura dos plugins do NSIS ou avaliar outra estratégia de empacotamento (por exemplo, MSIX), e então repetir os testes.
+O script `build-microsoft-store.ps1` tenta contornar esse problema assinando, após materializar o NSIS, os DLLs originais da pasta `Plugins` do toolset que contém `makensis.exe`, incluindo `LangDLL.dll`, antes de reconstruir o instalador. Ele não confia apenas nos logs do Tauri: extrai o EXE com 7-Zip e verifica os cabeçalhos PE e a assinatura de cada binário. **Se qualquer PE estiver sem assinatura válida, não publique o pacote.** Essa mitigação foi preparada a partir do relato upstream, mas ainda precisa ser validada em um runner Windows com certificado real. Se falhar, será necessário corrigir a integração do toolset NSIS ou avaliar outra estratégia de empacotamento (por exemplo, MSIX).
 ## 5. Testar o instalador antes de enviá-lo
 
 Faça estes testes em uma máquina virtual ou computador Windows limpo, de preferência diferente do ambiente de desenvolvimento. Preserve uma cópia do instalador exato que será enviado.
