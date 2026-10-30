@@ -18,6 +18,7 @@ const config = read("src-tauri/src/config.rs");
 const startup = read("src/main.ts");
 const settings = read("src/settings.ts");
 const settingsHtml = read("settings.html");
+const storeBuild = read("scripts/build-microsoft-store.ps1");
 
 const cargoVersion = cargo.match(/^version\s*=\s*"([^"]+)"/m)?.[1];
 if (!pkg.version || pkg.version !== tauri.version || pkg.version !== cargoVersion) {
@@ -51,7 +52,13 @@ if (/calendário econômico|economic calendar|calendario economico/i.test(cargo.
   fail("Cargo package description is still calendar-specific.");
 }
 
+if (!storeBuild.includes("bundle.windows | Add-Member -NotePropertyName signCommand") ||
+    !storeBuild.includes("Test-PortableExecutable") ||
+    !storeBuild.includes("Get-AuthenticodeSignature -FilePath $peFile.FullName") ||
+    !storeBuild.includes("SHA256SUMS.txt")) {
+  fail("The Store builder must sign through Tauri's Windows signCommand and verify every embedded PE before publishing.");
+}
 if (!tauri.bundle.publisher) {
   console.warn("MANUAL ACTION REQUIRED: set bundle.publisher to the developer's real publisher name before producing the final Store package.");
 }
-console.log("Microsoft Store configuration checks passed. The publisher identity and signing certificate still require human configuration.");
+console.log("Microsoft Store configuration checks passed. Embedded PE signatures are inspected after extraction; publisher identity and signing certificate still require human configuration.");
