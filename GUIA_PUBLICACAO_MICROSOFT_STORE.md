@@ -365,6 +365,7 @@ Para cada atualização:
 | Verificar versão, permissões e configuração Store | Automatizado pelo script/CI |
 | Compilar e assinar app antes do NSIS e assinar instalador | Automatizado por `npm run build:store` ou workflow manual, após os segredos e publisher existirem |
 | Testar instalação, desinstalação, atualização e comportamento em Windows limpo | Desenvolvedor humano |
+| Verificar WebView2 Evergreen/Chromium e adoção de atualizações após reiniciar o widget | Desenvolvedor humano |
 | Hospedar pacote em URL HTTPS versionada e imutável | Desenvolvedor humano |
 | Criar listagem, capturas reais, classificação etária e política de privacidade | Desenvolvedor humano |
 | Executar package validation, submeter e responder à certificação | Desenvolvedor humano |
