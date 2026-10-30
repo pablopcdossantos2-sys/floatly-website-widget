@@ -104,7 +104,7 @@ Cada listagem pode ter até sete termos/frases únicos. Usar somente termos que 
 **Observação:** esta é a recomendação para o modelo atual do Floatly (aplicativo desktop Win32 distribuído por instalador EXE). A seleção final deve ser conferida nas opções efetivamente apresentadas pelo Partner Center no momento do envio.
 
 - **Classificação etária:** responder ao questionário IARC considerando que a pessoa pode abrir sites variados. Não escolher uma classificação baixa por suposição. Confirmar com a Microsoft como avaliar conteúdo de terceiros escolhido pelo usuário.
-- **Política de privacidade:** adicionar a URL pública e estável depois que o desenvolvedor revisar e publicar a política final.
+- **Política de privacidade:** [https://github.com/pablopcdossantos2-sys/widget-website/blob/main/PRIVACY_POLICY.md](https://github.com/pablopcdossantos2-sys/widget-website/blob/main/PRIVACY_POLICY.md). Antes de informar o link no Partner Center, preencher o nome legal do responsável e o e-mail de privacidade nos campos indicados no documento e revisar o texto final.
 - **Suporte:** inserir o endereço real de suporte ou página de contato.
 
 ## Plano de screenshots reais
