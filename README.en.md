@@ -2,7 +2,7 @@
 
 **Languages:** [Português (Brasil)](README.md) · English · [Español](README.es.md)
 
-A small Windows desktop widget that keeps the Investing.com economic calendar open in a compact, frameless WebView2 window. Built with Tauri 2 for Windows 10/11 x64.
+A small Windows desktop widget that keeps a website chosen by the user visible in a compact, frameless WebView2 window. The website is configured on first launch; no third-party URL is prefilled. Built with Tauri 2 for Windows 10/11 x64.
 
 ## Features
 
@@ -11,7 +11,7 @@ A small Windows desktop widget that keeps the Investing.com economic calendar op
 - Interface available in Brazilian Portuguese, English and Spanish. Change it under **Settings → Language**.
 - A small handle at the top center lets you drag the widget. The edge hit areas remain active but transparent, so no frame is drawn around the content. Window size and position are configurable.
 - The default window size is 350 × 550 px and the default embedded browser zoom is 80%; both can be changed in settings.
-- Configurable website URL, size, position, movement lock, always-on-top behavior, taskbar visibility, opacity, zoom, corner radius and automatic reload.
+- Configurable website URL, size, position, movement lock, always-on-top behavior, taskbar visibility, zoom, corner radius and automatic reload.
 - External links open in the default browser. Recognized sign-in domains open in a secondary window with a simple address bar and shared WebView2 data folder; the window attempts to close when sign-in returns to the configured website.
 - Windows x64 build workflow and NSIS installer.
 
@@ -40,7 +40,7 @@ The installer is created under src-tauri/target/release/bundle/nsis and the exec
 
 ## Interface language
 
-Open **Settings → Language** and choose Portuguese (Brazil), English or Spanish. The setting is saved in %APPDATA%\WidgetWebsite\config.json and translates the settings window, system-tray menu, sign-in toolbar and the widget's own connection messages. The Investing.com content remains in the language served by the website.
+Open **Settings → Language** and choose Portuguese (Brazil), English or Spanish. The setting is saved in %APPDATA%\WidgetWebsite\config.json and translates the settings window, system-tray menu, sign-in toolbar and the widget's own connection messages. The chosen website remains in the language served by that website.
 
 ## Digital signing and Windows security warnings
 
@@ -53,12 +53,11 @@ Never put a private key in the repository or this README. The build runs without
 
 **Important:** a valid signature cannot guarantee that Microsoft Defender SmartScreen will never show a warning. New apps or files may still display a warning until publisher and file reputation are established. Publishing through the Microsoft Store is the most direct way to avoid SmartScreen download warnings. See [Microsoft's SmartScreen reputation guidance](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) and [Tauri's Windows code-signing guide](https://tauri.app/distribute/sign/windows/).
 
-## First sign-in
+## Example: Investing.com
 
-1. Open the widget and wait for the calendar to load.
-2. The system-tray menu includes **Sign in / login window**. Email and password sign-in is often the most straightforward option.
-3. Restart the app to confirm that the session persists. Some filters may be tied to the account and may need to be set again.
-4. If the session expires, use the system-tray sign-in command and authenticate again.
+Investing.com is only an example of a website the widget can display. To use it, open **Settings → Website URL** and enter `https://br.investing.com/economic-calendar`. The widget is not tied to this service; any website using HTTP or HTTPS can be configured.
+
+For sites that require sign-in, use the authentication flow provided by that website. The system-tray menu includes an option to sign in or configure the website.
 
 The app does not read, copy or store passwords. The default WebView2 user agent is preserved.
 
@@ -72,11 +71,11 @@ The app does not read, copy or store passwords. The default WebView2 user agent 
 
 ## Privacy and limitations
 
-- No telemetry. The main navigation is restricted to the configured website and recognized authentication resources; other HTTP/HTTPS links are opened in the default browser.
+- No telemetry. Main navigation is restricted to the configured website and recognized authentication resources; links to other domains open in the default browser. The remote website is granted only the authenticated activity-heartbeat command.
 - A corrupt configuration file is replaced with defaults. **Restore default size** only changes the dimensions to 350 × 550 px; other preferences are preserved.
 - CI checks Tauri version alignment, the command manifest and capabilities; it runs `npm ci`, type checking, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` and `cargo test`, then builds the Windows installer.
 - The secondary sign-in window shares the WebView2 data folder and has an injected address bar. Navigation to unapproved domains is opened in the default browser. Automatic closing depends on the sign-in provider returning to the configured website; some social sign-in flows may require closing the window manually.
-- Zoom uses the native WebView2 zoom control. Opacity and rounded corners use CSS/native clipping; corner appearance may vary on Windows 10.
+- Zoom uses the native WebView2 zoom control. Corner clipping may vary on Windows 10.
 - Network checks show a custom status panel before the main navigation and monitor connectivity while the site is open. Tauri's default wrapper cannot replace every Chromium navigation failure in every scenario.
 - Real sign-in, saved filters, shortcut conflicts, 125%/150% scaling, multiple monitors, DPI changes and memory use still need to be tested on Windows hardware.
 
