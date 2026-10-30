@@ -14,6 +14,7 @@ Widget compacto para Windows que mantiene visible un sitio web elegido por el us
 - URL, tamaño, posición, bloqueo del movimiento, mantener siempre visible, visibilidad en la barra de tareas, zoom, esquinas redondeadas y actualización automática configurables.
 - Los enlaces externos se abren en el navegador predeterminado. Los dominios de autenticación reconocidos se abren en una ventana secundaria con una barra de direcciones sencilla y la misma carpeta de datos de WebView2. La ventana intenta cerrarse cuando el inicio de sesión vuelve al sitio configurado.
 - Flujo de compilación para Windows x64 e instalador NSIS.
+- La preparación inicial para Microsoft Store se documenta en [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md) (portugués); el envío aún depende de las tareas pendientes indicadas.
 
 ## Requisitos
 
@@ -37,6 +38,12 @@ Ejecuta estos comandos en PowerShell (es necesario generar los iconos antes de l
     npm run tauri build
 
 El instalador se genera en src-tauri/target/release/bundle/nsis y el ejecutable en src-tauri/target/release. GitHub Actions compila el paquete para Windows y lo publica como artefacto widget-website-windows-x64.
+
+## Primer inicio
+
+Al abrir el widget por primera vez, se te pedirá que elijas un sitio web. Haz clic en **Elegir sitio web** e introduce una URL en **Configuración → URL del sitio**. El campo empieza vacío: no hay ningún sitio de terceros preconfigurado. El sitio debe permitir la carga en WebView2; algunos sitios pueden restringir funciones o flujos de inicio de sesión.
+
+Como ejemplo, puedes introducir `https://br.investing.com/economic-calendar`. Investing.com es solo un ejemplo, no el propósito exclusivo del widget ni una afiliación oficial.
 
 ## Idioma de la interfaz
 
