@@ -41,6 +41,12 @@ Na primeira abertura, o widget pede que você escolha um site. Clique em **Escol
 
 Para um exemplo concreto de URL, consulte a seção de exemplo abaixo.
 
+## Microsoft Store
+
+O processo de preparação e publicação está documentado no [guia passo a passo da Microsoft Store](GUIA_PUBLICACAO_MICROSOFT_STORE.md). O [rascunho de listagem multilíngue](MICROSOFT_STORE_LISTING_DRAFT.md) ajuda a preparar descrição e screenshots.
+
+O build Store é manual: configure o publisher real e os segredos do certificado antes de executar `npm run build:store` ou o workflow **Build Microsoft Store package**. A existência do workflow não significa que o produto já esteja pronto ou aprovado para publicação.
+
 ## Idioma da interface
 
 Abra **Configurações → Idioma** e escolha Português (Brasil), English ou Español. A escolha é salva em `%APPDATA%\\WidgetWebsite\\config.json` e afeta a janela de configurações, menus da bandeja, a janela auxiliar de login e as mensagens próprias do widget. O conteúdo do site escolhido continua no idioma fornecido pelo próprio site.
