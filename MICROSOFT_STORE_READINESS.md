@@ -11,7 +11,7 @@ O tutorial completo, com as tarefas do desenvolvedor, os comandos, as verificaç
 - URL vazia para novas instalações e assistente de primeira execução.
 - Configuração adicional `src-tauri/tauri.microsoftstore.conf.json` usando WebView2 `offlineInstaller`.
 - Verificador `npm run check:store-config`, integrado ao CI normal e ao workflow Store.
-- Script `npm run build:store`: assina o executável, usa o `signCommand` do Tauri para o desinstalador NSIS e o setup externo, extrai o EXE com 7-Zip e valida a assinatura de todos os PE encontrados. Gera `SHA256SUMS.txt`; interrompe o build se encontrar um PE sem assinatura válida.
+- Script `npm run build:store`: assina o executável, materializa o toolset NSIS, assina os DLLs originais da pasta `Plugins` usada pelo `makensis`, reconstrói o pacote, usa o `signCommand` do Tauri para o desinstalador e o setup externo e valida com 7-Zip a assinatura de todos os PE extraídos. Gera `SHA256SUMS.txt` e interrompe o build se algum PE estiver sem assinatura válida. Gera `SHA256SUMS.txt`; interrompe o build se encontrar um PE sem assinatura válida.
 - Workflow manual **Build Microsoft Store package**, executável na branch `main`, que publica o instalador assinado como artefato temporário do Actions por 14 dias.
 
 O script exige um valor real em `bundle.publisher`, além dos segredos `WINDOWS_PFX_BASE64` e `WINDOWS_PFX_PASSWORD`. Ele falha sem esses dados. O artefato do Actions não é uma URL permanente e não deve ser usado diretamente como endereço do pacote no Partner Center.
