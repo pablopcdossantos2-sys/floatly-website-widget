@@ -133,6 +133,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::get_config,
             commands::save_config,
+            commands::open_settings,
             commands::close_settings,
             commands::heartbeat
         ])
