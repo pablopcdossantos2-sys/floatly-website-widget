@@ -3,6 +3,7 @@ fn main() {
         tauri_build::AppManifest::new().commands(&[
             "get_config",
             "save_config",
+            "open_settings",
             "close_settings",
             "heartbeat",
         ]),
