@@ -19,6 +19,7 @@ Push-Location $repoRoot
 $pfxPath = $null
 $importedThumbprints = @()
 $signtool = $null
+$runtimeConfigPath = $null
 
 try {
     if ([string]::IsNullOrWhiteSpace($env:WINDOWS_PFX_BASE64) -or
@@ -121,9 +122,24 @@ try {
     # Sign the application binary before NSIS packages it.
     Sign-And-Verify -Path $appBinary
 
-    # Tauri merges the Store-only config here, embedding the offline WebView2 installer.
-    Invoke-Checked "Create the offline NSIS installer for Microsoft Store" {
-        npm run tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json
+    # Tauri's custom signing command is invoked for the NSIS uninstaller and the
+    # final installer. The static Store config is augmented with the resolved
+    # signtool path and certificate thumbprint for this build only.
+    $signCommand = @{
+        cmd = $signtool.FullName
+        args = @(
+            "sign", "/s", "My", "/sha1", $certificate.Thumbprint,
+            "/fd", "SHA256", "/tr", "http://timestamp.digicert.com",
+            "/td", "SHA256", "%1"
+        )
+    }
+    $storeConfig = Get-Content "src-tauri/tauri.microsoftstore.conf.json" -Raw | ConvertFrom-Json
+    $storeConfig.bundle.windows | Add-Member -NotePropertyName signCommand -NotePropertyValue $signCommand -Force
+    $runtimeConfigPath = Join-Path ([System.IO.Path]::GetTempPath()) ("tauri-store-config-" + [guid]::NewGuid().ToString("N") + ".json")
+    $storeConfig | ConvertTo-Json -Depth 10 | Set-Content -Path $runtimeConfigPath -Encoding UTF8
+
+    Invoke-Checked "Create the offline NSIS installer and sign its uninstaller and setup executable" {
+        npm run tauri bundle -- --config $runtimeConfigPath
     }
 
     $installerDirectory = Join-Path $repoRoot "src-tauri/target/release/bundle/nsis"
@@ -132,8 +148,12 @@ try {
         throw "Expected exactly one new NSIS installer; found $($installers.Count)."
     }
 
-    # Sign the outer installer after its contents have already been signed.
-    Sign-And-Verify -Path $installers[0].FullName
+    # Tauri has already signed the NSIS uninstaller and outer installer using
+    # bundle.windows.signCommand. Verify the outer signature before publishing.
+    & $signtool.FullName verify /pa /v $installers[0].FullName
+    if ($LASTEXITCODE -ne 0) {
+        throw "The Authenticode signature did not verify for the NSIS installer."
+    }
 
     foreach ($signedFile in @($appBinary, $installers[0].FullName)) {
         $signature = Get-AuthenticodeSignature -FilePath $signedFile
@@ -151,6 +171,9 @@ try {
 finally {
     if ($null -ne $pfxPath) {
         Remove-Item $pfxPath -Force -ErrorAction SilentlyContinue
+    }
+    if ($null -ne $runtimeConfigPath) {
+        Remove-Item $runtimeConfigPath -Force -ErrorAction SilentlyContinue
     }
     foreach ($thumbprint in $importedThumbprints) {
         Remove-Item ("Cert:\CurrentUser\My\" + $thumbprint) -Force -ErrorAction SilentlyContinue
