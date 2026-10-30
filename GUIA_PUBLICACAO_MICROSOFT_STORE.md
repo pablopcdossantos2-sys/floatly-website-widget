@@ -193,7 +193,7 @@ npm run build:store
 src-tauri/target/release/bundle/nsis/
 ```
 
-7. O script remove as variáveis de ambiente do processo ao terminar e apaga o arquivo PFX temporário.
+8. O script remove as variáveis de ambiente do processo ao terminar e apaga o arquivo PFX temporário.
 8. Verifique o resultado:
 
 ```powershell
@@ -397,7 +397,7 @@ Para cada atualização:
 ## Fontes oficiais consultadas
 
 - [Microsoft Store Policies — versão 7.20 (publicada em 15/09/2026; efetiva em 22/10/2026)](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies).
-- [Abrir conta de desenvolvedor Microsoft Store](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/open-a-developer-account).
+- [Abrir conta de desenvolvedor Microsoft Store](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/open-a-developer-account) — tipos Individual/Company, critérios de escolha e ausência de taxa de registro no fluxo atual.
 - [Guia Tauri 2 — Microsoft Store](https://v2.tauri.app/distribute/microsoft-store/).
 - [Tauri 2 — Windows Installer](https://v2.tauri.app/distribute/windows-installer/).
 - [Requisitos de pacote EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/app-package-requirements).
