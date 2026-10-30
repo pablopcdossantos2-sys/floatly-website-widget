@@ -53,6 +53,7 @@ if (/calendário econômico|economic calendar|calendario economico/i.test(cargo.
 }
 
 if (!storeBuild.includes("bundle.windows | Add-Member -NotePropertyName signCommand") ||
+    !storeBuild.includes("Signing the original NSIS plugin DLLs") ||
     !storeBuild.includes("Test-PortableExecutable") ||
     !storeBuild.includes("Get-AuthenticodeSignature -FilePath $peFile.FullName") ||
     !storeBuild.includes("SHA256SUMS.txt")) {
