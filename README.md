@@ -79,6 +79,8 @@ O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é 
 - O diagnóstico distingue ausência de atividade JavaScript de uma janela nativa sem resposta, mas não consegue provar sozinho que um aplicativo externo causou o congelamento. O monitor também não pode gravar novas mensagens se o processo inteiro for encerrado abruptamente ou deixar de executar todos os seus threads.
 
 ## Privacidade, decisões e limitações
+
+Consulte a [Política de Privacidade do Floatly](PRIVACY_POLICY.md) (português, inglês e espanhol). Antes da submissão à Microsoft Store, o publicador deve preencher os dados de identificação e contato indicados no documento.
 - Sem telemetria. A navegação principal é limitada ao site configurado e a recursos de autenticação reconhecidos; os links para outros domínios abrem no navegador padrão. A permissão concedida ao site remoto é limitada ao sinal autenticado de atividade.
 - Arquivo de configuração corrompido é substituído por valores padrão. O botão “Restaurar tamanho padrão” muda somente largura e altura para 350 × 550 px; as outras preferências são preservadas.
 - A CI verifica a compatibilidade das versões Tauri, o manifesto de permissões e as capabilities; executa `npm ci`, verificação de tipos, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` e `cargo test`; por fim, compila o instalador no Windows.
