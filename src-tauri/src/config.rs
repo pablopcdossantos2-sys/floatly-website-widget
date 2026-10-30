@@ -14,7 +14,7 @@ use std::{
 use tauri_plugin_global_shortcut::Shortcut;
 use url::Url;
 
-pub const DEFAULT_SITE: &str = "https://br.investing.com/economic-calendar";
+pub const DEFAULT_SITE: &str = "";
 pub const DEFAULT_WIDTH: u32 = 350;
 pub const DEFAULT_HEIGHT: u32 = 550;
 
@@ -37,7 +37,6 @@ pub struct AppConfig {
     pub remember_position: bool,
     pub autostart: bool,
     pub always_on_top: bool,
-    pub opacity: u8,
     pub zoom: u16,
     pub auto_reload_minutes: u16,
     pub show_in_taskbar: bool,
@@ -60,7 +59,6 @@ impl Default for AppConfig {
             remember_position: true,
             autostart: false,
             always_on_top: false,
-            opacity: 100,
             zoom: 80,
             auto_reload_minutes: 0,
             show_in_taskbar: false,
@@ -76,30 +74,30 @@ impl AppConfig {
     pub fn normalize(&mut self) -> Result<(), String> {
         let mut site = self.site_url.trim().to_owned();
         if site.is_empty() {
-            return Err("config.site_url_required".into());
+            self.site_url.clear();
+        } else {
+            let has_scheme = site.split_once("://").is_some_and(|(scheme, _)| {
+                let mut chars = scheme.chars();
+                chars
+                    .next()
+                    .is_some_and(|first| first.is_ascii_alphabetic())
+                    && chars.all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '.' | '-'))
+            });
+            if !has_scheme {
+                site = format!("https://{site}");
+            }
+            let url = Url::parse(&site).map_err(|_| "config.site_url_invalid".to_owned())?;
+            if !["http", "https"].contains(&url.scheme())
+                || url.host_str().is_none()
+                || !url.username().is_empty()
+                || url.password().is_some()
+            {
+                return Err("config.site_url_http_only".into());
+            }
+            self.site_url = url.to_string();
         }
-        let has_scheme = site.split_once("://").is_some_and(|(scheme, _)| {
-            let mut chars = scheme.chars();
-            chars
-                .next()
-                .is_some_and(|first| first.is_ascii_alphabetic())
-                && chars.all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '.' | '-'))
-        });
-        if !has_scheme {
-            site = format!("https://{site}");
-        }
-        let url = Url::parse(&site).map_err(|_| "config.site_url_invalid".to_owned())?;
-        if !["http", "https"].contains(&url.scheme())
-            || url.host_str().is_none()
-            || !url.username().is_empty()
-            || url.password().is_some()
-        {
-            return Err("config.site_url_http_only".into());
-        }
-        self.site_url = url.to_string();
         self.width = self.width.clamp(150, 2000);
         self.height = self.height.clamp(100, 1600);
-        self.opacity = self.opacity.clamp(30, 100);
         self.zoom = self.zoom.clamp(50, 200);
         if self.auto_reload_minutes > 0 && self.auto_reload_minutes < 5 {
             self.auto_reload_minutes = 5;
@@ -278,6 +276,10 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
                 .cloned()
             {
                 Some(previous) => previous,
+                None if key == "opacity" => {
+                    warnings.push("Configuração obsoleta removida: opacity.".into());
+                    continue;
+                }
                 None => continue,
             };
             if let Some(base) = merged.as_object_mut() {
@@ -336,9 +338,6 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
     }
     if before_normalize.language != config.language {
         warnings.push("Valor de language inválido; usando o idioma padrão.".into());
-    }
-    if before_normalize.opacity != config.opacity {
-        warnings.push("Valor de opacity ajustado aos limites suportados.".into());
     }
     if before_normalize.zoom != config.zoom {
         warnings.push("Valor de zoom ajustado aos limites suportados.".into());
@@ -415,28 +414,33 @@ mod tests {
         assert_eq!(config.width, DEFAULT_WIDTH);
         assert_eq!(config.height, DEFAULT_HEIGHT);
         assert_eq!(config.zoom, 80);
-        assert_eq!(config.opacity, 100);
         assert_eq!(config.global_shortcut, "CTRL+ALT+C");
         assert_eq!(config.language, "pt-BR");
     }
 
     #[test]
+    fn empty_site_url_is_allowed_until_user_configures_widget() {
+        let mut config = AppConfig::default();
+        assert!(config.site_url.is_empty());
+        config.normalize().unwrap();
+        assert!(config.site_url.is_empty());
+    }
+
+    #[test]
     fn normalization_prefixes_https_and_clamps_values() {
         let mut config = AppConfig {
-            site_url: "investing.com".into(),
+            site_url: "example.com".into(),
             width: 1,
             height: 9999,
-            opacity: 0,
             zoom: 250,
             auto_reload_minutes: 1,
             corner_radius: 100,
             ..AppConfig::default()
         };
         config.normalize().unwrap();
-        assert_eq!(config.site_url, "https://investing.com/");
+        assert_eq!(config.site_url, "https://example.com/");
         assert_eq!(config.width, 150);
         assert_eq!(config.height, 1600);
-        assert_eq!(config.opacity, 30);
         assert_eq!(config.zoom, 200);
         assert_eq!(config.auto_reload_minutes, 5);
         assert_eq!(config.corner_radius, 64);
@@ -538,24 +542,25 @@ mod tests {
     }
 
     #[test]
-    fn load_keeps_valid_fields_when_one_field_is_out_of_range() {
+    fn load_removes_legacy_opacity_preference_without_discarding_valid_fields() {
         let dir = std::env::temp_dir().join(format!(
-            "widget-website-partial-config-{}",
+            "widget-website-legacy-opacity-{}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         fs::write(
             dir.join("config.json"),
-            r#"{"width":800,"opacity":300,"language":"en"}"#,
+            r#"{"width":800,"opacity":65,"language":"en"}"#,
         )
         .unwrap();
         let (config, warnings, safe_to_persist) = load_with_warnings(&dir);
         assert_eq!(config.width, 800);
-        assert_eq!(config.opacity, 100);
         assert_eq!(config.language, "en");
         assert!(warnings.iter().any(|warning| warning.contains("opacity")));
         assert!(safe_to_persist);
+        let serialized = serde_json::to_value(&config).unwrap();
+        assert!(!serialized.as_object().unwrap().contains_key("opacity"));
         fs::remove_dir_all(&dir).unwrap();
     }
 
@@ -589,13 +594,13 @@ mod tests {
     #[test]
     fn normalization_prefixes_https_when_scheme_only_appears_in_query() {
         let mut config = AppConfig {
-            site_url: "investing.com/x?u=https://example.com".into(),
+            site_url: "example.com/x?u=https://example.org".into(),
             ..AppConfig::default()
         };
         config.normalize().unwrap();
         assert_eq!(
             config.site_url,
-            "https://investing.com/x?u=https://example.com"
+            "https://example.com/x?u=https://example.org"
         );
     }
 
