@@ -20,7 +20,6 @@ pub struct ConfigPatch {
     pub remember_position: Option<bool>,
     pub autostart: Option<bool>,
     pub always_on_top: Option<bool>,
-    pub opacity: Option<u8>,
     pub zoom: Option<u16>,
     pub auto_reload_minutes: Option<u16>,
     pub show_in_taskbar: Option<bool>,
@@ -49,9 +48,6 @@ impl ConfigPatch {
         }
         if let Some(value) = self.always_on_top {
             config.always_on_top = value;
-        }
-        if let Some(value) = self.opacity {
-            config.opacity = value;
         }
         if let Some(value) = self.zoom {
             config.zoom = value;
@@ -93,7 +89,7 @@ mod patch_tests {
             ..AppConfig::default()
         };
         let patch = ConfigPatch {
-            opacity: Some(80),
+            zoom: Some(125),
             ..ConfigPatch::default()
         };
         let result = patch.apply_to(latest);
@@ -102,7 +98,7 @@ mod patch_tests {
         assert!(result.locked);
         assert!(result.always_on_top);
         assert_eq!(result.width, 900);
-        assert_eq!(result.opacity, 80);
+        assert_eq!(result.zoom, 125);
     }
 
     #[test]
@@ -123,7 +119,7 @@ mod patch_tests {
     }
 }
 
-/// The remote calendar can only use this command to report liveness.
+/// The configured remote website can only use this command to report liveness.
 #[tauri::command]
 pub fn heartbeat(token: String, state: State<'_, AppState>) -> Result<(), String> {
     if token != state.heartbeat_token {
@@ -345,6 +341,11 @@ pub fn save_config(
     })
 }
 #[tauri::command]
+pub fn open_settings(app: AppHandle) {
+    window::open_settings(&app);
+}
+
+#[tauri::command]
 pub fn close_settings(app: AppHandle) {
     if let Some(w) = app.get_webview_window("settings") {
         let _ = w.close();
@@ -419,5 +420,9 @@ pub fn show_settings(app: &AppHandle) {
     window::open_settings(app)
 }
 pub fn show_login(app: &AppHandle) {
-    window::open_login_from_tray(app)
+    if app.state::<AppState>().snapshot().site_url.trim().is_empty() {
+        window::open_settings(app);
+    } else {
+        window::open_login_from_tray(app)
+    }
 }
