@@ -43,7 +43,7 @@ El instalador se genera en src-tauri/target/release/bundle/nsis y el ejecutable 
 
 Al abrir el widget por primera vez, se te pedirá que elijas un sitio web. Haz clic en **Elegir sitio web** e introduce una URL en **Configuración → URL del sitio**. El campo empieza vacío: no hay ningún sitio de terceros preconfigurado. El sitio debe permitir la carga en WebView2; algunos sitios pueden restringir funciones o flujos de inicio de sesión.
 
-Como ejemplo, puedes introducir `https://br.investing.com/economic-calendar`. Investing.com es solo un ejemplo, no el propósito exclusivo del widget ni una afiliación oficial.
+Para ver una URL de ejemplo concreta, consulta la sección de ejemplo a continuación.
 
 ## Idioma de la interfaz
 
