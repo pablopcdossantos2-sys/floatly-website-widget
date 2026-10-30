@@ -13,6 +13,7 @@ Widget desktop para manter um site escolhido pelo usuário visível em uma peque
 - URL, tamanho, posição, travamento, sempre no topo, barra de tarefas, zoom, cantos e recarga automática configuráveis.
 - Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária com uma barra de endereço simples e a pasta de dados compartilhada do WebView2. A janela tenta fechar quando o fluxo retorna ao endereço configurado após a autenticação.
 - Workflow de compilação Windows x64 e instalador NSIS.
+- Preparação inicial para a Microsoft Store documentada em [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md); a submissão ainda depende das pendências descritas nesse documento.
 
 ## Pré-requisitos
 - Windows 10/11 x64, Node.js 22 ou mais recente (LTS) e npm.
@@ -33,6 +34,12 @@ Execute:
     npm run tauri build
 
 O instalador aparece em src-tauri/target/release/bundle/nsis e o executável em src-tauri/target/release. O workflow Build Windows compila a saída no GitHub Actions e publica-a como artefato.
+
+## Primeira execução
+
+Na primeira abertura, o widget pede que você escolha um site. Clique em **Escolher site** e informe uma URL em **Configurações → URL do site**. O campo começa vazio: nenhum website de terceiros vem configurado por padrão. O site precisa permitir o carregamento no WebView2; alguns sites podem restringir recursos específicos ou fluxos de login.
+
+Para ver um exemplo, configure `https://br.investing.com/economic-calendar`. O Investing.com é apenas um exemplo, não é o serviço para o qual o widget foi feito exclusivamente, nem uma afiliação oficial.
 
 ## Idioma da interface
 
