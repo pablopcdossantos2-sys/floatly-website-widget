@@ -51,6 +51,10 @@ try {
     if (!(Test-Path $appBinary)) {
         throw "The application executable was not generated: $appBinary"
     }
+    $tauriConfig = Get-Content "src-tauri/tauri.conf.json" -Raw | ConvertFrom-Json
+    if ([string]::IsNullOrWhiteSpace($tauriConfig.bundle.publisher)) {
+        throw "Set bundle.publisher in src-tauri/tauri.conf.json to the real publisher identity before creating the Store installer."
+    }
 
     $pfxPath = Join-Path ([System.IO.Path]::GetTempPath()) ("widget-website-store-" + [guid]::NewGuid().ToString("N") + ".pfx")
     $pfxBytes = [Convert]::FromBase64String(($env:WINDOWS_PFX_BASE64 -replace '\s', ''))
@@ -85,7 +89,7 @@ try {
         ForEach-Object { $_.Thumbprint }
     )
 
-    $sdkBin = Join-Path \${env:ProgramFiles(x86)} "Windows Kits\10\bin"
+    $sdkBin = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
     $signtool = Get-ChildItem $sdkBin -Recurse -Filter "signtool.exe" -File -ErrorAction SilentlyContinue |
         Where-Object { $_.Directory.Name -eq "x64" } |
         Sort-Object {
