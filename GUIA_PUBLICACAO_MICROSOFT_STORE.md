@@ -34,7 +34,7 @@ Os itens abaixo foram implementados diretamente na branch `main`:
 - O tamanho padrão continua em 350 × 550 px e o zoom padrão em 80%.
 - `src-tauri/tauri.microsoftstore.conf.json` seleciona o instalador offline do WebView2 sem alterar a compilação normal.
 - `npm run check:store-config` verifica alguns requisitos locais de configuração.
-- `npm run build:store` executa o processo de build e assinatura no Windows. Ele assina o executável principal **antes** de incluí-lo no instalador NSIS e assina o instalador final.
+- `npm run build:store` executa o build e assinatura no Windows. Ele assina o executável principal antes do empacotamento e usa o `bundle.windows.signCommand` do Tauri para assinar o desinstalador NSIS e o instalador externo. Depois extrai o instalador e verifica a assinatura Authenticode de **todos os arquivos PE** encontrados. Se houver um executável ou DLL sem assinatura válida, interrompe o build. O processo gera `SHA256SUMS.txt` com a versão, o hash do instalador e a lista dos PE verificados.
 - O workflow manual **Build Microsoft Store package** executa os testes e gera o instalador assinado como artefato temporário do GitHub Actions.
 
 Esses recursos são preparação, não aprovação de certificação. O build de Store para quando não encontra `bundle.publisher` preenchido com a identidade real do desenvolvedor ou quando faltam os segredos do certificado.
@@ -186,7 +186,8 @@ npm run build:store
 ```
 
 5. O script executa as verificações, compila o aplicativo sem empacotar, assina o executável principal, gera o instalador usando a configuração offline do WebView2 e assina o instalador final.
-6. O instalador deverá estar em:
+6. O script também exige que o **7-Zip** esteja instalado e disponível em `PATH` ou em uma das pastas padrão do Windows. Ele é usado para extrair o conteúdo do NSIS e verificar as assinaturas de cada executável/DLL. O build falha caso não consiga fazer essa inspeção.
+7. O instalador deverá estar em:
 
 ```text
 src-tauri/target/release/bundle/nsis/
@@ -201,7 +202,7 @@ Get-AuthenticodeSignature ".\src-tauri\target\release\bundle\nsis\NOME-DO-INSTAL
 Get-FileHash ".\src-tauri\target\release\bundle\nsis\NOME-DO-INSTALADOR.exe" -Algorithm SHA256
 ```
 
-O status da assinatura precisa ser `Valid`. Guarde o SHA-256 no registro do release.
+O status da assinatura precisa ser `Valid`. O manifesto `SHA256SUMS.txt` registra o SHA-256 do instalador e os arquivos PE extraídos. Revise esse manifesto antes de hospedar o pacote e guarde-o no registro do release.
 
 ### Opção B — Gerar pelo GitHub Actions
 
@@ -219,6 +220,11 @@ O artefato do Actions é temporário e tem retenção limitada. **Não use o ZIP
 
 O workflow é manual e não publica o aplicativo automaticamente na Store.
 
+### Risco conhecido do empacotador NSIS
+
+Há um relato upstream no Tauri ([issue #16208](https://github.com/tauri-apps/tauri/issues/16208), aberto em 4 de outubro de 2026) em que algumas DLLs padrão de plugins NSIS — como `System.dll`, `nsDialogs.dll`, `StartMenu.dll` e `NSISdl.dll` — continuam sem assinatura no instalador, embora o empacotador informe que assinou cópias desses plugins. O relato descreve Tauri CLI 2.11.2 / NSIS 3.11; o projeto atualmente resolve uma versão mais recente da CLI, então não se deve presumir que o mesmo comportamento esteja presente ou corrigido sem inspeção real.
+
+Por esse motivo, o script `build-microsoft-store.ps1` não confia apenas nos logs do Tauri: extrai o EXE com 7-Zip e verifica os cabeçalhos PE e a assinatura de cada binário. **Se qualquer PE estiver sem assinatura válida, não publique o pacote.** Será necessário corrigir a integração de assinatura dos plugins do NSIS ou avaliar outra estratégia de empacotamento (por exemplo, MSIX), e então repetir os testes.
 ## 5. Testar o instalador antes de enviá-lo
 
 Faça estes testes em uma máquina virtual ou computador Windows limpo, de preferência diferente do ambiente de desenvolvimento. Preserve uma cópia do instalador exato que será enviado.
@@ -228,7 +234,7 @@ Faça estes testes em uma máquina virtual ou computador Windows limpo, de prefe
 1. Confirme que `Get-AuthenticodeSignature` retorna `Valid` para o instalador e para o executável principal.
 2. Confira o nome do certificado e sua cadeia de confiança.
 3. Confirme que o instalador contém a instalação offline do WebView2. A configuração Tauri Store já seleciona `offlineInstaller`; esse modo aumenta consideravelmente o tamanho do arquivo, mas evita baixar o Runtime durante a instalação.
-4. Registre o nome do arquivo, versão, tamanho, data e SHA-256.
+4. Revise `SHA256SUMS.txt`, confirme que todos os PE extraídos constam como assinados e registre o nome do arquivo, versão, tamanho, data e SHA-256.
 5. Não altere o binário depois de validar e enviar essa versão.
 
 ### Etapa 9 — Testar a instalação silenciosa
@@ -381,7 +387,7 @@ Para cada atualização:
 - [ ] Nome real do publisher definido e configurado em `src-tauri/tauri.conf.json`.
 - [ ] Certificado Authenticode obtido e segredos GitHub configurados.
 - [ ] Integração do Tauri Updater, chaves e endpoint de atualização implementados e testados.
-- [ ] Build Store executado com sucesso no Windows usando certificado real.
+- [ ] Build Store executado com sucesso no Windows usando certificado real, com `SHA256SUMS.txt` validando todos os PE extraídos.
 - [ ] Instalador silencioso, atualização, desinstalação e teste em máquina limpa aprovados.
 - [ ] Instalador hospedado em URL HTTPS direta, versionada e imutável.
 - [ ] Capturas reais, textos finais, classificação etária, suporte e privacidade prontos.
