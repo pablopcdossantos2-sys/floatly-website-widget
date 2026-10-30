@@ -2,7 +2,7 @@
 
 **Idiomas:** [Português (Brasil)](README.md) · [English](README.en.md) · Español
 
-Widget compacto para Windows que mantiene visible un sitio web elegido por el usuario en una ventana WebView2 sin bordes. El sitio se configura en el primer inicio; no se incluye ninguna URL de terceros por defecto. Desarrollado con Tauri 2 para Windows 10/11 x64.
+Navegador compacto para Windows que mantiene una dirección HTTP/HTTPS elegida por el usuario en una pequeña ventana WebView2 sin bordes. La dirección se configura en el primer inicio; no se incluye ningún sitio de terceros por defecto. Desarrollado con Tauri 2 para Windows 10/11 x64.
 
 ## Funciones
 
