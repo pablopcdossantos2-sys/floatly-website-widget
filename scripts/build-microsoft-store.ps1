@@ -30,6 +30,11 @@ try {
         throw "Dependencies are missing. Run npm ci from the repository root first."
     }
 
+    $tauriConfig = Get-Content "src-tauri/tauri.conf.json" -Raw | ConvertFrom-Json
+    if ([string]::IsNullOrWhiteSpace($tauriConfig.bundle.publisher)) {
+        throw "Set bundle.publisher in src-tauri/tauri.conf.json to the real publisher identity before creating the Store installer."
+    }
+
     Invoke-Checked "Validate Store-specific project configuration" { npm run check:store-config }
     Invoke-Checked "Check Tauri command permissions" { npm run check:acl }
     Invoke-Checked "Check drag overlay behavior" { npm run check:drag-overlay }
@@ -50,10 +55,6 @@ try {
     $appBinary = Join-Path $repoRoot "src-tauri/target/release/widget-website.exe"
     if (!(Test-Path $appBinary)) {
         throw "The application executable was not generated: $appBinary"
-    }
-    $tauriConfig = Get-Content "src-tauri/tauri.conf.json" -Raw | ConvertFrom-Json
-    if ([string]::IsNullOrWhiteSpace($tauriConfig.bundle.publisher)) {
-        throw "Set bundle.publisher in src-tauri/tauri.conf.json to the real publisher identity before creating the Store installer."
     }
 
     $pfxPath = Join-Path ([System.IO.Path]::GetTempPath()) ("widget-website-store-" + [guid]::NewGuid().ToString("N") + ".pfx")
