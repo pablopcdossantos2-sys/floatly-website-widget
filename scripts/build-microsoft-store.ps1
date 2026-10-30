@@ -166,20 +166,20 @@ try {
     # Microsoft Store requires every PE file embedded in the installer to be
     # signed. Tauri/NSIS can leave stock NSIS plugins unsigned even when the
     # outer installer is signed. Inspect the extracted payload before publishing.
-    $sevenZip = Get-Command "7z.exe" -ErrorAction SilentlyContinue
-    if ($null -eq $sevenZip) {
+    $sevenZipPath = (Get-Command "7z.exe" -ErrorAction SilentlyContinue).Source
+    if ([string]::IsNullOrWhiteSpace($sevenZipPath)) {
         $sevenZipCandidates = @(
             (Join-Path $env:ProgramFiles "7-Zip\7z.exe"),
-            (Join-Path \${env:ProgramFiles(x86)} "7-Zip\7z.exe")
+            (Join-Path ${env:ProgramFiles(x86)} "7-Zip\7z.exe")
         )
         foreach ($candidate in $sevenZipCandidates) {
             if (Test-Path $candidate) {
-                $sevenZip = Get-Item $candidate
+                $sevenZipPath = $candidate
                 break
             }
         }
     }
-    if ($null -eq $sevenZip) {
+    if ([string]::IsNullOrWhiteSpace($sevenZipPath)) {
         throw "7-Zip is required to inspect the NSIS payload. Install 7-Zip and ensure 7z.exe is available."
     }
 
@@ -213,7 +213,7 @@ try {
     $storeExtractDir = Join-Path ([System.IO.Path]::GetTempPath()) ("widget-website-store-payload-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $storeExtractDir -Force | Out-Null
     Write-Host "Extracting installer payload to inspect all embedded PE files..."
-    & $sevenZip.Source x -y "-o$storeExtractDir" $installers[0].FullName
+    & $sevenZipPath x -y "-o$storeExtractDir" $installers[0].FullName
     if ($LASTEXITCODE -ne 0) {
         throw "7-Zip could not extract the NSIS installer payload (exit code $LASTEXITCODE)."
     }
