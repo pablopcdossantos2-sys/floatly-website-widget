@@ -94,7 +94,15 @@ Cada listagem pode ter até sete termos/frases únicos. Usar somente termos que 
 
 ## Categoria e classificação
 
-- **Categoria sugerida para avaliação:** Produtividade ou Utilitários, conforme as opções disponíveis no Partner Center e a orientação da Microsoft.
+- **Categoria principal recomendada no Partner Center:** `Productivity` (`Produtividade`).
+- **Subcategoria:** não selecionar; a categoria Productivity não possui subcategorias na lista oficial para aplicativos MSI/EXE.
+- **Categoria secundária:** deixar em branco inicialmente. A Microsoft a trata como opcional; só vale acrescentá-la se uma funcionalidade real do Floatly justificar uma segunda forma de descoberta.
+- **Justificativa:** a categoria Productivity é definida pela Microsoft como destinada a aplicativos que ajudam o usuário a concluir uma tarefa com mais eficiência. O Floatly permite manter um site ou ferramenta escolhido pelo usuário em uma janela compacta e flutuante enquanto ele trabalha em outros programas, o que se encaixa melhor nessa descrição do que as categorias disponíveis para gerenciamento de arquivos.
+- **Por que não Utilities + tools:** na lista oficial de categorias para aplicativos MSI/EXE, essa categoria oferece as subcategorias Backup + manage e File managers, com exemplos como gerenciadores de arquivos, calculadoras, conversores, armazenamento em nuvem e editores de PDF. Esse não é o foco principal do Floatly.
+- **Referência oficial:** [Microsoft Learn — Categories and subcategories for MSI/EXE app](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/categories-and-subcategories). A Microsoft orienta escolher a categoria que melhor descreve o aplicativo; quando não houver correspondência exata, deve-se escolher aquela em que os usuários provavelmente procurariam um app semelhante.
+
+**Observação:** esta é a recomendação para o modelo atual do Floatly (aplicativo desktop Win32 distribuído por instalador EXE). A seleção final deve ser conferida nas opções efetivamente apresentadas pelo Partner Center no momento do envio.
+
 - **Classificação etária:** responder ao questionário IARC considerando que a pessoa pode abrir sites variados. Não escolher uma classificação baixa por suposição. Confirmar com a Microsoft como avaliar conteúdo de terceiros escolhido pelo usuário.
 - **Política de privacidade:** adicionar a URL pública e estável depois que o desenvolvedor revisar e publicar a política final.
 - **Suporte:** inserir o endereço real de suporte ou página de contato.
