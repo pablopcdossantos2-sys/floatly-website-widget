@@ -45,6 +45,10 @@ On first launch, the widget asks you to choose a website. Click **Choose website
 
 For a concrete example URL, see the example section below.
 
+## Microsoft Store
+
+The detailed step-by-step publication guide is available in [Portuguese](GUIA_PUBLICACAO_MICROSOFT_STORE.md), along with a [multilingual Store listing draft](MICROSOFT_STORE_LISTING_DRAFT.md). The Store build is manual and requires the real publisher identity and code-signing secrets. The build workflow does not mean the app is ready for submission or has been approved.
+
 ## Interface language
 
 Open **Settings → Language** and choose Portuguese (Brazil), English or Spanish. The setting is saved in %APPDATA%\WidgetWebsite\config.json and translates the settings window, system-tray menu, sign-in toolbar and the widget's own connection messages. The chosen website remains in the language served by that website.
