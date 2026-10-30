@@ -27,7 +27,8 @@ O script exige um valor real em `bundle.publisher`, além dos segredos `WINDOWS_
 - [ ] Validar em Windows limpo que o WebView2 Evergreen Runtime está atualizado, que a versão Chromium carregada está dentro do limite de duas versões principais da regra 10.2.1 e que o aplicativo adota a versão nova após reiniciar.
 - [ ] Testar assinatura, instalação silenciosa, atualização do aplicativo, desinstalação, Adicionar/Remover Programas e execução em uma máquina Windows limpa.
 - [ ] Hospedar o EXE assinado em URL HTTPS direta, versionada, pública e imutável.
-- [ ] Finalizar listagem, screenshots reais, categoria, classificação etária, suporte e política de privacidade.
+- [ ] Revisar e finalizar a [política de privacidade](PRIVACY_POLICY.md): preencher nome legal do controlador e e-mail de privacidade, confirmar as práticas descritas e só então informar a URL pública no Partner Center (https://github.com/pablopcdossantos2-sys/widget-website/blob/main/PRIVACY_POLICY.md).
+- [ ] Finalizar screenshots reais, classificação etária e contato de suporte da listagem.
 - [ ] Executar Package Validation no Partner Center, corrigir eventuais falhas e enviar para certificação.
 
 ## Lembrete técnico
