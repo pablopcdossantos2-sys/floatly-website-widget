@@ -24,12 +24,14 @@ O resultado ainda precisa ser inspecionado e testado em Windows limpo antes de q
 ## Pendências antes da submissão
 
 - [ ] Criar ou acessar uma conta de desenvolvedor no Partner Center e reservar um nome exclusivo.
+- [ ] Definir o nome de editor (publisher) no Tauri e confirmar que ele é diferente de `productName`, como exige o guia atual do Tauri.
 - [ ] Decidir o mecanismo de atualização compatível com o caminho de distribuição. O guia de distribuição do Tauri para EXE/MSI pede que o instalador trate atualizações; o projeto ainda precisa definir e validar esse fluxo.
 - [ ] Corrigir a assinatura do instalador para a distribuição Store. A assinatura Authenticode atual do workflow é opcional, e a cópia do executável que fica dentro do NSIS pode continuar sem assinatura. Confirmar e implementar a assinatura de todos os arquivos PE exigidos antes de empacotar o instalador de Store, além de assinar o instalador final.
 - [ ] Confirmar instalação silenciosa (o guia do Tauri documenta `/S` para NSIS), desinstalação, preservação/remoção de dados e comportamento de atualização.
 - [ ] Testar instalação e execução em máquinas Windows 10/11 limpas, incluindo ausência do WebView2 Runtime, rede indisponível, escala de tela, múltiplos monitores e login em sites que exijam autenticação.
 - [ ] Preparar ícone, capturas de tela, descrição, categoria, termos de pesquisa, classificação etária e endereço de política de privacidade.
 - [ ] Descrever com precisão o valor do produto: janela flutuante, dimensionamento, posicionamento, sempre no topo, bandeja do sistema, atalho e zoom. O valor da ferramenta deve estar claro na primeira execução.
+- [ ] Avaliar o risco de certificação de um widget que exibe sites de terceiros. As políticas exigem valor distinto e experiência funcional; destacar os recursos próprios de desktop e verificar se o uso genérico não entra na categoria de web app que deve ser publicado pelo proprietário do domínio.
 - [ ] Explicar que a pessoa usuária escolhe o site e que o funcionamento de recursos específicos depende do próprio site e de seus termos. Não sugerir afiliação com Investing.com ou outros sites.
 - [ ] Revisar a política de segurança e as permissões remotas. O conteúdo remoto pode invocar somente o comando autenticado de sinal de atividade; não ampliar suas permissões sem uma análise de segurança.
 - [ ] Executar o Windows App Certification Kit, validar o pacote e testar o fluxo completo de submissão antes de marcar o projeto como pronto.
