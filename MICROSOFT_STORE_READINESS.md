@@ -11,7 +11,7 @@ O tutorial completo, com as tarefas do desenvolvedor, os comandos, as verificaç
 - URL vazia para novas instalações e assistente de primeira execução.
 - Configuração adicional `src-tauri/tauri.microsoftstore.conf.json` usando WebView2 `offlineInstaller`.
 - Verificador `npm run check:store-config`, integrado ao CI normal e ao workflow Store.
-- Script `npm run build:store`, que verifica o código, compila o aplicativo, assina o executável antes de incluí-lo no NSIS, gera o instalador offline e assina o instalador final.
+- Script `npm run build:store`: assina o executável, usa o `signCommand` do Tauri para o desinstalador NSIS e o setup externo, extrai o EXE com 7-Zip e valida a assinatura de todos os PE encontrados. Gera `SHA256SUMS.txt`; interrompe o build se encontrar um PE sem assinatura válida.
 - Workflow manual **Build Microsoft Store package**, executável na branch `main`, que publica o instalador assinado como artefato temporário do Actions por 14 dias.
 
 O script exige um valor real em `bundle.publisher`, além dos segredos `WINDOWS_PFX_BASE64` e `WINDOWS_PFX_PASSWORD`. Ele falha sem esses dados. O artefato do Actions não é uma URL permanente e não deve ser usado diretamente como endereço do pacote no Partner Center.
@@ -31,7 +31,7 @@ O script exige um valor real em `bundle.publisher`, além dos segredos `WINDOWS_
 
 ## Lembrete técnico
 
-O caminho atual é **EXE/MSI**, com instalador NSIS EXE. Para esse tipo de produto, a Microsoft exige instalador independente/offline, assinatura do instalador e de todos os arquivos PE incluídos, URL HTTPS versionada e instalação silenciosa. Para o instalador NSIS deste projeto, o parâmetro silencioso indicado pelo Tauri é `/S`.
+O caminho atual é **EXE/MSI**, com instalador NSIS EXE. Para esse tipo de produto, a Microsoft exige instalador independente/offline, assinatura do instalador e de todos os arquivos PE incluídos; o build inspeciona o pacote extraído e gera um manifesto, URL HTTPS versionada e instalação silenciosa. Para o instalador NSIS deste projeto, o parâmetro silencioso indicado pelo Tauri é `/S`. O script exige 7-Zip para inspecionar o conteúdo real do EXE e falha se encontrar PE sem assinatura Authenticode válida.
 
 A política Microsoft Store 7.20 foi publicada em 15 de setembro de 2026 e entrou em vigor em 22 de outubro de 2026. O aceite do produto não está garantido apenas por ser distribuído como EXE.
 
