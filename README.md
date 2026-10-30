@@ -2,7 +2,7 @@
 
 **Idiomas / Languages / Idiomas:** Português (Brasil) · [English](README.en.md) · [Español](README.es.md)
 
-Widget desktop para manter o calendário econômico do Investing.com aberto em uma pequena janela WebView2, sem moldura. Projeto Tauri 2 direcionado a Windows 10/11 x64.
+Widget desktop para manter um site escolhido pelo usuário visível em uma pequena janela WebView2 sem moldura. O site é configurado na primeira execução; nenhum endereço de terceiros vem predefinido. Projeto Tauri 2 para Windows 10/11 x64.
 
 ## Recursos
 - Janela sem barra de título, bandeja do sistema, instância única e atalho global padrão CTRL+ALT+C. Fechar pela tecla/ botão de fechar esconde o widget na bandeja; use Sair para encerrar o processo.
@@ -10,7 +10,7 @@ Widget desktop para manter o calendário econômico do Investing.com aberto em u
 - Interface em português do Brasil, inglês ou espanhol, selecionável nas configurações.
 - Uma pequena aba na parte superior central permite arrastar o widget. As áreas de interação nas bordas continuam ativas, mas são transparentes e não desenham uma moldura ao redor do conteúdo. O tamanho e a posição podem ser alterados nas configurações.
 - O tamanho padrão é 350 × 550 px e o zoom padrão do navegador embutido é 80%; ambos podem ser alterados nas configurações.
-- URL, tamanho, posição, travamento, sempre no topo, barra de tarefas, opacidade, zoom, cantos e recarga automática configuráveis.
+- URL, tamanho, posição, travamento, sempre no topo, barra de tarefas, zoom, cantos e recarga automática configuráveis.
 - Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária com uma barra de endereço simples e a pasta de dados compartilhada do WebView2. A janela tenta fechar quando o fluxo retorna ao endereço configurado após a autenticação.
 - Workflow de compilação Windows x64 e instalador NSIS.
 
@@ -36,7 +36,7 @@ O instalador aparece em src-tauri/target/release/bundle/nsis e o executável em 
 
 ## Idioma da interface
 
-Abra **Configurações → Idioma** e escolha Português (Brasil), English ou Español. A escolha é salva em `%APPDATA%\\WidgetWebsite\\config.json` e afeta a janela de configurações, menus da bandeja, a janela auxiliar de login e as mensagens próprias do widget. O conteúdo do Investing.com continua no idioma fornecido pelo próprio site.
+Abra **Configurações → Idioma** e escolha Português (Brasil), English ou Español. A escolha é salva em `%APPDATA%\\WidgetWebsite\\config.json` e afeta a janela de configurações, menus da bandeja, a janela auxiliar de login e as mensagens próprias do widget. O conteúdo do site escolhido continua no idioma fornecido pelo próprio site.
 
 ## Assinatura digital e alerta do Windows
 
@@ -49,11 +49,11 @@ A chave privada não deve ser colocada no repositório nem no README. A compila�
 
 **Importante:** não é possível prometer que o Microsoft Defender SmartScreen nunca exibirá um aviso. Mesmo uma aplicação assinada por um certificado válido pode receber um aviso até que a reputação do editor e do arquivo se estabeleça. Publicar pela Microsoft Store é a forma mais direta de evitar avisos de download do SmartScreen. Consulte a [documentação de reputação do SmartScreen](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) e o [guia de assinatura do Tauri para Windows](https://tauri.app/distribute/sign/windows/).
 
-## Primeiro login
-1. Abra o widget e aguarde o calendário carregar.
-2. Prefira autenticação por e-mail e senha. O menu da bandeja oferece Entrar / mostrar janela de login.
-3. Feche e abra o app para verificar a persistência. Filtros salvos podem depender da conta e talvez precisem ser refeitos em uma conta nova.
-4. Se a sessão expirar, use Entrar / mostrar janela de login e autentique-se novamente.
+## Exemplo de uso: Investing.com
+
+O Investing.com é apenas um exemplo de site que pode ser exibido. Para usá-lo, abra **Configurações → URL do site** e informe `https://br.investing.com/economic-calendar`. O widget não é exclusivo desse serviço; você pode configurar outro site HTTP ou HTTPS.
+
+Para sites que exigem login, use o fluxo de autenticação disponibilizado pelo próprio site. O menu da bandeja inclui a opção de entrar ou configurar o endereço do site.
 
 O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é preservado.
 
@@ -66,11 +66,11 @@ O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é 
 - O diagnóstico distingue ausência de atividade JavaScript de uma janela nativa sem resposta, mas não consegue provar sozinho que um aplicativo externo causou o congelamento. O monitor também não pode gravar novas mensagens se o processo inteiro for encerrado abruptamente ou deixar de executar todos os seus threads.
 
 ## Privacidade, decisões e limitações
-- Sem telemetria. A navegação principal é limitada ao site configurado e a recursos de autenticação conhecidos; links HTTP/HTTPS para outros domínios abrem no navegador padrão.
+- Sem telemetria. A navegação principal é limitada ao site configurado e a recursos de autenticação reconhecidos; os links para outros domínios abrem no navegador padrão. A permissão concedida ao site remoto é limitada ao sinal autenticado de atividade.
 - Arquivo de configuração corrompido é substituído por valores padrão. O botão “Restaurar tamanho padrão” muda somente largura e altura para 350 × 550 px; as outras preferências são preservadas.
 - A CI verifica a compatibilidade das versões Tauri, o manifesto de permissões e as capabilities; executa `npm ci`, verificação de tipos, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` e `cargo test`; por fim, compila o instalador no Windows.
 - A janela de login secundária compartilha a pasta de dados do WebView2 e inclui uma barra de endereço injetada. A navegação para domínios não autorizados continua bloqueada dentro do app e abre no navegador padrão. O fechamento automático depende de o provedor retornar ao caminho configurado; alguns fluxos sociais podem exigir fechar a janela manualmente.
-- O zoom é aplicado pelo controle nativo de ampliação do WebView2, afetando a renderização da página de forma semelhante ao zoom de um navegador. Opacidade e recorte dos cantos continuam usando CSS; o arredondamento pode variar no Windows 10.
+- O zoom é aplicado pelo controle nativo de ampliação do WebView2, afetando a renderização da página de forma semelhante ao zoom de um navegador. O recorte dos cantos pode variar no Windows 10.
 - A verificação de rede mostra uma tela própria antes da navegação e monitora a conexão enquanto o site está aberto. O wrapper padrão do Tauri não fornece um evento portátil que permita substituir toda falha de navegação do Chromium em todas as situações.
 - É necessário testar login real, filtros, atalho em conflito, escalas 125%/150%, monitores múltiplos, DPI e consumo de memória em Windows. O ambiente de desenvolvimento atual não permite comprovar esses comportamentos gráficos.
 
