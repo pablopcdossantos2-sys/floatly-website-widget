@@ -14,6 +14,7 @@ A small Windows desktop widget that keeps a website chosen by the user visible i
 - Configurable website URL, size, position, movement lock, always-on-top behavior, taskbar visibility, zoom, corner radius and automatic reload.
 - External links open in the default browser. Recognized sign-in domains open in a secondary window with a simple address bar and shared WebView2 data folder; the window attempts to close when sign-in returns to the configured website.
 - Windows x64 build workflow and NSIS installer.
+- Initial Microsoft Store preparation is documented in [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md) (Portuguese); submission still depends on the listed outstanding work.
 
 ## Requirements
 
@@ -37,6 +38,12 @@ Run these commands in PowerShell (generating the icons is required before the fi
     npm run tauri build
 
 The installer is created under src-tauri/target/release/bundle/nsis and the executable under src-tauri/target/release. GitHub Actions builds the Windows package and publishes it as the widget-website-windows-x64 workflow artifact.
+
+## First launch
+
+On first launch, the widget asks you to choose a website. Click **Choose website** and enter a URL under **Settings → Website URL**. The field starts empty: no third-party website is preconfigured. The site must allow loading in WebView2; some sites may restrict specific features or sign-in flows.
+
+For an example, enter `https://br.investing.com/economic-calendar`. Investing.com is only an example, not the exclusive purpose of this widget or an official affiliation.
 
 ## Interface language
 
