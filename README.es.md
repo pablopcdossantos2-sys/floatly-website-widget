@@ -2,7 +2,7 @@
 
 **Idiomas:** [Português (Brasil)](README.md) · [English](README.en.md) · Español
 
-Widget compacto para Windows que muestra el calendario económico de Investing.com en una ventana WebView2 sin bordes. Desarrollado con Tauri 2 para Windows 10/11 x64.
+Widget compacto para Windows que mantiene visible un sitio web elegido por el usuario en una ventana WebView2 sin bordes. El sitio se configura en el primer inicio; no se incluye ninguna URL de terceros por defecto. Desarrollado con Tauri 2 para Windows 10/11 x64.
 
 ## Funciones
 
@@ -11,7 +11,7 @@ Widget compacto para Windows que muestra el calendario económico de Investing.c
 - Interfaz disponible en portugués de Brasil, inglés y español. Cambia el idioma en **Configuración → Idioma**.
 - Una pequeña pestaña en la parte superior central permite arrastrar el widget. Las zonas de interacción de los bordes siguen activas, pero son transparentes y no dibujan un marco alrededor del contenido. El tamaño y la posición se pueden cambiar en la configuración.
 - El tamaño predeterminado es 350 × 550 px y el zoom predeterminado del navegador integrado es del 80 %; ambos se pueden cambiar en la configuración.
-- URL, tamaño, posición, bloqueo del movimiento, mantener siempre visible, visibilidad en la barra de tareas, opacidad, zoom, esquinas redondeadas y actualización automática configurables.
+- URL, tamaño, posición, bloqueo del movimiento, mantener siempre visible, visibilidad en la barra de tareas, zoom, esquinas redondeadas y actualización automática configurables.
 - Los enlaces externos se abren en el navegador predeterminado. Los dominios de autenticación reconocidos se abren en una ventana secundaria con una barra de direcciones sencilla y la misma carpeta de datos de WebView2. La ventana intenta cerrarse cuando el inicio de sesión vuelve al sitio configurado.
 - Flujo de compilación para Windows x64 e instalador NSIS.
 
@@ -40,7 +40,7 @@ El instalador se genera en src-tauri/target/release/bundle/nsis y el ejecutable 
 
 ## Idioma de la interfaz
 
-Abre **Configuración → Idioma** y elige Portugués (Brasil), English o Español. La selección se guarda en %APPDATA%\WidgetWebsite\config.json y traduce la ventana de configuración, el menú de la bandeja del sistema, la barra de inicio de sesión y los mensajes de conexión propios del widget. El contenido de Investing.com seguirá usando el idioma que proporcione el propio sitio.
+Abre **Configuración → Idioma** y elige Portugués (Brasil), English o Español. La selección se guarda en %APPDATA%\WidgetWebsite\config.json y traduce la ventana de configuración, el menú de la bandeja del sistema, la barra de inicio de sesión y los mensajes de conexión propios del widget. El contenido del sitio elegido seguirá usando el idioma que proporcione el propio sitio.
 
 ## Firma digital y avisos de seguridad de Windows
 
@@ -53,12 +53,11 @@ No guardes una clave privada en el repositorio ni en este README. La compilació
 
 **Importante:** una firma válida no garantiza que Microsoft Defender SmartScreen nunca muestre un aviso. Las aplicaciones o los archivos nuevos pueden mostrar advertencias hasta que se establezca la reputación del editor y del archivo. Publicar en Microsoft Store es la forma más directa de evitar avisos de descarga de SmartScreen. Consulta la [guía de reputación de SmartScreen de Microsoft](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) y la [guía de firma de Tauri para Windows](https://tauri.app/distribute/sign/windows/).
 
-## Primer inicio de sesión
+## Ejemplo de uso: Investing.com
 
-1. Abre el widget y espera a que cargue el calendario.
-2. El menú de la bandeja incluye **Iniciar sesión**. Usar correo y contraseña suele ser la opción más sencilla.
-3. Reinicia la aplicación para comprobar que la sesión persiste. Algunos filtros pueden estar vinculados a la cuenta y quizá haya que configurarlos de nuevo.
-4. Si la sesión caduca, vuelve a abrir el inicio de sesión desde el menú de la bandeja y autentícate otra vez.
+Investing.com es solo un ejemplo de sitio web que puede mostrar el widget. Para usarlo, abre **Configuración → URL del sitio** e introduce `https://br.investing.com/economic-calendar`. El widget no es exclusivo de este servicio: puedes configurar cualquier sitio HTTP o HTTPS.
+
+Para los sitios que requieren inicio de sesión, utiliza el flujo de autenticación proporcionado por el propio sitio. El menú de la bandeja permite iniciar sesión o configurar el sitio web.
 
 La aplicación no lee, copia ni almacena contraseñas. Se conserva el agente de usuario predeterminado de WebView2.
 
@@ -72,11 +71,11 @@ La aplicación no lee, copia ni almacena contraseñas. Se conserva el agente de 
 
 ## Privacidad y limitaciones
 
-- Sin telemetría. La navegación principal se limita al sitio configurado y a recursos de autenticación reconocidos; los demás enlaces HTTP/HTTPS se abren en el navegador predeterminado.
+- Sin telemetría. La navegación principal se limita al sitio configurado y a recursos de autenticación reconocidos; los enlaces a otros dominios se abren en el navegador predeterminado. El sitio remoto solo recibe permiso para enviar la señal autenticada de actividad.
 - Si el archivo de configuración está dañado, se reemplaza por valores predeterminados. **Restaurar tamaño predeterminado** solo cambia las dimensiones a 350 × 550 px; conserva las demás preferencias.
 - CI comprueba la alineación de versiones de Tauri, el manifiesto de comandos y las capabilities; ejecuta `npm ci`, la verificación de tipos, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` y `cargo test`, y después compila el instalador de Windows.
 - La ventana secundaria de inicio de sesión comparte la carpeta de datos de WebView2 e incluye una barra de direcciones inyectada. Los dominios no autorizados se abren en el navegador predeterminado. El cierre automático depende de que el proveedor vuelva al sitio configurado; algunos inicios de sesión sociales pueden requerir cerrar la ventana manualmente.
-- El zoom usa el control nativo de WebView2. La opacidad y las esquinas redondeadas usan CSS/recorte nativo; el aspecto de las esquinas puede variar en Windows 10.
+- El zoom usa el control nativo de WebView2. El recorte de las esquinas puede variar en Windows 10.
 - Las comprobaciones de red muestran un panel propio antes de la navegación principal y supervisan la conectividad mientras el sitio está abierto. El envoltorio predeterminado de Tauri no puede reemplazar todos los errores de navegación de Chromium en todos los escenarios.
 - Es necesario probar el inicio de sesión real, los filtros guardados, los conflictos de atajos, escalas del 125 %/150 %, varios monitores, cambios de DPI y consumo de memoria en hardware Windows.
 
