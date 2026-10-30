@@ -22,9 +22,9 @@ pub fn tray_labels(language: &str, locked: bool) -> TrayLabels {
                 "Lock moving / resizing"
             },
             topmost: "Toggle always on top",
-            login: "Sign in / login window",
+            login: "Sign in / configure website",
             quit: "Quit",
-            tooltip: "Widget Website — Economic Calendar",
+            tooltip: "Widget Website — Website Widget",
         },
         "es" => TrayLabels {
             show_hide: "Mostrar / ocultar",
@@ -36,9 +36,9 @@ pub fn tray_labels(language: &str, locked: bool) -> TrayLabels {
                 "Bloquear movimiento / tamaño"
             },
             topmost: "Alternar siempre visible",
-            login: "Iniciar sesión",
+            login: "Iniciar sesión / configurar sitio",
             quit: "Salir",
-            tooltip: "Widget Website — Calendario económico",
+            tooltip: "Widget Website — Ventana de sitio web",
         },
         _ => TrayLabels {
             show_hide: "Mostrar / ocultar",
@@ -50,9 +50,9 @@ pub fn tray_labels(language: &str, locked: bool) -> TrayLabels {
                 "Travar mover/redimensionar"
             },
             topmost: "Alternar sempre no topo",
-            login: "Entrar / mostrar janela de login",
+            login: "Entrar / configurar site",
             quit: "Sair",
-            tooltip: "Widget Website — Calendário Econômico",
+            tooltip: "Widget Website — Janela de site",
         },
     }
 }
