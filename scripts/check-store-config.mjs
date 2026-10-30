@@ -36,6 +36,9 @@ if (!Array.isArray(tauri.bundle?.targets) || !tauri.bundle.targets.includes("nsi
 if (store.bundle?.windows?.webviewInstallMode?.type !== "offlineInstaller") {
   fail("The Store-specific Tauri config must use WebView2 offlineInstaller.");
 }
+if (tauri.bundle?.windows?.webviewInstallMode?.type === "fixedRuntime") {
+  fail("Do not pin a fixed WebView2 runtime: the browser engine must receive current Chromium security and compatibility updates.");
+}
 if (!remote.remote?.urls?.includes("https://*") ||
     !remote.remote?.urls?.includes("http://*") ||
     JSON.stringify(remote.permissions) !== JSON.stringify(["allow-heartbeat"])) {
