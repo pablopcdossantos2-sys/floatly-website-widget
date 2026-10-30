@@ -2,7 +2,7 @@
 
 **Languages:** [Português (Brasil)](README.md) · English · [Español](README.es.md)
 
-A small Windows desktop widget that keeps a website chosen by the user visible in a compact, frameless WebView2 window. The website is configured on first launch; no third-party URL is prefilled. Built with Tauri 2 for Windows 10/11 x64.
+A compact Windows desktop browser that keeps a user-chosen HTTP/HTTPS address visible in a small, frameless WebView2 window. The address is configured on first launch; no third-party website is prefilled. Built with Tauri 2 for Windows 10/11 x64.
 
 ## Features
 
