@@ -230,11 +230,32 @@ impl AppState {
     }
 }
 
+fn roaming_directory(
+    appdata: Option<PathBuf>,
+    local_appdata: Option<PathBuf>,
+    user_profile: Option<PathBuf>,
+    temp_dir: PathBuf,
+) -> PathBuf {
+    appdata
+        .or_else(|| {
+            local_appdata.map(|path| {
+                path.parent()
+                    .unwrap_or(path.as_path())
+                    .join("Roaming")
+            })
+        })
+        .or_else(|| user_profile.map(|path| path.join("AppData").join("Roaming")))
+        .unwrap_or_else(|| temp_dir.join("Floatly").join("Roaming"))
+}
+
 pub fn app_directory() -> PathBuf {
-    std::env::var_os("APPDATA")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")))
-        .join("WidgetWebsite")
+    roaming_directory(
+        std::env::var_os("APPDATA").map(PathBuf::from),
+        std::env::var_os("LOCALAPPDATA").map(PathBuf::from),
+        std::env::var_os("USERPROFILE").map(PathBuf::from),
+        std::env::temp_dir(),
+    )
+    .join("WidgetWebsite")
 }
 
 #[cfg(test)]
@@ -619,6 +640,32 @@ mod tests {
         assert_eq!(config.width, 777);
         assert_eq!(config.height, DEFAULT_HEIGHT);
         assert_eq!(config.site_url, DEFAULT_SITE);
+    }
+
+    #[test]
+    fn app_directory_uses_stable_profile_fallbacks_without_current_dir() {
+        assert_eq!(
+            roaming_directory(
+                Some(PathBuf::from(r"C:\\Users\\Test\\AppData\\Roaming")),
+                Some(PathBuf::from(r"C:\\Users\\Test\\AppData\\Local")),
+                Some(PathBuf::from(r"C:\\Users\\Test")),
+                PathBuf::from(r"C:\\Temp")
+            ),
+            PathBuf::from(r"C:\\Users\\Test\\AppData\\Roaming")
+        );
+        assert_eq!(
+            roaming_directory(
+                None,
+                Some(PathBuf::from(r"C:\\Users\\Test\\AppData\\Local")),
+                None,
+                PathBuf::from(r"C:\\Temp")
+            ),
+            PathBuf::from(r"C:\\Users\\Test\\AppData\\Roaming")
+        );
+        assert_eq!(
+            roaming_directory(None, None, None, PathBuf::from(r"C:\\Temp")),
+            PathBuf::from(r"C:\\Temp\\Floatly\\Roaming")
+        );
     }
 
     #[test]
