@@ -36,7 +36,7 @@ O pacote EXE/MSI precisa ser assinado com um certificado de assinatura de códig
 3. Compare esse nome com a identidade de publicador da conta Partner Center. Não use automaticamente o nome que aparece na política de privacidade: ele identifica o responsável pelo tratamento de dados e pode não ser a grafia exigida pelo certificado.
 4. Exporte o certificado com sua chave privada em um arquivo PFX e guarde-o em local seguro.
 
-Depois de confirmar o nome exato, atualize o arquivo src-tauri/tauri.conf.json. Dentro de bundle, acrescente publisher, preservando os outros campos:
+Depois de confirmar o nome exato, envie essa identificação ao mantenedor do repositório para que o campo bundle.publisher seja configurado diretamente na branch main. Não é necessário editar Rust ou JSON manualmente. O trecho que será acrescentado ao objeto bundle é:
 
 ~~~json
 "bundle": {
@@ -44,7 +44,7 @@ Depois de confirmar o nome exato, atualize o arquivo src-tauri/tauri.conf.json. 
 }
 ~~~
 
-Não substitua o objeto bundle inteiro por esse exemplo. Faça a alteração na branch main e confirme que npm run check:store-config não apresenta mais o aviso de publisher ausente.
+Não substitua o objeto bundle inteiro por esse exemplo. Antes de executar o build de Store, confirme que a alteração foi integrada à main e que a verificação de configuração já não avisa sobre publisher ausente.
 
 ### Cadastrar os segredos de assinatura no GitHub
 
