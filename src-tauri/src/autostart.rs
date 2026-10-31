@@ -21,11 +21,12 @@ fn packaged_startup_task() -> Result<Option<StartupTask>, String> {
     }
 
     let task_id = HSTRING::from(MSIX_STARTUP_TASK_ID);
-    let operation = StartupTask::GetAsync(&task_id)
-        .map_err(|error| format!("Não foi possível localizar a tarefa de inicialização MSIX: {error}"))?;
-    let task = operation
-        .join()
-        .map_err(|error| format!("Não foi possível consultar a tarefa de inicialização MSIX: {error}"))?;
+    let operation = StartupTask::GetAsync(&task_id).map_err(|error| {
+        format!("Não foi possível localizar a tarefa de inicialização MSIX: {error}")
+    })?;
+    let task = operation.join().map_err(|error| {
+        format!("Não foi possível consultar a tarefa de inicialização MSIX: {error}")
+    })?;
 
     Ok(Some(task))
 }
@@ -40,9 +41,9 @@ fn startup_state_enabled(state: StartupTaskState) -> bool {
 pub fn is_enabled(app: &AppHandle) -> Result<bool, String> {
     #[cfg(windows)]
     if let Some(task) = packaged_startup_task()? {
-        let state = task
-            .State()
-            .map_err(|error| format!("Não foi possível ler o estado da inicialização MSIX: {error}"))?;
+        let state = task.State().map_err(|error| {
+            format!("Não foi possível ler o estado da inicialização MSIX: {error}")
+        })?;
         return Ok(startup_state_enabled(state));
     }
 
@@ -58,9 +59,13 @@ pub fn set_enabled(app: &AppHandle, enabled: bool) -> Result<bool, String> {
         if enabled {
             let state = task
                 .RequestEnableAsync()
-                .map_err(|error| format!("Não foi possível solicitar a inicialização MSIX: {error}"))?
+                .map_err(|error| {
+                    format!("Não foi possível solicitar a inicialização MSIX: {error}")
+                })?
                 .join()
-                .map_err(|error| format!("A solicitação de inicialização MSIX falhou: {error}"))?;
+                .map_err(|error| {
+                    format!("A solicitação de inicialização MSIX falhou: {error}")
+                })?;
             return Ok(startup_state_enabled(state));
         }
 
