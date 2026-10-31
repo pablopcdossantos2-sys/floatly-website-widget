@@ -65,14 +65,12 @@ try {
     }
 
     $outputRoot = Join-Path $repoRoot "dist/msix"
+    if (Test-Path $outputRoot) {
+        Remove-Item -Recurse -Force $outputRoot
+    }
     $stageDirectory = Join-Path $outputRoot "staging"
     $assetsDirectory = Join-Path $stageDirectory "Assets"
     New-Item -ItemType Directory -Path $assetsDirectory -Force | Out-Null
-    if (Test-Path $stageDirectory) {
-        Remove-Item -Recurse -Force $stageDirectory
-        New-Item -ItemType Directory -Path $assetsDirectory -Force | Out-Null
-    }
-    New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
 
     Copy-Item $appBinary (Join-Path $stageDirectory "widget-website.exe") -Force
 
