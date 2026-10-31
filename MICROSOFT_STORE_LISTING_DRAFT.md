@@ -92,20 +92,9 @@ Cada listagem pode ter até sete termos/frases únicos. Usar somente termos que 
 
 **Español:** navegador compacto; navegador flotante; navegador de escritorio; ventana de navegación; siempre visible; navegador para Windows; WebView2.
 
-## Categoria e classificação
+## Configuração já existente no Partner Center
 
-- **Categoria principal recomendada no Partner Center:** `Productivity` (`Produtividade`).
-- **Subcategoria:** não selecionar; a categoria Productivity não possui subcategorias na lista oficial para aplicativos MSI/EXE.
-- **Categoria secundária:** deixar em branco inicialmente. A Microsoft a trata como opcional; só vale acrescentá-la se uma funcionalidade real do Floatly justificar uma segunda forma de descoberta.
-- **Justificativa:** a categoria Productivity é definida pela Microsoft como destinada a aplicativos que ajudam o usuário a concluir uma tarefa com mais eficiência. O Floatly permite manter um site ou ferramenta escolhido pelo usuário em uma janela compacta e flutuante enquanto ele trabalha em outros programas, o que se encaixa melhor nessa descrição do que as categorias disponíveis para gerenciamento de arquivos.
-- **Por que não Utilities + tools:** na lista oficial de categorias para aplicativos MSI/EXE, essa categoria oferece as subcategorias Backup + manage e File managers, com exemplos como gerenciadores de arquivos, calculadoras, conversores, armazenamento em nuvem e editores de PDF. Esse não é o foco principal do Floatly.
-- **Referência oficial:** [Microsoft Learn — Categories and subcategories for MSI/EXE app](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/categories-and-subcategories). A Microsoft orienta escolher a categoria que melhor descreve o aplicativo; quando não houver correspondência exata, deve-se escolher aquela em que os usuários provavelmente procurariam um app semelhante.
-
-**Observação:** esta é a recomendação para o modelo atual do Floatly (aplicativo desktop Win32 distribuído por instalador EXE). A seleção final deve ser conferida nas opções efetivamente apresentadas pelo Partner Center no momento do envio.
-
-- **Classificação etária:** responder ao questionário IARC considerando que a pessoa pode abrir sites variados. Não escolher uma classificação baixa por suposição. Confirmar com a Microsoft como avaliar conteúdo de terceiros escolhido pelo usuário.
-- **Política de privacidade:** [PRIVACY_POLICY.md](https://github.com/pablopcdossantos2-sys/floatly-website-widget/blob/main/PRIVACY_POLICY.md). Documento público em português, inglês e espanhol, com identificação do responsável e contato para privacidade preenchidos. Confirme que a URL informada no Partner Center aponta para este arquivo.
-- **Suporte:** [SUPPORT.md](https://github.com/pablopcdossantos2-sys/floatly-website-widget/blob/main/SUPPORT.md). Atualize o campo Website do Partner Center para apontar a esta página dedicada.
+A categoria principal **Productivity** e a classificação etária IARC já foram configuradas no produto Floatly. Não é necessário repetir o questionário ou alterar essas propriedades para esta submissão.
 
 ## Plano de screenshots reais
 
@@ -118,16 +107,11 @@ Capturar o aplicativo final em Windows, sem mockups que sugiram recursos inexist
 
 Não usar capturas de páginas de terceiros sem permissão. Evitar logotipos, imagens ou conteúdo de Investing.com e de outros sites; para a demonstração, preferir um site de teste próprio.
 
-## Antes de aprovar a listagem
+## Pendências antes de enviar
 
-- [x] Nome **Floatly** confirmado no produto criado no Partner Center.
-- [ ] Requisito da política 10.2.1 validado: mecanismo Chromium/WebView2 dentro do limite de duas versões principais e runtime Evergreen atualizado.
-- [ ] Descrição validada com as funcionalidades da versão realmente testada.
-- [ ] Identidade do publisher alinhada ao certificado Authenticode.
-- [ ] Campo Website de suporte do Partner Center atualizado para SUPPORT.md.
-- [x] Política de privacidade revisada e publicada no repositório.
-- [ ] Site de suporte no Partner Center atualizado para a página dedicada SUPPORT.md.
-- [x] Categoria Productivity e classificação IARC preenchidas no Partner Center.
-- [ ] Termos de pesquisa revisados para não incluir marcas de terceiros.
-- [ ] Screenshots capturadas da versão final em Windows.
-- [ ] Texto não sugere parceria, endosso ou afiliação com sites exibidos.
+- [ ] Confirmar que o publisher exibido na Store corresponde ao certificado Authenticode usado no pacote.
+- [ ] Atualizar o campo Website de suporte para a página dedicada https://github.com/pablopcdossantos2-sys/floatly-website-widget/blob/main/SUPPORT.md.
+- [ ] Validar a descrição e os recursos com a versão final realmente testada.
+- [ ] Revisar os termos de pesquisa para não incluir marcas ou serviços de terceiros.
+- [ ] Capturar screenshots reais da versão final em Windows.
+- [ ] Confirmar que o texto e as imagens não sugerem parceria, endosso ou afiliação com sites exibidos.
