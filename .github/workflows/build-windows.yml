@@ -26,6 +26,11 @@ jobs:
           toolchain: 1.90.0
           targets: x86_64-pc-windows-msvc
           components: rustfmt, clippy
+      - name: Set up WinApp CLI
+        uses: microsoft/setup-WinAppCli@cc8ea9a08b3ee3db43d5aa6bddda4a0e87d800f7 # v0.1
+        with:
+          version: v0.7.1
+
       - name: Cache Cargo registry only
         uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # actions/cache v6.2.0
         with:
@@ -92,6 +97,52 @@ jobs:
           $subsystem = [BitConverter]::ToUInt16($peBytes, $optionalHeaderOffset + 68)
           if ($subsystem -ne 2) { throw "Expected Windows GUI subsystem (2), found subsystem $subsystem." }
           Write-Host "PE subsystem verified: Windows GUI (2)."
+      - name: Validate unsigned MSIX packaging with isolated test identity
+        shell: pwsh
+        env:
+          MSIX_PACKAGE_IDENTITY_NAME: FloatlyCiValidation
+          MSIX_PACKAGE_PUBLISHER: CN=Floatly CI Validation
+          MSIX_PUBLISHER_DISPLAY_NAME: Floatly CI Validation
+        run: |
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/build-msix.ps1
+          if ($LASTEXITCODE -ne 0) { throw "MSIX packaging script failed." }
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $packages = @(Get-ChildItem "dist/msix" -Filter "*.msix" -File)
+          if ($packages.Count -ne 1) { throw "Expected one MSIX package, found $($packages.Count)." }
+
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($packages[0].FullName)
+          try {
+            $manifestEntry = $archive.GetEntry("AppxManifest.xml")
+            if ($null -eq $manifestEntry) { throw "MSIX archive has no AppxManifest.xml." }
+
+            $reader = [System.IO.StreamReader]::new($manifestEntry.Open())
+            try { [xml]$manifest = $reader.ReadToEnd() } finally { $reader.Dispose() }
+
+            $identity = $manifest.SelectSingleNode("/*[local-name()='Package']/*[local-name()='Identity']")
+            if ($null -eq $identity -or $identity.GetAttribute("Name") -ne "FloatlyCiValidation") {
+              throw "MSIX manifest identity was not populated from the workflow inputs."
+            }
+            if ($identity.GetAttribute("Publisher") -ne "CN=Floatly CI Validation") {
+              throw "MSIX manifest Publisher does not match the CI test input."
+            }
+
+            $exeEntry = $archive.Entries | Where-Object { $_.FullName -eq "widget-website.exe" } | Select-Object -First 1
+            if ($null -eq $exeEntry) { throw "MSIX archive does not contain widget-website.exe." }
+
+            $signatureEntry = $archive.GetEntry("AppxSignature.p7x")
+            if ($null -ne $signatureEntry) { throw "Store submission artifact must be unsigned; found AppxSignature.p7x." }
+
+            $startup = $manifest.SelectSingleNode("//*[local-name()='StartupTask' and @TaskId='FloatlyStartup']")
+            if ($null -eq $startup) { throw "MSIX package is missing the FloatlyStartup task." }
+          }
+          finally {
+            $archive.Dispose()
+          }
+
+          Get-FileHash $packages[0].FullName -Algorithm SHA256
+          Remove-Item -Recurse -Force "dist/msix"
+
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # actions/upload-artifact v7.0.2
         with:
           name: widget-website-build
