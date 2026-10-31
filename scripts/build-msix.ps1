@@ -104,6 +104,27 @@ try {
         winapp manifest update-assets $logoPath --manifest $manifestPath
     }
 
+    # The 200% variant of the 150px tile is the exact 300x300 PNG recommended
+    # for the 1:1 App tile icon in the Microsoft Store Partner Center.
+    $partnerCenterIcon = Join-Path $assetsDirectory "Square150x150Logo.scale-200.png"
+    if (!(Test-Path $partnerCenterIcon)) {
+        Stop-Build "O WinApp CLI não gerou Assets\\Square150x150Logo.scale-200.png (300x300). Não é possível exportar o ícone da Store."
+    }
+
+    $storeAssetsDirectory = Join-Path $outputRoot "store-assets"
+    New-Item -ItemType Directory -Path $storeAssetsDirectory -Force | Out-Null
+    Copy-Item $partnerCenterIcon (Join-Path $storeAssetsDirectory "Floatly-Store-Icon-300x300.png") -Force
+
+    @(
+        "Floatly - Microsoft Store listing artwork",
+        "",
+        "Upload Floatly-Store-Icon-300x300.png to Partner Center > Store listings > Store logos > 1:1 App tile icon.",
+        "This exact 300x300 PNG is generated from icons/widget.svg through WinApp CLI.",
+        "",
+        "The package StoreLogo and tile-logo scale variants are generated from the same SVG and embedded in the MSIX.",
+        "The 2:3 poster art and 1:1 box art are intended for games, not this desktop app."
+    ) | Set-Content -Path (Join-Path $storeAssetsDirectory "README.txt") -Encoding UTF8
+
     $outputFileName = "Floatly_$($packageVersion)_x64.msix"
     $outputPath = Join-Path $outputRoot $outputFileName
     if (Test-Path $outputPath) { Remove-Item $outputPath -Force }
