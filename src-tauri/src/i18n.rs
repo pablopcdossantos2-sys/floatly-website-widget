@@ -10,6 +10,15 @@ pub struct TrayLabels {
     pub tooltip: &'static str,
 }
 
+/// Accept only the UI languages shipped by Floatly; never interpolate arbitrary text.
+pub fn normalize_language(language: &str) -> &'static str {
+    match language {
+        "en" => "en",
+        "es" => "es",
+        _ => "pt-BR",
+    }
+}
+
 pub fn tray_labels(language: &str, locked: bool) -> TrayLabels {
     match language {
         "en" => TrayLabels {
@@ -94,6 +103,14 @@ mod tests {
             tray_labels("pt-BR", false).lock,
             "Travar mover/redimensionar"
         );
+    }
+
+    #[test]
+    fn normalize_language_never_returns_untrusted_text() {
+        assert_eq!(normalize_language("en"), "en");
+        assert_eq!(normalize_language("es"), "es");
+        assert_eq!(normalize_language("en'};alert(1)//"), "pt-BR");
+        assert_eq!(normalize_language("pt-BR"), "pt-BR");
     }
 
     #[test]
