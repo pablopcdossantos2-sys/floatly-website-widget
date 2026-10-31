@@ -711,25 +711,25 @@ mod tests {
     fn app_directory_uses_stable_profile_fallbacks_without_current_dir() {
         assert_eq!(
             roaming_directory(
-                Some(PathBuf::from(r"C:\\Users\\Test\\AppData\\Roaming")),
-                Some(PathBuf::from(r"C:\\Users\\Test\\AppData\\Local")),
-                Some(PathBuf::from(r"C:\\Users\\Test")),
-                PathBuf::from(r"C:\\Temp")
+                Some(PathBuf::from(r"C:\Users\Test\\AppData\\Roaming")),
+                Some(PathBuf::from(r"C:\Users\Test\\AppData\\Local")),
+                Some(PathBuf::from(r"C:\Users\Test")),
+                PathBuf::from(r"C:\Temp")
             ),
-            PathBuf::from(r"C:\\Users\\Test\\AppData\\Roaming")
+            PathBuf::from(r"C:\Users\Test\\AppData\\Roaming")
         );
         assert_eq!(
             roaming_directory(
                 None,
-                Some(PathBuf::from(r"C:\\Users\\Test\\AppData\\Local")),
+                Some(PathBuf::from(r"C:\Users\Test\\AppData\\Local")),
                 None,
-                PathBuf::from(r"C:\\Temp")
+                PathBuf::from(r"C:\Temp")
             ),
-            PathBuf::from(r"C:\\Users\\Test\\AppData\\Roaming")
+            PathBuf::from(r"C:\Users\Test\\AppData\\Roaming")
         );
         assert_eq!(
-            roaming_directory(None, None, None, PathBuf::from(r"C:\\Temp")),
-            PathBuf::from(r"C:\\Temp\\Floatly\\Roaming")
+            roaming_directory(None, None, None, PathBuf::from(r"C:\Temp")),
+            PathBuf::from(r"C:\Temp\\Floatly\\Roaming")
         );
     }
 
