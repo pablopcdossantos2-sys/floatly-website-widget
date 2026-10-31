@@ -70,30 +70,6 @@ Para sites que exigem login, use o fluxo de autenticação disponibilizado pelo 
 
 O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é preservado.
 
-## Diagnóstico de congelamentos
-
-- O aplicativo grava registros persistentes em `%APPDATA%\WidgetWebsite\diagnostics.log` (normalmente, `C:\Users\<usuário>\AppData\Roaming\WidgetWebsite\diagnostics.log`). As datas do log estão em UTC. O arquivo anterior é rotacionado para `diagnostics.log.1` quando o log atinge aproximadamente 1 MB.
-- A página envia um sinal de atividade a cada 5 segundos. Se o sinal deixar de chegar por 20 segundos, o monitor registra um aviso, verifica se a janela nativa responde e procura processos `msedgewebview2.exe` descendentes do widget. A ausência desses processos é uma pista de que o WebView2 pode ter sido encerrado, não uma prova de quem causou isso.
-- O log inclui início do app, detecção do WebView2 Runtime, navegações, falhas de inicialização e recuperação da atividade. URLs são registradas sem parâmetros de consulta ou fragmentos para reduzir o risco de guardar tokens de sessão.
-- As mensagens também são enviadas à saída padrão quando há um console anexado. Em builds gráficos do Windows, o terminal pode não estar disponível; por isso, o arquivo de log é a fonte confiável. Abra o arquivo com o Bloco de Notas depois de reproduzir o congelamento.
-- O diagnóstico distingue ausência de atividade JavaScript de uma janela nativa sem resposta, mas não consegue provar sozinho que um aplicativo externo causou o congelamento. O monitor também não pode gravar novas mensagens se o processo inteiro for encerrado abruptamente ou deixar de executar todos os seus threads.
-
-## Privacidade, decisões e limitações
-
-Consulte a [Política de Privacidade do Floatly](PRIVACY_POLICY.md) (português, inglês e espanhol) e a página de [Suporte](SUPPORT.md). A política já identifica o responsável pelo projeto e o canal de contato para solicitações de privacidade.
-- Sem telemetria. A navegação principal é limitada ao site configurado e a recursos de autenticação reconhecidos; os links para outros domínios abrem no navegador padrão. A permissão concedida ao site remoto é limitada ao sinal autenticado de atividade.
-- Arquivo de configuração corrompido é substituído por valores padrão. O botão “Restaurar tamanho padrão” muda somente largura e altura para 350 × 550 px; as outras preferências são preservadas.
-- A CI verifica a compatibilidade das versões Tauri, o manifesto de permissões e as capabilities; executa `npm ci`, verificação de tipos, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` e `cargo test`; por fim, compila o instalador no Windows.
-- A janela de login secundária compartilha a pasta de dados do WebView2 e inclui uma barra de endereço injetada. A navegação para domínios não autorizados continua bloqueada dentro do app e abre no navegador padrão. O fechamento automático depende de o provedor retornar ao caminho configurado; alguns fluxos sociais podem exigir fechar a janela manualmente.
-- O zoom é aplicado pelo controle nativo de ampliação do WebView2, afetando a renderização da página de forma semelhante ao zoom de um navegador. O recorte dos cantos pode variar no Windows 10.
-- A verificação de rede mostra uma tela própria antes da navegação e monitora a conexão enquanto o site está aberto. O wrapper padrão do Tauri não fornece um evento portátil que permita substituir toda falha de navegação do Chromium em todas as situações.
-- É necessário testar login real, filtros, atalho em conflito, escalas 125%/150%, monitores múltiplos, DPI e consumo de memória em Windows. O ambiente de desenvolvimento atual não permite comprovar esses comportamentos gráficos.
-
 ## Desinstalação e dados
 
 O desinstalador NSIS oferece a opção **Delete the application data**. Quando marcada, ela remove `%APPDATA%\\WidgetWebsite` (configuração, logs e sessão WebView2) e `%LOCALAPPDATA%\\WidgetWebsite`, se existir. Se a opção ficar desmarcada, esses dados são preservados para uma futura reinstalação. A entrada de início automático do Windows é removida sempre que o aplicativo é desinstalado.
-
-## Estrutura
-- src-tauri/src: configuração, janela, comandos, diagnósticos e bandeja em Rust.
-- src: inicialização e painel de configurações em TypeScript.
-- icons/widget.svg: ícone-fonte vetorial usado para gerar os ícones nativos do Windows.
