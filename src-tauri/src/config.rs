@@ -265,6 +265,41 @@ pub fn load(dir: &Path) -> AppConfig {
 
 /// Loads a configuration field-by-field so one malformed value does not discard every
 /// other preference. The boolean indicates whether startup may safely persist the result.
+/// Preserve the current config before replacing a valid JSON file with repaired values.
+pub fn backup_before_repair(dir: &Path) -> Result<Option<PathBuf>, String> {
+    let source = dir.join("config.json");
+    if !source.exists() {
+        return Ok(None);
+    }
+
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let counter = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
+    let backup = dir.join(format!(
+        "config.json.repaired-{timestamp}-{}-{counter}",
+        std::process::id()
+    ));
+    fs::copy(&source, &backup).map_err(|error| {
+        format!("Não foi possível preservar config.json antes do reparo: {error}")
+    })?;
+
+    let mut backups = fs::read_dir(dir)
+        .map_err(|error| format!("Não foi possível listar os backups de configuração: {error}"))?
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_name().to_string_lossy().starts_with("config.json.repaired-"))
+        .map(|entry| entry.path())
+        .collect::<Vec<_>>();
+    backups.sort();
+    let excess = backups.len().saturating_sub(3);
+    for old_backup in backups.into_iter().take(excess) {
+        let _ = fs::remove_file(old_backup);
+    }
+
+    Ok(Some(backup))
+}
+
 pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
     let path = dir.join("config.json");
     let bytes = match fs::read(&path) {
@@ -640,6 +675,36 @@ mod tests {
         assert_eq!(config.width, 777);
         assert_eq!(config.height, DEFAULT_HEIGHT);
         assert_eq!(config.site_url, DEFAULT_SITE);
+    }
+
+    #[test]
+    fn backup_before_repair_preserves_original_and_prunes_history() {
+        let dir = std::env::temp_dir().join(format!(
+            "widget-website-config-repair-test-{}-{}",
+            std::process::id(),
+            TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed)
+        ));
+        fs::create_dir_all(&dir).unwrap();
+        let source = dir.join("config.json");
+        fs::write(&source, r#"{"site_url":"https://example.com/reset/secret"}"#).unwrap();
+
+        let mut latest_backup = None;
+        for _ in 0..5 {
+            latest_backup = backup_before_repair(&dir).unwrap();
+        }
+        let backup = latest_backup.unwrap();
+        assert_eq!(
+            fs::read_to_string(&backup).unwrap(),
+            r#"{"site_url":"https://example.com/reset/secret"}"#
+        );
+        let backups = fs::read_dir(&dir)
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.file_name().to_string_lossy().starts_with("config.json.repaired-"))
+            .count();
+        assert_eq!(backups, 3);
+        assert!(source.exists());
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]
