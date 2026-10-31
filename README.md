@@ -39,13 +39,13 @@ O instalador aparece em src-tauri/target/release/bundle/nsis e o executável em 
 
 ## Primeira execução
 
-Na primeira abertura, o widget pede que você escolha um site. Clique em **Escolher site** e informe uma URL em **Configurações → URL do site**. O campo começa vazio: nenhum website de terceiros vem configurado por padrão. O site precisa permitir o carregamento no WebView2; alguns sites podem restringir recursos específicos ou fluxos de login.
+Na primeira abertura, o widget pede que você escolha um site. Clique em **Escolher site** e informe uma URL em **Configurações → URL do site**. O campo começa vazio: nenhum website de terceiros vem configurado por padrão. O site precisa permitir o carregamento no WebView2; alguns sites podem restringir recursos específicos ou fluxos de login. Para voltar à tela inicial, basta apagar a URL nas Configurações e salvar.
 
 Para um exemplo concreto de URL, consulte a seção de exemplo abaixo.
 
 ## Microsoft Store
 
-O Floatly é preparado para a Store como **MSIX x64**. Siga o [guia passo a passo](GUIA_PUBLICACAO_MICROSOFT_STORE.md) e use o [rascunho de listagem multilíngue](MICROSOFT_STORE_LISTING_DRAFT.md).
+O Floatly é preparado para a Store como **MSIX x64**. Esse pacote exige Windows 10 versão 2004 (build 19041) ou posterior; a versão convencional NSIS continua sendo distribuída separadamente. Siga o [guia passo a passo](GUIA_PUBLICACAO_MICROSOFT_STORE.md) e use o [rascunho de listagem multilíngue](MICROSOFT_STORE_LISTING_DRAFT.md).
 
 O workflow **Build MSIX for Microsoft Store** é executado automaticamente na branch `main` quando há alterações em arquivos de código, dependências, configuração ou empacotamento relevantes. Ele também pode ser iniciado manualmente pela aba **Actions** e usa a identidade do pacote já confirmada no Partner Center. O workflow gera o arquivo `.msix` sem assinatura. Isso é intencional: a Microsoft assina o MSIX depois da aprovação. Não são necessários certificado Code Signing, arquivo PFX ou segredos de assinatura para esse fluxo.
 
@@ -71,6 +71,23 @@ O Investing.com é apenas um exemplo de site que pode ser exibido. Para usá-lo,
 Para sites que exigem login, use o fluxo de autenticação disponibilizado pelo próprio site. O menu da bandeja inclui a opção de entrar ou configurar o endereço do site.
 
 O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é preservado.
+
+## Diagnóstico, privacidade e limitações
+
+- Os registros locais ficam normalmente em `%APPDATA%\\WidgetWebsite\\diagnostics.log`. Eles usam horário UTC, rotação de aproximadamente 1 MiB e até três arquivos anteriores. Os registros não são enviados automaticamente ao desenvolvedor.
+- Para reduzir a exposição de dados, URLs registradas não incluem credenciais, parâmetros de consulta ou fragmentos; o caminho é reduzido aos dois primeiros segmentos e segmentos longos ou semelhantes a identificadores são mascarados. Ainda assim, revise os registros antes de compartilhá-los.
+- O monitor de atividade registra um aviso quando deixa de receber o sinal do WebView2 por aproximadamente 20 segundos. Ele não reinicia nem encerra o aplicativo automaticamente e ignora períodos em que a janela está minimizada ou oculta.
+- O Floatly não implementa telemetria própria. O site escolhido e os provedores de autenticação podem receber dados de conexão e manter cookies/sessões no perfil local do WebView2 conforme as políticas desses serviços.
+- Se o JSON de configuração estiver completamente inválido, o arquivo original é preservado como `config.json.bad-*`. Se campos individuais precisarem de reparo, o Floatly cria cópias `config.json.repaired-*` antes de corrigir os valores e mantém até três cópias recentes desse tipo.
+- O Floatly não é um navegador completo com abas e histórico. A compatibilidade, o login e os recursos disponíveis dependem do site escolhido.
+
+## Estrutura do projeto
+
+- `src-tauri/src/`: janela, navegação, configuração, bandeja, inicialização e diagnóstico em Rust.
+- `src/`: tela inicial e interface de configurações em TypeScript.
+- `scripts/`: verificações de configuração, permissões, contraste e empacotamento.
+- `packaging/msix/`: manifesto para a Microsoft Store.
+- `icons/widget.svg`: fonte vetorial dos ícones do aplicativo.
 
 ## Desinstalação e dados
 
