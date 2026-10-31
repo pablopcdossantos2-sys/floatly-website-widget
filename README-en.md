@@ -78,7 +78,7 @@ The app does not read, copy or store passwords. The default WebView2 user agent 
 
 ## Diagnostics, privacy and limitations
 
-- Local logs are normally stored at `%APPDATA%\\WidgetWebsite\\diagnostics.log`. They use UTC timestamps, rotate at approximately 1 MiB, and retain up to three older log files. Logs are not automatically sent to the developer.
+- Local logs are normally stored at `%APPDATA%\WidgetWebsite\diagnostics.log`. They use UTC timestamps, rotate at approximately 1 MiB, and retain up to three older log files. Logs are not automatically sent to the developer.
 - To reduce exposure, logged URLs omit credentials, query parameters and fragments. The path is limited to its first two segments, and long or identifier-like segments are masked. Review logs before sharing them anyway.
 - The activity monitor logs a warning when it stops receiving the WebView2 heartbeat for approximately 20 seconds. It does not restart or terminate the application, and it ignores periods when the window is minimized or hidden.
 - Floatly does not implement its own telemetry. The selected website and authentication providers may receive connection data and store cookies or sessions in the local WebView2 profile under their own policies.
@@ -95,7 +95,7 @@ The app does not read, copy or store passwords. The default WebView2 user agent 
 
 ## Uninstalling and stored data
 
-The NSIS uninstaller offers a **Delete the application data** checkbox. When selected, it removes `%APPDATA%\\WidgetWebsite` (configuration, logs and WebView2 session data) and `%LOCALAPPDATA%\\WidgetWebsite` if present. If left unchecked, these files are preserved for a later reinstall. The Windows startup entry is always removed when the app is uninstalled.
+The NSIS uninstaller offers a **Delete the application data** checkbox. When selected, it removes `%APPDATA%\WidgetWebsite` (configuration, logs and WebView2 session data) and `%LOCALAPPDATA%\WidgetWebsite` if present. If left unchecked, these files are preserved for a later reinstall. The Windows startup entry is always removed when the app is uninstalled.
 
 
 ## 👤 Authorship and development
