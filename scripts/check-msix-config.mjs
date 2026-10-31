@@ -24,6 +24,28 @@ if (versionParts.length !== 3 || versionParts.some((part) => !Number.isInteger(p
   fail("A versão do pacote MSIX não pode começar com 0. Use, por exemplo, 1.0.0.");
 }
 if (!cargo.includes(`version = "${tauri.version}"`)) fail("A versão do pacote Rust deve corresponder à versão do Tauri.");
+const targetDeviceFamily = manifest.match(/<TargetDeviceFamily\\b[^>]*>/s)?.[0] ?? "";
+const minVersion = targetDeviceFamily.match(/\\bMinVersion="([^"]+)"/)?.[1] ?? "";
+const versionTuple = (value) => value.split(".").map((part) => Number(part));
+const minimumSupported = [10, 0, 19041, 0];
+const declaredMinimum = versionTuple(minVersion);
+if (
+  declaredMinimum.length !== 4 ||
+  declaredMinimum.some((part) => !Number.isInteger(part) || part < 0) ||
+  declaredMinimum.some((part, index) => part !== minimumSupported[index] && declaredMinimum.slice(0, index).every((value, previous) => value === minimumSupported[previous]) && part < minimumSupported[index]) ||
+  declaredMinimum.findIndex((part, index) => part !== minimumSupported[index]) !== -1 &&
+    (() => {
+      for (let index = 0; index < 4; index += 1) {
+        if (declaredMinimum[index] !== minimumSupported[index]) return declaredMinimum[index] < minimumSupported[index];
+      }
+      return false;
+    })()
+) {
+  fail(`TargetDeviceFamily MinVersion must be 10.0.19041.0 or newer for the declared uap10 features (found "${minVersion || "missing"}").`);
+}
+if (!manifest.includes("xmlns:uap10=") || !manifest.includes("uap10:PackageIntegrity") || !manifest.includes("uap10:RuntimeBehavior")) {
+  fail("The manifest uses uap10 features; keep their namespace and declarations aligned with the minimum Windows build.");
+}
 if (!manifest.includes('Name="__PACKAGE_IDENTITY_NAME__"')) fail("O manifesto deve manter o marcador de identidade do Partner Center.");
 if (!manifest.includes('Publisher="__PACKAGE_PUBLISHER__"')) fail("O manifesto deve manter o marcador Publisher do Partner Center.");
 if (!manifest.includes('Version="__PACKAGE_VERSION__"')) fail("O manifesto deve receber a versão MSIX de quatro componentes no build.");
