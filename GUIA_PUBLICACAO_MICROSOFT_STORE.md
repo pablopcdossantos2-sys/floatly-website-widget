@@ -41,6 +41,7 @@ O workflow **Build MSIX for Microsoft Store** é acionado automaticamente a cada
 3. Abra a execução mais recente de **Build MSIX for Microsoft Store**, correspondente ao commit que deseja publicar.
 4. Aguarde o workflow terminar com sucesso.
 5. Na seção **Artifacts** da execução, baixe **floatly-msix-x64**.
+6. Baixe também **floatly-store-logos**. Esse segundo artefato contém o ícone quadrado PNG de 300 × 300 pixels e um README de orientação para a listagem.
 
 Para gerar manualmente um novo pacote sem fazer outro commit, use **Run workflow** na mesma tela. Os três campos já aparecem preenchidos com a identidade oficial; mantenha os valores exatamente como estão.
 
@@ -110,6 +111,11 @@ Referência oficial: https://learn.microsoft.com/en-us/windows/apps/publish/publ
 ## 6. Preparar a Store listing
 
 Use o conteúdo de [MICROSOFT_STORE_LISTING_DRAFT.md](MICROSOFT_STORE_LISTING_DRAFT.md).
+
+1. Baixe o artefato **floatly-store-logos** da mesma execução bem-sucedida do build MSIX.
+2. Extraia o arquivo ZIP e use **Floatly-Store-Icon-300x300.png** em **Store listings → Store logos → 1:1 App tile icon** no Partner Center.
+3. Esse ícone é derivado do mesmo SVG usado no aplicativo e possui exatamente 300 × 300 pixels. O workflow também gera e embute no MSIX os arquivos StoreLogo e demais logos declarados no manifesto.
+4. Não envie arte de pôster 2:3 nem box art 1:1: essas imagens são destinadas a jogos, não ao Floatly.
 
 1. Cadastre o nome Floatly e a descrição em português.
 2. Adicione inglês e espanhol como idiomas adicionais, usando as traduções do rascunho.
