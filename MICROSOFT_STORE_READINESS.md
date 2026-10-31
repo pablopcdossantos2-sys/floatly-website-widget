@@ -11,7 +11,6 @@ O produto **Floatly** e as propriedades básicas da Store já estão configurado
 - [ ] Obter um certificado Authenticode confiável e confirmar o nome exato do publisher.
 - [ ] Informar ao mantenedor o nome exato do publisher do certificado para configurar bundle.publisher; cadastrar os segredos WINDOWS_PFX_BASE64 e WINDOWS_PFX_PASSWORD no GitHub.
 - [ ] Gerar a chave do Tauri Updater e cadastrar TAURI_SIGNING_PRIVATE_KEY e, se aplicável, TAURI_SIGNING_PRIVATE_KEY_PASSWORD.
-- [ ] Aguardar a integração do Tauri Updater e do feed de releases no repositório; essa é uma alteração de código, não uma tarefa de edição manual do Partner Center.
 - [ ] Executar o workflow de Store depois que a integração estiver pronta e guardar o EXE assinado e SHA256SUMS.txt.
 - [ ] Testar instalação, atualização in-app, desinstalação, WebView2, DPI e monitores múltiplos em um Windows limpo.
 - [ ] Publicar o EXE em uma URL HTTPS direta, pública, versionada e imutável.
@@ -20,6 +19,6 @@ O produto **Floatly** e as propriedades básicas da Store já estão configurado
 
 ## Trabalho que será feito no repositório
 
-A integração do Tauri Updater, as permissões necessárias, a criação do feed estático, a geração de artefatos assinados e o workflow de release são trabalho técnico no código. O desenvolvedor humano não precisa editar Rust ou TypeScript para realizá-los; precisa somente definir a hospedagem, gerar a chave e cadastrar os segredos conforme o guia.
+A integração do Tauri Updater, as permissões necessárias, a criação do feed estático, a geração de artefatos assinados e o workflow de release são trabalho técnico no código e precisam estar concluídos antes da geração do pacote final. O desenvolvedor humano não precisa editar Rust ou TypeScript para realizá-los; precisa somente definir a hospedagem, gerar a chave e cadastrar os segredos conforme o guia.
 
 Não marque uma etapa como concluída apenas porque o arquivo de configuração foi alterado: a instalação e a atualização precisam ser testadas em Windows.
