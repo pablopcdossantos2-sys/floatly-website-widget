@@ -17,6 +17,12 @@ const [tauri, cargo, pkg, manifest] = await Promise.all([
 
 if (tauri.productName !== "Floatly") fail("productName do Tauri deve ser Floatly.");
 if (tauri.version !== pkg.version) fail("package.json e tauri.conf.json devem usar a mesma versão.");
+const versionParts = String(tauri.version).split(".").map(Number);
+if (versionParts.length !== 3 || versionParts.some((part) => !Number.isInteger(part) || part < 0 || part > 65535)) {
+  fail("A versão do aplicativo deve ter três componentes numéricos entre 0 e 65535.");
+} else if (versionParts[0] === 0) {
+  fail("A versão do pacote MSIX não pode começar com 0. Use, por exemplo, 1.0.0.");
+}
 if (!cargo.includes(`version = "${tauri.version}"`)) fail("A versão do pacote Rust deve corresponder à versão do Tauri.");
 if (!manifest.includes('Name="__PACKAGE_IDENTITY_NAME__"')) fail("O manifesto deve manter o marcador de identidade do Partner Center.");
 if (!manifest.includes('Publisher="__PACKAGE_PUBLISHER__"')) fail("O manifesto deve manter o marcador Publisher do Partner Center.");
