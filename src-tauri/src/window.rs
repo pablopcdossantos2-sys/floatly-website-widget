@@ -433,18 +433,29 @@ fn authorized_widget_action<'a>(url: &'a Url, expected_token: &str) -> Option<&'
 struct ExternalOpenState {
     last_open_ms: u64,
     last_url: String,
+    recent_open_ms: std::collections::VecDeque<u64>,
 }
 
 fn external_open_allowed(state: &mut ExternalOpenState, url: &str, now_ms: u64) -> bool {
+    const MINIMUM_INTERVAL_MS: u64 = 2_000;
+    const DUPLICATE_INTERVAL_MS: u64 = 10_000;
+    const WINDOW_MS: u64 = 60_000;
+    const MAX_OPENINGS_PER_WINDOW: usize = 5;
+
+    state.recent_open_ms.retain(|opened| now_ms.saturating_sub(*opened) < WINDOW_MS);
     let elapsed = now_ms.saturating_sub(state.last_open_ms);
-    if state.last_open_ms != 0 && elapsed < 2_000 {
+    if state.last_open_ms != 0 && elapsed < MINIMUM_INTERVAL_MS {
         return false;
     }
-    if state.last_url == url && state.last_open_ms != 0 && elapsed < 10_000 {
+    if state.last_url == url && state.last_open_ms != 0 && elapsed < DUPLICATE_INTERVAL_MS {
+        return false;
+    }
+    if state.recent_open_ms.len() >= MAX_OPENINGS_PER_WINDOW {
         return false;
     }
     state.last_open_ms = now_ms;
     state.last_url = url.to_owned();
+    state.recent_open_ms.push_back(now_ms);
     true
 }
 
@@ -1661,6 +1672,29 @@ mod navigation_policy_tests {
     }
 
     #[test]
+    fn external_open_budget_caps_openings_per_minute() {
+        let mut state = ExternalOpenState::default();
+        for index in 0..5 {
+            let now = 1_000 + index * 3_000;
+            assert!(external_open_allowed(
+                &mut state,
+                &format!("https://example.com/{index}"),
+                now
+            ));
+        }
+        assert!(!external_open_allowed(
+            &mut state,
+            "https://example.com/sixth",
+            16_000
+        ));
+        assert!(external_open_allowed(
+            &mut state,
+            "https://example.com/after-window",
+            62_000
+        ));
+    }
+
+    #[test]
     fn reload_counter_resets_when_interval_changes() {
         let state = ReloadState {
             elapsed_seconds: 350,
@@ -1731,6 +1765,19 @@ mod internal_app_navigation_tests {
     fn allows_tauri_protocol() {
         let url = Url::parse("tauri://localhost/").unwrap();
         assert!(is_internal_app_url(&url));
+    }
+
+    #[test]
+    fn internal_origins_reject_unexpected_hosts_and_ports() {
+        for address in [
+            "tauri://evil/",
+            "tauri://localhost:4444/",
+            "http://tauri.localhost:8080/",
+            "https://tauri.localhost/",
+        ] {
+            let url = Url::parse(address).unwrap();
+            assert!(!is_internal_app_url(&url), "accepted unexpected origin: {address}");
+        }
     }
 }
 
