@@ -25,8 +25,7 @@ if (versionParts.length !== 3 || versionParts.some((part) => !Number.isInteger(p
 } else if (versionParts[0] === 0) {
   fail("A versão do pacote MSIX não pode começar com 0. Use, por exemplo, 1.0.0.");
 }
-const cargoPackage = cargo.match(/^\[package\]\s*([\s\S]*?)(?=^\[|$)/m)?.[1] ?? "";
-const cargoPackageVersion = cargoPackage.match(/^version\s*=\s*"([^"]+)"/m)?.[1] ?? "";
+const cargoPackageVersion = cargo.match(/^\[package\][\s\S]*?^version\s*=\s*"([^"]+)"/m)?.[1] ?? "";
 const cargoLockPackageVersion = cargoLock.match(/\[\[package\]\]\s*name = "widget-website"\s*version = "([^"]+)"/)?.[1] ?? "";
 if (cargoPackageVersion !== tauri.version) fail("Cargo.toml e tauri.conf.json devem usar a mesma versão.");
 if (pkg.version !== packageLock.version || pkg.version !== packageLock.packages?.[""]?.version) {
