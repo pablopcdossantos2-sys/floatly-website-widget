@@ -1,6 +1,6 @@
 # Guia passo a passo — publicar o Floatly como MSIX na Microsoft Store
 
-**Revisado em:** 30 de outubro de 2026  
+**Revisado em:** 31 de outubro de 2026  
 **Formato:** MSIX para Windows x64  
 **Situação:** nova ficha do Floatly no Partner Center. Não use o fluxo EXE/MSI.
 
@@ -20,37 +20,31 @@ O MSIX é a rota adequada para publicar o Floatly sem comprar certificado Code S
 
 Referência oficial: https://learn.microsoft.com/en-us/windows/apps/publish/get-started
 
-## 2. Copiar a identidade do pacote
+## 2. Identidade do pacote confirmada
 
-O MSIX precisa usar exatamente a identidade atribuída ao produto pelo Partner Center. Não invente nem tente preencher esses valores por conta própria.
+Os valores abaixo foram copiados da seção **Exibir a identidade do produto** do Partner Center e já estão configurados como padrões do workflow MSIX:
 
-1. Na ficha do Floatly, abra **Product management → Product identity** (o nome ou a posição da opção pode variar ligeiramente).
-2. Localize os dados de identidade do pacote.
-3. Copie e guarde, exatamente como aparecem:
-   - **Package/Identity Name** ou **Package ID**;
-   - **Publisher** ou **Publisher ID** — normalmente um identificador no formato X.500, por exemplo CN=...;
-   - **Publisher display name**.
-4. Não use o nome de exibição Floatly no campo Publisher, a menos que o Partner Center mostre exatamente esse valor.
+| Campo do Partner Center | Valor |
+|---|---|
+| Package/Identity/Name | `pablopcdsantos.Floatly` |
+| Package/Identity/Publisher | `CN=A3E973B8-1411-4314-B754-F3DADD99C070` |
+| Package/Properties/PublisherDisplayName | `pablopcdsantos` |
 
-Esses valores serão informados como entradas do workflow do GitHub. O processo preenche o manifesto MSIX durante o build; você não precisa editar XML, Rust ou YAML.
+O build preenche o manifesto com esses valores exatos. Não altere maiúsculas, minúsculas, pontuação ou espaços. Se algum dado mudar no Partner Center, atualize os padrões do workflow antes de gerar uma nova versão.
 
-Esses três valores são dados públicos da identidade do pacote, não são senhas nem chaves privadas.
+Esses valores são dados públicos de identidade do pacote, não são senhas nem chaves privadas.
 
 ## 3. Gerar o pacote MSIX pelo GitHub Actions
 
-O repositório possui um workflow dedicado para gerar o pacote sem certificado pago.
+O workflow **Build MSIX for Microsoft Store** é acionado automaticamente a cada atualização enviada à branch `main`. Ele utiliza os três valores confirmados acima e gera o pacote sem certificado pago.
 
 1. Abra o repositório: https://github.com/pablopcdossantos2-sys/floatly-website-widget
 2. Clique em **Actions**.
-3. Escolha **Build MSIX for Microsoft Store**.
-4. Clique em **Run workflow**.
-5. Selecione a branch **main**.
-6. Preencha os três campos com os valores copiados do Partner Center:
-   - **Package identity name:** Package/Identity Name ou Package ID;
-   - **Package publisher:** Publisher ou Publisher ID completo, sem alterar espaços, vírgulas ou prefixos;
-   - **Publisher display name:** Publisher display name.
-7. Clique em **Run workflow** e aguarde a execução terminar com sucesso.
-8. Abra a execução concluída e baixe o artefato **floatly-msix-x64**.
+3. Abra a execução mais recente de **Build MSIX for Microsoft Store**, correspondente ao commit que deseja publicar.
+4. Aguarde o workflow terminar com sucesso.
+5. Na seção **Artifacts** da execução, baixe **floatly-msix-x64**.
+
+Para gerar manualmente um novo pacote sem fazer outro commit, use **Run workflow** na mesma tela. Os três campos já aparecem preenchidos com a identidade oficial; mantenha os valores exatamente como estão.
 
 Dentro do ZIP você encontrará:
 - um arquivo Floatly com extensão .msix;
