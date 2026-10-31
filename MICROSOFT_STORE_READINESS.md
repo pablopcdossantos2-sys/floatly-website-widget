@@ -33,6 +33,8 @@ Siga o [guia passo a passo](GUIA_PUBLICACAO_MICROSOFT_STORE.md). Não escolha EX
 
 - Manifesto MSIX com identidade preenchida no momento do build.
 - Pacote sem assinatura Authenticode de terceiros; a Microsoft assina o MSIX depois da aprovação.
+- Logotipos internos do pacote gerados a partir de `icons/widget.svg`: StoreLogo e variantes, Square44x44Logo, Square150x150Logo e Wide310x150Logo.
+- Ícone quadrado PNG de 300 × 300 exportado como artefato `floatly-store-logos`, pronto para a opção **1:1 App tile icon** do Partner Center.
 - Workflow Windows x64 que compila, verifica as permissões e gera o MSIX.
 - Extensão windows.startupTask e integração Rust com a API StartupTask para manter a opção de iniciar com o Windows.
 - runFullTrust declarado para o aplicativo desktop Tauri.
