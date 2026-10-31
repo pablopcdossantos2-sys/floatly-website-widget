@@ -316,14 +316,25 @@ pub fn save_config(
         let _ = settings.set_title(title);
     }
     if old.site_url != c.site_url {
-        if let (Some(main), Ok(url)) =
-            (app.get_webview_window("main"), url::Url::parse(&c.site_url))
-        {
-            if let Err(error) = main.navigate(url) {
+        if let Some(main) = app.get_webview_window("main") {
+            let target_url = if c.site_url.is_empty() {
+                Some(window::local_start_url())
+            } else {
+                url::Url::parse(&c.site_url).ok()
+            };
+            if let Some(url) = target_url {
+                if let Err(error) = main.navigate(url) {
+                    crate::diagnostics::log(
+                        &state.app_dir,
+                        "WARN",
+                        format!("A configuração foi salva, mas a navegação para o novo destino falhou: {error}"),
+                    );
+                }
+            } else {
                 crate::diagnostics::log(
                     &state.app_dir,
-                    "WARN",
-                    format!("A configuração foi salva, mas a navegação para o novo site falhou: {error}"),
+                    "ERRO",
+                    "A configuração foi salva, mas o endereço do site não pôde ser convertido em URL.",
                 );
             }
         }
