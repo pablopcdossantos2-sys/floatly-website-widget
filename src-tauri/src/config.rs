@@ -727,11 +727,11 @@ mod tests {
             .unwrap()
             .filter_map(Result::ok)
             .filter(|entry| {
-            entry
-                .file_name()
-                .to_string_lossy()
-                .starts_with("config.json.repaired-")
-        })
+                entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with("config.json.repaired-")
+            })
             .count();
         assert_eq!(backups, 3);
         assert!(source.exists());
