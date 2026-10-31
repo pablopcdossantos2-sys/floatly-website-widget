@@ -1,315 +1,185 @@
-# Guia passo a passo — publicação do Floatly na Microsoft Store
+# Guia passo a passo — publicar o Floatly como MSIX na Microsoft Store
 
 **Revisado em:** 30 de outubro de 2026  
-**Situação:** o produto Floatly já existe no Partner Center. Ainda não enviar para certificação.
+**Formato:** MSIX para Windows x64  
+**Situação:** nova ficha do Floatly no Partner Center. Não use o fluxo EXE/MSI.
 
-Este guia contém somente tarefas humanas ainda pendentes e explica o que fazer sem pressupor experiência com certificados digitais ou ferramentas de desenvolvimento. As configurações básicas já concluídas no Partner Center não precisam ser refeitas.
+O MSIX é a rota adequada para publicar o Floatly sem comprar certificado Code Signing. O pacote enviado à Store não precisa ser assinado por você: depois da aprovação, a Microsoft assina o pacote e hospeda a distribuição. A Store também gerencia as atualizações das instalações feitas por ela.
 
-## Antes de começar
+## 1. Criar a ficha correta no Partner Center
 
-O produto Floatly e suas propriedades básicas já estão cadastrados no Partner Center. Não refaça as etapas de disponibilidade, preço, categoria, classificação etária, política de privacidade ou site de suporte.
+1. Entre no [Microsoft Partner Center](https://partner.microsoft.com/dashboard).
+2. Abra **Apps and games**.
+3. Clique em **New product**.
+4. Escolha **MSIX or PWA app**.
+5. Digite **Floatly** e clique em **Check availability**.
+6. Quando o nome estiver disponível, clique em **Reserve product name**.
+7. Abra a ficha criada e clique em **Start submission**.
 
-## 1. Primeiro, escolher o formato de publicação — não compre certificado agora
+**Atenção:** escolha **MSIX or PWA app**. Não escolha **EXE or MSI app**, nem **Game**. O Floatly é um aplicativo desktop Tauri que será entregue como pacote MSIX, não um site PWA.
 
-Há duas formas de distribuir aplicativos Win32 na Microsoft Store. **O fato de o Floatly ser gratuito não determina se é necessário pagar por certificado. O que determina isso é o formato do pacote.**
+Referência oficial: https://learn.microsoft.com/en-us/windows/apps/publish/get-started
 
-| Formato enviado à Store | Assinatura | Certificado pago pelo desenvolvedor |
-|---|---|---|
-| **MSIX** | A Microsoft assina novamente o pacote após a aprovação | **Não** |
-| **EXE/MSI tradicional** | O desenvolvedor assina o instalador e os executáveis/DLLs incluídos | **Sim** |
+## 2. Copiar a identidade do pacote
 
-A Microsoft recomenda MSIX e confirma que fornece assinatura e hospedagem para esse formato. Para MSIX, não é necessário comprar certificado de uma autoridade certificadora, fornecer PFX ou usar token USB/HSM. Já para EXE/MSI, a Store não assina novamente o instalador e exige assinatura Authenticode do publicador.
+O MSIX precisa usar exatamente a identidade atribuída ao produto pelo Partner Center. Não invente nem tente preencher esses valores por conta própria.
 
-Fontes oficiais:
-- https://learn.microsoft.com/en-us/windows/apps/publish/get-started
+1. Na ficha do Floatly, abra **Product management → Product identity** (o nome ou a posição da opção pode variar ligeiramente).
+2. Localize os dados de identidade do pacote.
+3. Copie e guarde, exatamente como aparecem:
+   - **Package/Identity Name** ou **Package ID**;
+   - **Publisher** ou **Publisher ID** — normalmente um identificador no formato X.500, por exemplo CN=...;
+   - **Publisher display name**.
+4. Não use o nome de exibição Floatly no campo Publisher, a menos que o Partner Center mostre exatamente esse valor.
+
+Esses valores serão informados como entradas do workflow do GitHub. O processo preenche o manifesto MSIX durante o build; você não precisa editar XML, Rust ou YAML.
+
+Esses três valores são dados públicos da identidade do pacote, não são senhas nem chaves privadas.
+
+## 3. Gerar o pacote MSIX pelo GitHub Actions
+
+O repositório possui um workflow dedicado para gerar o pacote sem certificado pago.
+
+1. Abra o repositório: https://github.com/pablopcdossantos2-sys/floatly-website-widget
+2. Clique em **Actions**.
+3. Escolha **Build MSIX for Microsoft Store**.
+4. Clique em **Run workflow**.
+5. Selecione a branch **main**.
+6. Preencha os três campos com os valores copiados do Partner Center:
+   - **Package identity name:** Package/Identity Name ou Package ID;
+   - **Package publisher:** Publisher ou Publisher ID completo, sem alterar espaços, vírgulas ou prefixos;
+   - **Publisher display name:** Publisher display name.
+7. Clique em **Run workflow** e aguarde a execução terminar com sucesso.
+8. Abra a execução concluída e baixe o artefato **floatly-msix-x64**.
+
+Dentro do ZIP você encontrará:
+- um arquivo Floatly com extensão .msix;
+- SHA256SUMS.txt, com a versão, identidade do pacote e hash SHA-256.
+
+O artefato é de arquitetura **x64**. Não selecione ARM64 no Partner Center enquanto não existir um pacote ARM64 correspondente.
+
+### Por que o pacote não vem assinado?
+
+O workflow usa a opção --no-sign do WinApp CLI de propósito. Esse é o fluxo esperado para submissão MSIX à Microsoft Store: a Microsoft assina o pacote após a aprovação. O pacote sem assinatura do artefato não é destinado à instalação direta por duplo clique antes da certificação.
+
+Você não precisa:
+- comprar certificado Code Signing;
+- gerar ou exportar arquivo PFX;
+- cadastrar WINDOWS_PFX_BASE64 ou WINDOWS_PFX_PASSWORD;
+- cadastrar chave do Tauri Updater;
+- hospedar o MSIX em um site ou GitHub Release.
+
+Referências oficiais:
+- https://learn.microsoft.com/en-us/windows/apps/dev-tools/winapp-cli/guides/tauri
 - https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements
-- https://learn.microsoft.com/en-us/windows/apps/distribute-through-store/how-to-distribute-your-win32-app-through-microsoft-store
 
-### O que foi escolhido até agora no Floatly
+## 4. Preencher as informações da nova submissão
 
-O projeto está atualmente configurado para gerar um instalador **NSIS EXE** pelo Tauri (bundle.targets: ["nsis"]), e o produto Floatly foi iniciado no Partner Center pelo fluxo **EXE ou MSI app**. Por isso, os guias anteriores passaram a exigir um certificado.
+Na submissão iniciada no Partner Center, complete as seções apresentadas. A ordem visual pode mudar; use os nomes das seções da sua conta.
 
-Essa exigência é válida somente enquanto mantivermos esse formato. **Não é uma exigência geral da Microsoft Store nem uma consequência de o aplicativo ser gratuito.**
+### Pricing and availability
 
-### Minha recomendação: verificar a possibilidade de MSIX antes de gastar dinheiro
+1. Defina o preço como **Free**.
+2. Se pretende disponibilizar o Floatly internacionalmente, selecione todos os mercados nos quais deseja publicá-lo.
+3. Salve a seção.
 
-A Microsoft recomenda MSIX. Há também um guia oficial específico para empacotar aplicativos Tauri como MSIX usando a ferramenta WinApp CLI:
+### Properties
 
-https://learn.microsoft.com/pt-br/windows/apps/dev-tools/winapp-cli/guides/tauri
+1. Escolha **Productivity** como categoria principal.
+2. Preencha o site de suporte com a página dedicada:
+   https://github.com/pablopcdossantos2-sys/floatly-website-widget/blob/main/SUPPORT.md
+3. Preencha a política de privacidade:
+   https://github.com/pablopcdossantos2-sys/floatly-website-widget/blob/main/PRIVACY_POLICY.md
+4. Use o e-mail de suporte divulgado em SUPPORT.md.
+5. Preencha somente os demais campos obrigatórios. Não invente endereço comercial, telefone empresarial ou dados que você não possui.
 
-A migração exige alterações técnicas no repositório — manifesto de pacote, identidade, empacotamento, instalação e testes de recursos do Windows. Esse trabalho será feito no código; você não precisa editar Rust, TypeScript, YAML ou PowerShell.
+### Age ratings
 
-No formato MSIX, a Store também gerencia a distribuição de atualizações. Não precisamos implementar o Tauri Updater apenas para atualizar a versão instalada pela Store. A atualização in-app só continuará relevante se decidirmos manter o instalador EXE/MSI ou distribuir o aplicativo também fora da Store por esse mecanismo.
+1. Abra o questionário de classificação etária (IARC).
+2. Responda com base no comportamento real do Floatly.
+3. Considere que o Floatly abre endereços HTTP/HTTPS escolhidos pelo usuário e pode exibir conteúdo de websites externos. Não declare que o aplicativo controla ou modera o conteúdo desses websites.
+4. Revise as respostas antes de enviar.
 
-### A única providência humana agora: consultar o suporte do Partner Center
+Não reutilize respostas de outro produto se o questionário ou as funcionalidades forem diferentes.
 
-Como a ficha Floatly já foi reservada/criada como **EXE ou MSI app**, ainda precisamos confirmar se é possível alterar o tipo do produto antes da primeira publicação. A documentação da Microsoft descreve os fluxos de reserva MSIX e EXE/MSI separadamente, mas não encontrei uma orientação oficial que garanta a conversão de uma ficha já criada e ainda não publicada.
+## 5. Enviar o pacote MSIX
 
-**Não exclua o produto, não libere o nome e não crie outra ficha por conta própria.** Primeiro, abra o Partner Center, clique no ícone de ajuda (?) e selecione **Contact Support / Contato com Suporte**. Envie esta mensagem:
+1. Abra a seção **Packages** da submissão.
+2. Selecione **Upload package** ou arraste o arquivo .msix extraído do artefato floatly-msix-x64.
+3. Aguarde o Partner Center processar o arquivo.
+4. Confira se a arquitetura identificada é **x64** e se a versão corresponde ao build.
+5. Se o Partner Center indicar erro de identidade, não tente editar o manifesto às cegas. Compare os três valores digitados no workflow com **Product identity** e gere o pacote novamente.
+6. Salve a seção.
 
-> Olá. Reservei/criei o produto **Floatly** no Partner Center pelo fluxo **EXE or MSI app**, mas ainda não publiquei a primeira versão.
->
-> Gostaria de distribuir o aplicativo como **MSIX**, para utilizar a assinatura de pacote fornecida pela própria Microsoft Store, em vez de manter o instalador EXE tradicional.
->
-> É possível converter a ficha Floatly existente, ainda não publicada, de EXE/MSI para MSIX, preservando o nome reservado e a identidade do produto?
->
-> Caso a conversão não seja possível, qual é o procedimento recomendado para publicar o Floatly como MSIX sem perder indevidamente o nome reservado? Devo solicitar a alteração dessa ficha ou será necessário criar outro produto?
->
-> Por favor, não quero excluir nem liberar a reserva atual antes de receber essa orientação.
+O Partner Center aceita pacotes .msix, .msixbundle, .msixupload e outros formatos MSIX documentados. Neste primeiro build, o Floatly entrega um .msix x64.
 
-Guarde a resposta do suporte e traga-a para que a próxima etapa seja definida corretamente. Até lá, não compre certificado, não gere chave de assinatura e não altere a ficha atual.
+Referência oficial: https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/upload-app-packages
 
-## 2. Rota alternativa: manter o instalador EXE/NSIS e obter Code Signing
+## 6. Preparar a Store listing
 
-### O que é esse certificado?
+Use o conteúdo de [MICROSOFT_STORE_LISTING_DRAFT.md](MICROSOFT_STORE_LISTING_DRAFT.md).
 
-É uma identidade digital usada para assinar programas do Windows. Ela permite ao Windows verificar quem publicou o executável e se o arquivo foi alterado depois da assinatura.
+1. Cadastre o nome Floatly e a descrição em português.
+2. Adicione inglês e espanhol como idiomas adicionais, usando as traduções do rascunho.
+3. Revise os termos de pesquisa para descrever apenas o Floatly; não use nomes de websites de terceiros como se fossem marcas do aplicativo.
+4. Capture screenshots reais do Floatly executando no Windows. Não use mockups nem telas que sugiram funcionalidades inexistentes.
+5. Mostre, de preferência:
+   - a primeira execução e a escolha de um website;
+   - a janela flutuante sobre a área de trabalho;
+   - o painel de configurações;
+   - o menu da bandeja do sistema.
+6. Salve a listagem.
 
-Somente se decidirmos manter o Floatly como instalador EXE/NSIS, será necessário um certificado público **Code Signing OV**, compatível com **Microsoft Authenticode**, cuja cadeia de certificação termine em uma autoridade certificadora (AC/CA) participante do **Microsoft Trusted Root Program**. Essa compra não se aplica à publicação MSIX pela Store.
+## 7. Informações para a certificação
 
-Não confunda os produtos:
+Na seção **Submission options** ou nas notas destinadas à certificação, explique de forma objetiva:
 
-- **Code Signing / assinatura de código:** é o produto necessário para EXE, DLL e instaladores do Windows.
-- **SSL/TLS para sites:** protege conexões HTTPS; não serve para assinar o instalador.
-- **Certificado para assinar PDF ou documentos:** também não serve.
-- **EV Code Signing:** é uma categoria mais cara. Não compre EV apenas para tentar evitar o SmartScreen: a Microsoft informa que, desde 2024, EV não oferece mais o antigo bypass imediato do SmartScreen. Para o envio EXE/MSI à Store, não há exigência específica de EV.
+- O Floatly é um aplicativo desktop Windows construído com Tauri e WebView2.
+- Na primeira execução, o usuário precisa escolher o endereço HTTP/HTTPS que deseja exibir; não existe website de terceiros predefinido.
+- O aplicativo usa a capacidade restrita runFullTrust porque é um processo desktop Win32 que precisa criar uma janela flutuante sem moldura, integrar-se à bandeja do sistema, registrar um atalho global e hospedar o WebView2.
+- A extensão windows.startupTask declara a opção de iniciar com o Windows. O usuário controla essa permissão nas configurações do aplicativo e nos controles de inicialização do Windows.
+- O aplicativo não instala drivers, não solicita elevação administrativa e não executa tarefas em segundo plano sem interação do usuário.
 
-A Microsoft explica os tipos de assinatura nesta página:
-https://learn.microsoft.com/pt-br/windows/apps/package-and-deploy/code-signing-options
+Peça ao avaliador que, na primeira execução, escolha um endereço HTTPS de demonstração. Não forneça credenciais pessoais nem dependa de acesso a uma conta privada para a avaliação.
 
-E apresenta o requisito de confiança para instaladores EXE/MSI aqui:
-https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/app-package-requirements
+## 8. Validar e enviar
 
-### Primeiro: você solicitará o certificado como pessoa física ou empresa?
+1. Revise todas as seções e confirme que o pacote enviado corresponde à última execução bem-sucedida do workflow.
+2. Salve o rascunho.
+3. Execute as validações disponibilizadas pelo Partner Center.
+4. Corrija os erros indicados e gere um novo pacote quando necessário.
+5. Quando todas as seções estiverem completas, clique em **Submit to the Store**.
+6. Acompanhe o resultado da certificação no Partner Center. Só anuncie o aplicativo depois que o status indicar que ele está publicado.
 
-Essa diferença é decisiva. A autoridade certificadora precisa validar a identidade que aparecerá no certificado.
+A certificação MSIX pode levar alguns dias úteis. O Partner Center informa o resultado e os problemas encontrados; não interprete o simples upload do pacote como aprovação.
 
-**Se você tem uma empresa com CNPJ:** a solicitação normalmente será feita em nome da razão social registrada na Receita Federal. Não use nome fantasia por conta própria; pergunte qual nome legal será gravado no certificado e confirme que você tem autorização para solicitar o certificado em nome da empresa.
+## 9. Testar o aplicativo depois da publicação
 
-**Se você não tem CNPJ e pretende solicitar como pessoa física, usando CPF:** não presuma que qualquer revendedor aceitará a solicitação. É necessário encontrar uma AC que confirme expressamente que emite Code Signing OV para uma pessoa física residente no Brasil.
+Quando o Floatly estiver disponível na Store:
 
-Um exemplo concreto ajuda a entender a diferença:
+1. Instale-o pela Microsoft Store em um Windows 10/11 x64 de teste.
+2. Abra o aplicativo e confirme que a primeira execução solicita um website.
+3. Configure um endereço HTTPS de teste.
+4. Teste janela flutuante, movimentação, redimensionamento, sempre no topo, bandeja, atalho global, zoom, idiomas e sessão WebView2.
+5. Ative e desative a opção de iniciar com o Windows. Confirme também como ela aparece em **Configurações do Windows → Aplicativos → Inicialização** ou no Gerenciador de Tarefas.
+6. Feche e abra novamente o aplicativo, reinicie o Windows e repita os testes relevantes.
+7. Teste atualização e desinstalação pela Store.
 
-- A página brasileira da Sectigo atualmente anuncia Code Signing OV e mostra preço de referência de R$ 3.026 por ano: https://www.sectigo.com.br/produtos/certificado-codesigning.php
-- Porém, o formulário de pedido da própria Sectigo Brasil diz que não emite esse produto para pessoas físicas e solicita CNPJ e razão social: https://www.sectigo.com.br/produtos/order.php
-- A documentação global da Sectigo, atualizada em 2 de junho de 2026, diz que o produto OV pode ser emitido para indivíduos ou organizações. Isso não significa que o canal brasileiro ofereça a modalidade para CPF. É preciso obter confirmação por escrito da equipe que efetivamente atenderá o pedido: https://www.sectigo.com/faqs/detail/OV-Code-Signing-Validation-for-Organizations-and-Individuals
+A Microsoft Store distribui as atualizações das instalações feitas por ela. Para esse canal não é necessário configurar um feed do Tauri Updater.
 
-Esses links são exemplos para pesquisa, não uma ordem para comprar da Sectigo. Compare as condições e não pague antes de confirmar sua elegibilidade.
+## 10. Publicar uma versão futura
 
-### O que perguntar à autoridade certificadora
-
-Entre em contato com o atendimento comercial da AC ou do revendedor e peça uma resposta por escrito. Você pode copiar a mensagem abaixo e adaptar o trecho entre colchetes:
-
-> Olá. Sou desenvolvedor de software residente no Brasil e preciso assinar um aplicativo Windows que será distribuído pela Microsoft Store usando um instalador EXE/NSIS.
->
-> [Não possuo CNPJ e preciso contratar como pessoa física, usando CPF.]  
-> [OU: Tenho uma empresa registrada no Brasil e preciso contratar em nome da razão social vinculada ao CNPJ.]
->
-> Preciso de um certificado público **Code Signing OV para Microsoft Authenticode**, aceito para assinatura de executáveis Windows e cuja cadeia de certificação seja compatível com o Microsoft Trusted Root Program.
->
-> Poderiam confirmar, por favor:
->
-> 1. Vocês emitem esse certificado para [pessoa física brasileira com CPF / empresa brasileira com CNPJ]?
-> 2. Qual nome legal aparecerá como titular/editor no certificado?
-> 3. A chave privada será fornecida em token USB, HSM em nuvem ou outro dispositivo protegido?
-> 4. Como um desenvolvedor consegue assinar os arquivos no Windows usando SignTool? Há suporte para assinatura remota em GitHub Actions ou a assinatura precisa ocorrer em um computador com o token conectado?
-> 5. Qual é o custo total, incluindo certificado, token, frete internacional, impostos e eventuais serviços adicionais?
-> 6. Qual é o prazo de emissão e quais documentos serão exigidos?
->
-> Antes de contratar, preciso confirmar que a modalidade oferecida atende ao requisito de assinatura Authenticode da Microsoft Store para instaladores EXE/MSI. Obrigado.
-
-Não é necessário enviar documentos pessoais neste primeiro contato comercial. A AC explicará quais documentos são necessários durante o processo formal de validação.
-
-### Por que estamos perguntando sobre token USB ou HSM?
-
-As regras atuais do setor exigem que a chave privada usada em certificados públicos Code Signing fique protegida em hardware apropriado, como um token USB ou HSM. Ela normalmente não pode ser copiada livremente para um arquivo comum.
-
-Isso tem uma consequência para o Floatly: o workflow atual do repositório foi escrito supondo um arquivo PFX exportável e os segredos \`WINDOWS_PFX_BASE64\` e \`WINDOWS_PFX_PASSWORD\`. Esse método não deve ser presumido compatível com um certificado cuja chave esteja presa a um token ou HSM.
-
-**Não gere esses segredos, não tente exportar a chave privada e não envie token, PIN, PFX ou senha para ninguém.** Primeiro vamos descobrir qual modalidade a AC oferece. Depois, o mantenedor ajustará o processo de compilação e assinatura do repositório para usar o método realmente contratado — por exemplo, assinatura local com o token ou integração com o serviço de assinatura remota, se disponível.
-
-A página da Microsoft explica a exigência de HSM/token para certificados OV:
-https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/code-signing-options
-
-### Como verificar se a AC faz parte do programa da Microsoft
-
-A AC deve confirmar que o certificado emitido encadeia até uma CA participante do Microsoft Trusted Root Program. Você também pode conferir a lista oficial atualizada:
-
-https://ccadb.my.salesforce-sites.com/microsoft/IncludedCACertificateReportForMSFT
-
-Não basta o vendedor dizer que comercializa certificados digitais ou que o certificado é ICP-Brasil. Peça a confirmação específica de compatibilidade do produto **Code Signing Authenticode** com o requisito da Store.
-
-### Depois que a AC confirmar que pode emitir o certificado
-
-1. Só então escolha a proposta e conclua a contratação.
-2. Siga o procedimento de validação de identidade da AC. Ela poderá solicitar documento oficial, comprovante de endereço, telefone verificável, confirmação por chamada ou outros documentos.
-3. Caso receba um token USB, siga as instruções oficiais de instalação e proteja o PIN. Não formate, descarte ou envie o token para terceiros.
-4. Quando o certificado for emitido, peça à AC o nome exato do titular/editor que aparecerá na assinatura do Windows.
-5. Envie ao mantenedor do Floatly somente:
-   - o nome exato do titular/editor exibido pelo certificado;
-   - o nome da AC e do produto contratado;
-   - a modalidade de proteção da chave: token USB, HSM local ou assinatura remota em nuvem.
-
-**Não envie a chave privada, PIN, senha, arquivo PFX ou acesso à conta da AC.** O mantenedor não precisa receber esses segredos para configurar o nome do publisher.
-
-O campo \`bundle.publisher\` será ajustado no repositório para corresponder à identidade confirmada. Não edite Rust ou JSON manualmente.
-
-> **Atenção:** as etapas 3 a 8 abaixo só devem ser executadas se decidirmos manter a rota EXE/MSI. Se o suporte autorizar a conversão para MSIX, o fluxo de compilação, instalação, testes, atualização e envio será diferente; ele será preparado no repositório sem exigir que você compre certificado.
-
-
-## 3. Somente se mantivermos EXE/MSI: preparar a chave do atualizador
-
-Esta etapa é exclusiva da rota EXE/MSI. Nesse formato, a Store não gerencia as atualizações do instalador, então o Floatly precisa de atualização dentro do próprio aplicativo. **Se a Microsoft permitir a rota MSIX, não execute esta etapa para a distribuição pela Store:** o serviço da Store/Windows gerencia as atualizações do pacote.
-
-A opção planejada é o **Tauri Updater**, com um feed estático publicado em GitHub Releases. A integração do plugin, as permissões, a verificação de atualizações e o workflow são trabalho técnico no repositório; não edite esses arquivos manualmente.
-
-A ação humana é gerar e guardar o par de chaves:
-
-1. No PowerShell, abra a pasta do repositório e instale as dependências:
-
-~~~powershell
-npm ci
-New-Item -ItemType Directory -Force "$HOME\.tauri" | Out-Null
-npm run tauri signer generate -- -w "$HOME\.tauri\floatly.key"
-~~~
-
-2. Guarde os arquivos gerados em local seguro. A chave privada é \`floatly.key\`; a chave pública correspondente é \`floatly.key.pub\`.
-3. No GitHub, abra **Settings → Secrets and variables → Actions** e crie:
-   - \`TAURI_SIGNING_PRIVATE_KEY\`: conteúdo da chave privada.
-   - \`TAURI_SIGNING_PRIVATE_KEY_PASSWORD\`: senha escolhida na geração, se houver.
-4. Mantenha uma cópia segura da chave privada e da senha fora do computador. Se perder a chave, não será possível assinar atualizações futuras para as instalações existentes.
-5. Nunca publique a chave privada. A chave pública pode ser incluída na configuração do aplicativo; a privada deve existir somente no computador seguro e no segredo protegido do GitHub Actions.
-
-Não cadastre endpoint agora. A integração do repositório definirá o endereço do feed e o formato do arquivo \`latest.json\`. O endereço planejado é:
-
-~~~text
-https://github.com/pablopcdossantos2-sys/floatly-website-widget/releases/latest/download/latest.json
-~~~
-
-Esse endereço só deverá ser usado depois que a integração estiver implementada e um release real publicar o arquivo e os artefatos assinados correspondentes.
-
-## 4. Somente na rota EXE/MSI: gerar o pacote assinado da Microsoft Store
-
-Esta etapa depende da conclusão de duas tarefas técnicas no repositório: integração do atualizador e adaptação do processo Authenticode ao tipo de certificado contratado.
-
-**Não execute o workflow atual de Store esperando que ele funcione com um token USB ou HSM.** O script ainda está preparado para receber um PFX, e essa compatibilidade precisa ser resolvida antes.
-
-Quando o mantenedor confirmar que o processo está pronto:
-
-1. Abra a aba **Actions** do GitHub.
-2. Selecione **Build Microsoft Store package**.
-3. Clique em **Run workflow** e escolha a branch \`main\`.
-4. Aguarde o workflow terminar. Só considere o pacote utilizável quando compilação, testes e validação das assinaturas forem concluídos com sucesso.
-5. Baixe o artefato \`widget-website-microsoft-store-x64\`.
-6. Guarde o EXE e o \`SHA256SUMS.txt\` juntos, identificando a versão e o commit que os produziram.
-
-O ZIP do Actions é temporário; não use a URL do artefato como endereço permanente do pacote na Store. Se o workflow falhar, abra a execução, identifique o primeiro passo com falha e corrija-o antes de prosseguir.
-
-## 5. Somente na rota EXE/MSI: testar o instalador em um Windows limpo
-
-Use uma máquina virtual ou um computador Windows de teste que não tenha uma instalação anterior do Floatly. Preserve uma cópia exata do EXE e do manifesto de hashes.
-
-### Verificar assinatura e pacote
-
-1. No PowerShell, execute \`Get-AuthenticodeSignature\` para o EXE. O campo \`Status\` deve ser \`Valid\`.
-2. Confira o nome do certificado e a cadeia de confiança.
-3. Revise \`SHA256SUMS.txt\` e confirme que todos os executáveis e DLLs extraídos do instalador foram validados pelo processo de build.
-4. Calcule o hash do EXE que será publicado:
-
-~~~powershell
-Get-FileHash ".\Floatly-Installer.exe" -Algorithm SHA256
-~~~
-
-Use o nome real do arquivo gerado pelo workflow.
-
-### Instalação e funcionamento
-
-1. Instale o pacote com a opção silenciosa exigida pelo Partner Center:
-
-~~~powershell
-Start-Process -FilePath ".\Floatly-Installer.exe" -ArgumentList "/S" -Wait -PassThru
-~~~
-
-2. Confirme que o aplicativo aparece em **Configurações do Windows → Aplicativos → Aplicativos instalados**, com nome, publisher e versão corretos.
-3. Abra o Floatly. A primeira execução deve pedir que você escolha um site; não deve carregar um endereço de terceiros automaticamente.
-4. Configure uma URL HTTPS de teste que você controle.
-5. Teste janela flutuante, movimentação, redimensionamento, sempre no topo, bandeja do sistema, atalho global, zoom, idioma e persistência da sessão.
-6. Reinicie o aplicativo e o Windows. Confirme o comportamento da inicialização automática, se ativada.
-7. Teste a atualização in-app: publique uma versão posterior de teste no feed e confirme que o Floatly detecta, baixa, valida a assinatura e instala a atualização.
-8. Desinstale com a opção de excluir os dados marcada e confirme a remoção das pastas de dados. Reinstale e teste novamente a primeira execução.
-
-### Conferir o WebView2
-
-No computador de teste, confira a versão instalada do Runtime:
-
-~~~powershell
-$programFilesX86 = [Environment]::GetEnvironmentVariable("ProgramFiles(x86)")
-$runtimeRoot = Join-Path $programFilesX86 "Microsoft\EdgeWebView\Application"
-$runtime = Get-ChildItem $runtimeRoot -Filter "msedgewebview2.exe" -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 1
-if ($runtime) {
-    $runtime.VersionInfo.FileVersion
-} else {
-    Write-Warning "WebView2 Runtime não encontrado no caminho padrão."
-}
-~~~
-
-Compare a versão efetivamente instalada com as versões atuais documentadas pela Microsoft e confirme que o aplicativo adota a versão atualizada depois de ser reiniciado. Registre a versão encontrada, a edição do Windows e o resultado do teste. A regra 10.2.1 da Store exige que o mecanismo de navegação permaneça dentro do limite de duas versões principais.
-
-Não publique se a assinatura, a atualização, a instalação offline do WebView2 ou qualquer função essencial falhar.
-
-## 6. Somente na rota EXE/MSI: hospedar o instalador em uma URL permanente
-
-O Partner Center precisa de uma URL HTTPS pública que baixe diretamente o EXE, sem login, cookies ou etapas intermediárias.
-
-1. Publique o instalador em um endereço permanente e versionado. Uma opção é anexá-lo a um **GitHub Release** do repositório; use um arquivo de release, não o artefato temporário de Actions.
-2. Use um caminho específico para a versão, por exemplo:
-
-~~~text
-https://github.com/pablopcdossantos2-sys/floatly-website-widget/releases/download/v0.1.0/Floatly-Installer.exe
-~~~
-
-Substitua a versão e o nome do arquivo pelos valores reais.
-
-3. Abra a URL em uma janela anônima, sem estar autenticado no GitHub. Confirme que o download do EXE começa sem exigir login.
-4. Compare o SHA-256 do arquivo baixado com o resultado obtido na etapa anterior.
-5. Não substitua nem sobrescreva esse arquivo depois de submetê-lo. Uma versão nova deve ter uma URL própria.
-
-Caso o Partner Center não aceite o redirecionamento do link de release, use uma hospedagem HTTPS que forneça um download direto.
-
-## 7. Somente na rota EXE/MSI: finalizar a submissão existente no Partner Center
-
-O produto Floatly já existe e suas propriedades básicas estão preenchidas. Não volte a configurar disponibilidade, preço, categoria, classificação etária, requisitos do sistema, notas de certificação ou política de privacidade.
-
-1. Abra **Partner Center → Apps and Games → Floatly**.
-2. Inicie a submissão inicial do produto.
-3. Na seção **Packages**, informe a URL HTTPS permanente do EXE assinado, arquitetura x64 e os dados de pacote solicitados.
-4. Informe \`/S\` como argumento de instalação silenciosa do NSIS.
-5. Na listagem, use os textos de \`MICROSOFT_STORE_LISTING_DRAFT.md\`.
-6. Carregue screenshots reais capturadas no Windows com a versão testada. Mostre a primeira execução, a janela flutuante, as configurações e os controles da bandeja. Não use mockups nem conteúdo de sites de terceiros sem autorização.
-7. Salve as seções e execute **Package validation** em **Manage Packages**.
-8. Se houver falhas, corrija o pacote, gere outro EXE, publique-o em uma nova URL versionada e execute a validação novamente.
-9. Quando a validação estiver aprovada, revise a submissão e clique em **Submit to the Store**.
-10. Acompanhe o resultado no Partner Center. Só anuncie a disponibilidade depois que o produto estiver publicado.
-
-## 8. Somente na rota EXE/MSI: publicar futuras versões
-
-Depois da primeira publicação:
-
-1. A atualização in-app deve ser publicada com os artefatos assinados pelo Tauri Updater e o arquivo \`latest.json\` no GitHub Release.
-2. Publique também o novo instalador Authenticode em uma URL versionada.
-3. Crie uma atualização da submissão existente no Partner Center e envie o novo pacote.
-4. Não substitua arquivos de versões anteriores que já tenham sido publicados.
+1. Atualize a versão de forma consistente em package.json, src-tauri/tauri.conf.json e src-tauri/Cargo.toml.
+2. Execute novamente **Build MSIX for Microsoft Store**, usando os mesmos dados de identidade do produto.
+3. Envie o novo .msix como atualização da submissão existente no Partner Center.
+4. Não reutilize uma versão numérica já publicada. O MSIX exige uma versão superior para atualizar uma instalação existente.
 
 ## Referências oficiais
 
-- [Microsoft Learn — iniciar publicação na Store e comparar MSIX com EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/get-started).
-- [Microsoft Learn — requisitos e assinatura de pacotes MSIX](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements).
-- [Microsoft Learn — comparação de distribuição Win32 pela Store](https://learn.microsoft.com/en-us/windows/apps/distribute-through-store/how-to-distribute-your-win32-app-through-microsoft-store).
-- [Microsoft Learn — guia Tauri + MSIX com WinApp CLI](https://learn.microsoft.com/pt-br/windows/apps/dev-tools/winapp-cli/guides/tauri).
-- [Microsoft Learn — opções de assinatura de código](https://learn.microsoft.com/pt-br/windows/apps/package-and-deploy/code-signing-options).
-- [Microsoft Learn — requisitos de pacote EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/app-package-requirements).
-- [Microsoft Trusted Root Program — participantes](https://ccadb.my.salesforce-sites.com/microsoft/IncludedCACertificateReportForMSFT).
-- [Sectigo — validação Code Signing OV para organizações e indivíduos](https://www.sectigo.com/faqs/detail/OV-Code-Signing-Validation-for-Organizations-and-Individuals).
-- [Microsoft Learn — empacotar aplicativo Tauri como MSIX](https://learn.microsoft.com/en-us/windows/apps/dev-tools/winapp-cli/guides/tauri).
-- [Tauri — Microsoft Store](https://tauri.app/distribute/microsoft-store/).
-- [Tauri — Updater plugin](https://v2.tauri.app/plugin/updater/).
+- [Reservar o nome de um aplicativo MSIX](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/reserve-your-apps-name).
+- [Iniciar publicação no Microsoft Store Partner Center](https://learn.microsoft.com/en-us/windows/apps/publish/get-started).
+- [Guia oficial Tauri + WinApp CLI](https://learn.microsoft.com/pt-br/windows/apps/dev-tools/winapp-cli/guides/tauri).
+- [Uso da WinApp CLI e opções do comando pack](https://learn.microsoft.com/pt-br/windows/apps/dev-tools/winapp-cli/usage).
+- [Requisitos de pacote MSIX](https://learn.microsoft.com/pt-br/windows/apps/publish/publish-your-app/msix/app-package-requirements).
+- [Upload de pacotes MSIX no Partner Center](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/upload-app-packages).
+- [StartupTask para aplicativos desktop empacotados](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/applifecycle/applaunch-startup-task).
