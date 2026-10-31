@@ -7,7 +7,7 @@ A compact Windows desktop browser that keeps a user-chosen HTTP/HTTPS address vi
 ## Features
 
 - System tray, single-instance behavior and a global shortcut (default: CTRL+ALT+C). Closing the window hides it in the tray; use **Quit** to exit the app.
-- Persistent WebView2 session in %APPDATA%\WidgetWebsite\webview-data; settings in %APPDATA%\WidgetWebsite\config.json.
+- Persistent WebView2 session in `%APPDATA%\\WidgetWebsite\\webview-data`; settings in `%APPDATA%\\WidgetWebsite\\config.json`. The legacy folder name is kept to preserve data from previous Floatly installations.idgetWebsite\config.json.
 - Interface available in Brazilian Portuguese, English and Spanish. Change it under **Settings → Language**.
 - A small handle at the top center lets you drag the widget. The edge hit areas remain active but transparent, so no frame is drawn around the content. Window size and position are configurable.
 - The default window size is 350 × 550 px and the default embedded browser zoom is 80%; both can be changed in settings.
