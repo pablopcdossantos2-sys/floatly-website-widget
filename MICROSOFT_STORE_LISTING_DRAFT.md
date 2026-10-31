@@ -1,8 +1,8 @@
-# Rascunho de listagem da Microsoft Store
+# Rascunho de listagem — Floatly na Microsoft Store
 
-**Status:** rascunho atualizado para o produto Floatly já criado no Partner Center. Textos PT-BR/EN/ES preparados; revisar a identidade do pacote, a assinatura aplicável ao formato escolhido e as capturas reais antes de enviar.
+**Situação:** textos PT-BR, EN e ES preparados. A nova ficha MSIX ainda será criada no Partner Center.
 
-O objetivo da listagem é apresentar o Floatly como um navegador compacto para Windows, baseado em WebView2, que mantém um endereço escolhido pelo usuário em uma janela flutuante. Não é um navegador completo com abas e histórico, nem um cliente ou produto oficial de qualquer website exibido.
+O Floatly é um aplicativo desktop compacto para Windows que exibe um endereço HTTP ou HTTPS escolhido pelo usuário em uma janela flutuante. Não é um navegador completo com abas e histórico, nem um cliente ou produto oficial de qualquer website exibido.
 
 ## Português (Brasil)
 
@@ -76,7 +76,7 @@ Floatly es un navegador compacto para Windows. Introduce una dirección HTTP o H
 - Muéstralo u ocúltalo desde la bandeja del sistema o mediante un atajo global configurable.
 - Ajusta el zoom del navegador integrado.
 - Conserva la sesión local de WebView2 entre ejecuciones.
-- Utiliza la interfaz en portugués de Brasil, inglés o español.
+- Utiliza la interfaz en portugués de Brasil, inglés y español.
 
 **Limitaciones:** Floatly es un navegador compacto centrado en una dirección principal configurada por el usuario; no sustituye a un navegador completo con pestañas e historial. Los enlaces a otros dominios se envían al navegador predeterminado, mientras que los flujos de autenticación reconocidos pueden abrirse en una ventana auxiliar. La compatibilidad de páginas, funciones y el inicio de sesión dependen del sitio elegido. Algunos sitios pueden restringir determinadas formas de acceso. Consulta los términos y permisos aplicables a cada servicio.
 
@@ -84,7 +84,7 @@ Floatly no está afiliado, patrocinado ni respaldado por los sitios web que el u
 
 ## Termos de pesquisa (rascunho)
 
-Cada listagem pode ter até sete termos/frases únicos. Usar somente termos que descrevam o aplicativo, sem incluir marcas ou títulos de produtos alheios.
+Cada listagem pode ter até sete termos/frases únicos. Use somente termos que descrevam o aplicativo, sem incluir marcas ou títulos de produtos alheios.
 
 **PT-BR:** navegador compacto; navegador flutuante; navegador para desktop; janela de navegação; sempre no topo; navegador para Windows; WebView2.
 
@@ -92,9 +92,12 @@ Cada listagem pode ter até sete termos/frases únicos. Usar somente termos que 
 
 **Español:** navegador compacto; navegador flotante; navegador de escritorio; ventana de navegación; siempre visible; navegador para Windows; WebView2.
 
-## Configuração já existente no Partner Center
+## Configurações a preencher na nova ficha
 
-A categoria principal **Productivity** e a classificação etária IARC já foram configuradas no produto Floatly. Não é necessário repetir o questionário ou alterar essas propriedades para esta submissão.
+- Categoria principal: **Productivity**.
+- Classificação etária: completar o questionário IARC com respostas compatíveis com as funcionalidades reais.
+- Site de suporte: https://github.com/pablopcdossantos2-sys/floatly-website-widget/blob/main/SUPPORT.md
+- Política de privacidade: https://github.com/pablopcdossantos2-sys/floatly-website-widget/blob/main/PRIVACY_POLICY.md
 
 ## Plano de screenshots reais
 
@@ -105,12 +108,12 @@ Capturar o aplicativo final em Windows, sem mockups que sugiram recursos inexist
 3. **Configurações:** URL escolhida, largura/altura, zoom e opções de posicionamento.
 4. **Uso diário:** aba superior de movimentação e ícone/menu da bandeja do sistema.
 
-Não usar capturas de páginas de terceiros sem permissão. Evitar logotipos, imagens ou conteúdo de Investing.com e de outros sites; para a demonstração, preferir um site de teste próprio.
+Não use capturas de páginas de terceiros sem permissão. Para a demonstração, prefira um site de teste próprio.
 
 ## Pendências antes de enviar
 
-- [ ] Confirmar que a identidade Publisher do pacote MSIX ou a assinatura Authenticode do instalador EXE/MSI corresponde aos dados exigidos pelo Partner Center.
-- [ ] Validar a descrição e os recursos com a versão final realmente testada.
+- [ ] Conferir se os textos descrevem a versão final do Floatly.
 - [ ] Revisar os termos de pesquisa para não incluir marcas ou serviços de terceiros.
 - [ ] Capturar screenshots reais da versão final em Windows.
-- [ ] Confirmar que o texto e as imagens não sugerem parceria, endosso ou afiliação com sites exibidos.
+- [ ] Confirmar que os textos e as imagens não sugerem parceria, endosso ou afiliação com sites exibidos.
+- [ ] Explicar nas notas de certificação a finalidade do recurso runFullTrust e o comportamento de primeira execução.
