@@ -1,6 +1,6 @@
 # Rascunho de listagem — Floatly na Microsoft Store
 
-**Situação:** ficha MSIX Floatly criada e identidade do pacote confirmada. Textos PT-BR, EN e ES preparados; a listagem e as capturas ainda precisam ser inseridas na submissão.
+**Situação:** ficha MSIX Floatly criada e identidade do pacote confirmada. Textos PT-BR, EN e ES preparados; as capturas reais já foram produzidas e devem ser enviadas na submissão.
 
 O Floatly é um aplicativo desktop compacto para Windows que exibe um endereço HTTP ou HTTPS escolhido pelo usuário em uma janela flutuante. Não é um navegador completo com abas e histórico, nem um cliente ou produto oficial de qualquer website exibido.
 
@@ -91,6 +91,16 @@ Cada listagem pode ter até sete termos/frases únicos. Use somente termos que d
 **English:** compact browser; floating browser; desktop browser; browsing window; always on top; Windows browser; WebView2.
 
 **Español:** navegador compacto; navegador flotante; navegador de escritorio; ventana de navegación; siempre visible; navegador para Windows; WebView2.
+
+## Logotipo da listagem da Microsoft Store
+
+- **Arquivo:** `Floatly-Store-Icon-300x300.png`
+- **Tamanho:** 300 × 300 pixels, PNG.
+- **Origem:** exportação do ativo `Square150x150Logo.scale-200.png` produzido pelo WinApp CLI a partir de `icons/widget.svg`.
+- **Local no Partner Center:** **Store listings → Store logos → 1:1 App tile icon**.
+- **Como obter:** baixe o artefato `floatly-store-logos` da execução bem-sucedida de **Build MSIX for Microsoft Store** no GitHub Actions.
+
+Os logotipos de pacote exigidos pelo manifesto MSIX (`StoreLogo`, `Square150x150Logo`, `Square44x44Logo` e `Wide310x150Logo`, incluindo as variantes de escala) são gerados pelo WinApp CLI e já ficam embutidos no arquivo `.msix`. Não é necessário carregá-los individualmente na listagem. A arte 2:3 de pôster e a arte 1:1 de box art são destinadas a jogos e não se aplicam ao Floatly.
 
 ## Configurações a preencher na nova ficha
 
