@@ -287,7 +287,7 @@ try {
 
     $installerHash = (Get-FileHash -FilePath $installers[0].FullName -Algorithm SHA256).Hash
     $manifestLines = @(
-        "Widget Website Microsoft Store package",
+        "Floatly Microsoft Store package",
         "Version: $($tauriConfig.version)",
         "Installer: $($installers[0].Name)",
         "SHA256: $installerHash",
