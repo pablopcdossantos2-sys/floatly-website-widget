@@ -149,11 +149,7 @@ pub fn save_config(
     } else {
         None
     };
-    let active_shortcut = state
-        .registered_shortcut
-        .lock()
-        .map_err(|_| "config.write_failed".to_owned())?
-        .clone();
+    let active_shortcut = state.lock_registered_shortcut().clone();
     let previous_active_shortcut = active_shortcut.clone();
     let (old, requested) = {
         let mut stored = state.lock_config();
@@ -210,9 +206,7 @@ pub fn save_config(
                         warns.push("shortcut_conflict".to_owned());
                     } else {
                         shortcut_changed = true;
-                        if let Ok(mut registered) = state.registered_shortcut.lock() {
-                            *registered = c.global_shortcut.clone();
-                        }
+                        *state.lock_registered_shortcut() = c.global_shortcut.clone();
                     }
                 }
                 Err(error) => {
@@ -298,9 +292,7 @@ pub fn save_config(
                 if let Ok(old_shortcut) = Shortcut::from_str(&previous_active_shortcut) {
                     let _ = app.global_shortcut().register(old_shortcut);
                 }
-                if let Ok(mut registered) = state.registered_shortcut.lock() {
-                    *registered = previous_active_shortcut;
-                }
+                *state.lock_registered_shortcut() = previous_active_shortcut;
             }
             if autostart_changed {
                 let _ = crate::autostart::set_enabled(&app, previous_autostart);
@@ -318,7 +310,7 @@ pub fn save_config(
     let resize = force_resize.unwrap_or(false) || c.width != old.width || c.height != old.height;
     window::apply_config(&app, &c, resize);
     crate::tray::update_language(&app, &c.language);
-    let _ = app.emit("config-changed", &c);
+    let _ = app.emit_to("settings", "config-changed", &c);
     if let Some(settings) = app.get_webview_window("settings") {
         let title = crate::i18n::settings_title(&c.language);
         let _ = settings.set_title(title);
@@ -400,7 +392,7 @@ pub fn toggle_locked(app: &AppHandle) {
     };
     window::apply_config(app, &next, false);
     crate::tray::update_language(app, &next.language);
-    let _ = app.emit("config-changed", &next);
+    let _ = app.emit_to("settings", "config-changed", &next);
 }
 pub fn toggle_topmost(app: &AppHandle) {
     let s = app.state::<AppState>();
@@ -419,7 +411,7 @@ pub fn toggle_topmost(app: &AppHandle) {
         c.clone()
     };
     window::apply_config(app, &next, false);
-    let _ = app.emit("config-changed", &next);
+    let _ = app.emit_to("settings", "config-changed", &next);
 }
 pub fn show_settings(app: &AppHandle) {
     window::open_settings(app)
