@@ -8,10 +8,12 @@ const fail = (message) => {
   process.exitCode = 1;
 };
 
-const [tauri, cargo, pkg, manifest] = await Promise.all([
+const [tauri, cargo, pkg, packageLock, cargoLock, manifest] = await Promise.all([
   readJson("src-tauri/tauri.conf.json"),
   readFile(resolve(root, "src-tauri/Cargo.toml"), "utf8"),
   readJson("package.json"),
+  readJson("package-lock.json"),
+  readFile(resolve(root, "src-tauri/Cargo.lock"), "utf8"),
   readFile(resolve(root, "packaging/msix/Package.appxmanifest.template.xml"), "utf8"),
 ]);
 
@@ -23,24 +25,32 @@ if (versionParts.length !== 3 || versionParts.some((part) => !Number.isInteger(p
 } else if (versionParts[0] === 0) {
   fail("A versão do pacote MSIX não pode começar com 0. Use, por exemplo, 1.0.0.");
 }
-if (!cargo.includes(`version = "${tauri.version}"`)) fail("A versão do pacote Rust deve corresponder à versão do Tauri.");
-const targetDeviceFamily = manifest.match(/<TargetDeviceFamily\\b[^>]*>/s)?.[0] ?? "";
-const minVersion = targetDeviceFamily.match(/\\bMinVersion="([^"]+)"/)?.[1] ?? "";
-const versionTuple = (value) => value.split(".").map((part) => Number(part));
-const minimumSupported = [10, 0, 19041, 0];
-const declaredMinimum = versionTuple(minVersion);
-if (
-  declaredMinimum.length !== 4 ||
-  declaredMinimum.some((part) => !Number.isInteger(part) || part < 0) ||
-  declaredMinimum.some((part, index) => part !== minimumSupported[index] && declaredMinimum.slice(0, index).every((value, previous) => value === minimumSupported[previous]) && part < minimumSupported[index]) ||
-  declaredMinimum.findIndex((part, index) => part !== minimumSupported[index]) !== -1 &&
-    (() => {
-      for (let index = 0; index < 4; index += 1) {
-        if (declaredMinimum[index] !== minimumSupported[index]) return declaredMinimum[index] < minimumSupported[index];
-      }
-      return false;
-    })()
-) {
+const cargoPackage = cargo.match(/^\\[package\\]\\s*([\\s\\S]*?)(?=^\\[|$)/m)?.[1] ?? "";
+const cargoPackageVersion = cargoPackage.match(/^version\\s*=\\s*"([^"]+)"/m)?.[1] ?? "";
+const cargoLockPackageVersion = cargoLock.match(/\\[\\[package\\]\\]\\s*name = "widget-website"\\s*version = "([^"]+)"/)?.[1] ?? "";
+if (cargoPackageVersion !== tauri.version) fail("Cargo.toml e tauri.conf.json devem usar a mesma versão.");
+if (pkg.version !== packageLock.version || pkg.version !== packageLock.packages?.[""]?.version) {
+  fail("package.json e package-lock.json devem usar a mesma versão, inclusive em packages[\"\"] .");
+}
+if (cargoLockPackageVersion !== pkg.version) fail("A versão do pacote widget-website em Cargo.lock deve corresponder à versão do aplicativo.");
+
+const targetDeviceFamily = manifest.match(/<TargetDeviceFamily[^>]*>/i)?.[0] ?? "";
+const minVersion = targetDeviceFamily.match(/MinVersion="([^"]+)"/i)?.[1] ?? "";
+const minVersionParts = minVersion.split(".").map(Number);
+const requiredMinVersion = [10, 0, 19041, 0];
+const minVersionIsValid =
+  minVersionParts.length === 4 &&
+  minVersionParts.every((part) => Number.isInteger(part) && part >= 0);
+let minVersionComparison = 0;
+if (minVersionIsValid) {
+  for (let index = 0; index < requiredMinVersion.length; index += 1) {
+    if (minVersionParts[index] !== requiredMinVersion[index]) {
+      minVersionComparison = minVersionParts[index] < requiredMinVersion[index] ? -1 : 1;
+      break;
+    }
+  }
+}
+if (!minVersionIsValid || minVersionComparison < 0) {
   fail(`TargetDeviceFamily MinVersion must be 10.0.19041.0 or newer for the declared uap10 features (found "${minVersion || "missing"}").`);
 }
 if (!manifest.includes("xmlns:uap10=") || !manifest.includes("uap10:PackageIntegrity") || !manifest.includes("uap10:RuntimeBehavior")) {
