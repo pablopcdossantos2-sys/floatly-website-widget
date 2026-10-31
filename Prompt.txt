@@ -1,0 +1,4911 @@
+PROMPT-PADRÃO PARA AUTORIA, DOCUMENTAÇÃO E APRESENTAÇÃO DE PROJETOS
+
+Analise integralmente este projeto antes de redigir ou alterar qualquer texto. Considere o código-fonte, arquivos de configuração, documentação, interface, funcionalidades efetivamente implementadas, tecnologias utilizadas e finalidade prática do software.
+
+O objetivo é produzir textos padronizados de apresentação, autoria e desenvolvimento para quatro locais diferentes:
+
+1. arquivo README do projeto;
+2. comentário ou cabeçalho de autoria no código-fonte;
+3. campo de descrição do repositório no GitHub;
+4. Currículo Lattes.
+
+IMPORTANTE SOBRE A EXECUÇÃO DAS ALTERAÇÕES
+
+- Faça diretamente as alterações necessárias no arquivo README do projeto.
+- Faça diretamente a inserção do comentário/cabeçalho de autoria no código-fonte, mas insira esse texto em APENAS UM arquivo do projeto.
+- Escolha para isso um dos arquivos principais do projeto, preferencialmente o arquivo de entrada principal, o arquivo central da aplicação ou outro arquivo que represente adequadamente o projeto como um todo.
+- Não replique o mesmo comentário de autoria em vários arquivos.
+- Não crie um arquivo separado exclusivamente para esse comentário.
+- Preserve integralmente o funcionamento do código.
+- Para o campo de descrição do repositório no GitHub e para o Currículo Lattes, NÃO faça alterações externas nem tente publicar o conteúdo. Apenas apresente os textos prontos para que o usuário possa revisá-los e inseri-los manualmente.
+- O projeto deve possuir obrigatoriamente duas versões sincronizadas do README:
+  1. `README.md`, em português do Brasil;
+  2. `README-en.md`, em inglês.
+- Caso `README-en.md` ainda não exista, crie-o automaticamente a partir do conteúdo do `README.md`, realizando uma tradução natural, profissional e semanticamente fiel.
+- Caso já exista um README em inglês com outro nome, avalie a estrutura do repositório e, quando não houver impedimento técnico ou referência externa relevante, padronize-o como `README-en.md`.
+- Mantenha as duas versões semanticamente equivalentes e atualize ambas sempre que houver alterações de documentação decorrentes deste prompt.
+- Não deixe uma versão mais completa que a outra sem justificativa objetiva relacionada ao idioma ou ao contexto.
+
+REGRAS GERAIS
+
+Antes de escrever os textos:
+
+- identifique corretamente a natureza do projeto;
+- determine se ele deve ser denominado, por exemplo, script, aplicação desktop, aplicação web, micro-app, biblioteca, ferramenta, utilitário, extensão, API, sistema, aplicativo móvel ou outra classificação tecnicamente mais adequada;
+- não utilize automaticamente a palavra "aplicativo" ou "micro-app": escolha a classificação com base nas características reais do projeto;
+- descreva somente funcionalidades que estejam efetivamente implementadas ou claramente documentadas no projeto;
+- não atribua ao software finalidades, capacidades, validações, certificações ou características que não possam ser verificadas a partir do projeto;
+- diferencie corretamente "verificação", "testes" e "validação". Não diga que o projeto foi "validado" se não houver evidência de um processo de validação propriamente dito;
+- utilize linguagem profissional, sóbria e objetiva;
+- evite linguagem promocional, exagerada ou que faça o projeto parecer mais complexo do que realmente é;
+- preserve a autoria individual do projeto;
+- deixe transparente o uso de inteligência artificial generativa como ferramenta auxiliar de desenvolvimento, sem atribuir à IA a autoria do projeto.
+
+Sempre que linguisticamente adequado, caracterize o projeto como:
+
+"desenvolvido de forma independente por Pablo Phillipe Cândido dos Santos"
+
+A informação sobre inteligência artificial deve transmitir, com redação natural para cada contexto, o seguinte conteúdo:
+
+"O desenvolvimento contou com a utilização de ferramentas de inteligência artificial generativa como recurso auxiliar no processo de desenvolvimento, mantendo-se sob responsabilidade do autor a concepção, implementação, integração e verificação do projeto."
+
+Não é necessário reproduzir literalmente essa frase em todos os locais. Adapte sua extensão e construção gramatical ao contexto, preservando obrigatoriamente seu significado.
+
+Quando houver espaço e a inclusão for adequada, acrescente:
+
+Currículo Lattes: http://lattes.cnpq.br/9500873674712528
+
+Caso o documento utilize Markdown e seja conveniente, utilize:
+
+Currículo Lattes: [http://lattes.cnpq.br/9500873674712528](http://lattes.cnpq.br/9500873674712528)
+
+1. TEXTO PARA O README
+
+REGRAS OBRIGATÓRIAS DE IDIOMA E NAVEGAÇÃO ENTRE READMES
+
+- Garanta a existência de `README.md` em português do Brasil e `README-en.md` em inglês.
+- Se um dos dois arquivos não existir, crie-o automaticamente.
+- O `README-en.md` deve ser uma tradução natural e profissional do `README.md`, preservando estrutura, títulos, informações técnicas, links, avisos, instruções, exemplos e seções relevantes, com as adaptações linguísticas necessárias.
+- Sempre que o conteúdo de um dos READMEs for alterado em razão deste prompt, faça a alteração correspondente no outro idioma, de modo que ambos permaneçam semanticamente sincronizados.
+- Não faça tradução palavra por palavra quando isso prejudicar a naturalidade ou a precisão técnica.
+- Preserve nomes próprios, nomes de arquivos, comandos, identificadores, APIs, tecnologias e trechos de código quando não devam ser traduzidos.
+- No `README.md`, insira obrigatoriamente, próximo ao início do documento e antes do conteúdo principal, exatamente o seguinte bloco Markdown:
+
+*Read this in other languages: [English](README-en.md)*
+
+---
+
+- No `README-en.md`, insira obrigatoriamente, na posição equivalente, o seguinte bloco Markdown:
+
+*Leia isto em outros idiomas: [Português](README.md)*
+
+---
+
+- Os dois blocos acima devem funcionar como links recíprocos entre as versões em português e inglês.
+- Não altere os nomes `README.md` e `README-en.md` nem os destinos desses links.
+- Evite duplicar esses blocos caso já estejam presentes; nesse caso, apenas corrija-os se necessário.
+
+Crie e insira diretamente no README uma pequena seção denominada (a qual deve ficar posicionada na base do README):
+
+## 👤 Autoria e desenvolvimento
+
+O texto deve ter preferencialmente dois parágrafos.
+
+Primeiro parágrafo
+
+Apresente:
+
+- a classificação adequada do projeto;
+- que ele foi desenvolvido de forma independente por Pablo Phillipe Cândido dos Santos;
+- a finalidade principal do projeto;
+- o público, área de aplicação ou contexto de utilização, quando isso for relevante;
+- uma ou duas características funcionais centrais, somente se ajudarem a compreender sua finalidade.
+
+Use como estrutura conceitual:
+
+"[Tipo de projeto] desenvolvido de forma independente por Pablo Phillipe Cândido dos Santos, destinado a [finalidade principal e, se pertinente, público/contexto]."
+
+Não copie mecanicamente essa estrutura caso outra construção fique mais natural.
+
+Segundo parágrafo
+
+Explique de forma transparente o emprego de IA generativa como recurso auxiliar, preservando a responsabilidade autoral sobre:
+
+- concepção;
+- implementação;
+- integração;
+- verificação do projeto.
+
+Utilize como referência conceitual:
+
+"O desenvolvimento contou com a utilização de ferramentas de inteligência artificial generativa como recurso auxiliar no processo de desenvolvimento, mantendo-se sob responsabilidade do autor a concepção, implementação, integração e verificação do projeto."
+
+Produza a seção em ambas as versões obrigatórias do README:
+- em português do Brasil no `README.md`;
+- em inglês natural e profissional no `README-en.md`.
+
+As duas versões devem transmitir o mesmo conteúdo, sem tradução excessivamente literal.
+
+Ao final da seção, caso não haja inconveniente de formatação ou redundância, acrescente o endereço do Currículo Lattes.
+
+2. COMENTÁRIO OU CABEÇALHO NO CÓDIGO-FONTE
+
+Crie um comentário inicial curto de autoria e descrição para o código-fonte.
+
+REGRAS ESPECÍFICAS:
+
+- Insira esse comentário em APENAS UM arquivo do projeto.
+- Escolha um dos arquivos principais do projeto.
+- Dê preferência, nesta ordem, a:
+  1. arquivo principal de entrada da aplicação;
+  2. arquivo central responsável por inicializar ou coordenar o projeto;
+  3. outro arquivo principal que represente adequadamente a aplicação como um todo.
+- Não insira o mesmo cabeçalho em todos os arquivos.
+- Não crie um novo arquivo apenas para armazenar esse texto.
+- Caso existam vários arquivos que possam ser considerados principais, escolha o mais representativo e informe qual arquivo foi escolhido.
+- Utilize a sintaxe de comentário apropriada à linguagem do arquivo.
+- Preserve o funcionamento do código e não altere sua lógica.
+
+O comentário deve:
+
+- informar o nome do projeto;
+- informar que foi desenvolvido de forma independente por Pablo Phillipe Cândido dos Santos;
+- resumir sua finalidade em uma ou duas frases;
+- informar que ferramentas de inteligência artificial generativa foram utilizadas como recurso auxiliar;
+- não transformar o cabeçalho em documentação extensa;
+- quando houver espaço adequado, incluir o endereço do Currículo Lattes.
+
+Se o projeto já utilizar comentários bilíngues ou documentação em português e inglês, produza ambas as versões mantendo equivalência semântica.
+
+Exemplo estrutural, que deverá ser adaptado ao projeto e à linguagem:
+
+"""
+[NOME DO PROJETO]
+
+[Tipo de projeto] desenvolvido de forma independente por Pablo Phillipe Cândido dos Santos, destinado a [finalidade].
+
+[Versão em inglês, se pertinente.]
+
+O desenvolvimento contou com ferramentas de inteligência artificial generativa como recurso auxiliar.
+
+[Versão em inglês, se pertinente.]
+
+Currículo Lattes: http://lattes.cnpq.br/9500873674712528
+"""
+
+Não copie termos do exemplo quando eles não forem adequados ao projeto analisado.
+
+3. DESCRIÇÃO DO REPOSITÓRIO NO GITHUB
+
+Crie uma descrição curta apropriada para o campo "Description" do repositório no GitHub, devendo a mesma ter até 350 caracteres.
+
+IMPORTANTE:
+
+- Apenas apresente o texto ao usuário.
+- Não tente alterar o repositório, publicar a descrição ou executar qualquer ação externa.
+- Antes de finalizar, verifique, se possível, o limite de caracteres atualmente aplicável ao campo de descrição do GitHub.
+- Respeite rigorosamente esse limite, contando espaços e pontuação.
+- Caso não seja possível verificar o limite vigente, produza uma descrição deliberadamente concisa e apropriada para um campo curto de apresentação.
+- Informe ao final quantos caracteres a descrição possui, incluindo espaços.
+
+A descrição deve priorizar, nesta ordem:
+
+1. tipo do projeto;
+2. finalidade;
+3. contexto ou público, quando relevante;
+4. autoria independente;
+5. uso de IA generativa como recurso auxiliar, se houver espaço.
+
+Não tente inserir todas as informações se isso tornar a descrição truncada ou artificial.
+
+Quando o espaço for insuficiente, utilize uma formulação compacta como:
+
+"[Tipo] para [finalidade], desenvolvido de forma independente por Pablo Phillipe Cândido dos Santos com uso de IA generativa como recurso auxiliar."
+
+Adapte a terminologia ao projeto.
+
+Não inclua o link do Currículo Lattes neste campo, salvo se houver uma razão específica e espaço suficiente. Em regra, priorize a descrição funcional do projeto.
+
+4. TEXTO PARA O CURRÍCULO LATTES
+
+Elabore um texto profissional para o registro do projeto no Currículo Lattes.
+
+IMPORTANTE:
+
+- Apenas apresente o texto e os campos sugeridos ao usuário.
+- Não tente inserir, publicar ou alterar dados no Currículo Lattes.
+
+Esse texto deve ter caráter acadêmico-profissional e ser um pouco mais formal que a descrição do GitHub. Após criar a versão em português do Brasil, também deve-se criar a versão em inglês.
+
+Informe, conforme aplicável:
+
+- tipo de produto ou projeto;
+- sua finalidade;
+- público ou área de aplicação;
+- principais características funcionais;
+- caráter de desenvolvimento independente;
+- autoria de Pablo Phillipe Cândido dos Santos;
+- utilização de ferramentas de inteligência artificial generativa como recurso auxiliar;
+- responsabilidade do autor pela concepção, implementação, integração e verificação.
+
+Evite:
+
+- linguagem publicitária;
+- adjetivos como "revolucionário", "inovador", "avançado" ou semelhantes sem justificativa objetiva;
+- alegações de impacto, validação científica ou eficácia que não estejam demonstradas;
+- descrição excessivamente técnica quando detalhes de implementação não forem importantes para caracterizar a produção.
+
+Use preferencialmente construções como:
+
+"Desenvolvimento independente de [tipo de projeto] destinado a [finalidade]. Concebido, implementado e verificado pelo autor, com utilização de ferramentas de inteligência artificial generativa como recurso auxiliar no processo de desenvolvimento."
+
+Adapte essa estrutura às características reais do projeto.
+
+Se for necessário preencher também campos estruturados do Lattes, apresente separadamente sugestões para:
+
+- Tipo/classificação do produto;
+- Tipo de programa;
+- Área de conhecimento, com indicação de Grande Área, Área, Subárea e Especialidade;
+- Finalidade;
+- Natureza: Computacional, Multimídia ou Outro;
+- três palavras-chave;
+- setor de aplicação segundo a CNAE, quando for possível determiná-lo com segurança.
+
+Para "Finalidade", caso o sistema imponha limite de 255 caracteres com espaços, respeite rigorosamente esse limite e informe a contagem de caracteres.
+
+Para a CNAE, não escolha um setor apenas porque o projeto utiliza computadores ou programação. Identifique o setor de aplicação efetivo do produto e explique brevemente a escolha quando houver ambiguidade.
+
+O campo "Setor de aplicação da Tabela CNAE" é obrigatório na Plataforma Lattes. Sempre que esse campo for apresentado, selecione obrigatoriamente UMA das opções abaixo, reproduzindo sua denominação exatamente como cadastrada na plataforma. Não invente categorias, não faça aproximações terminológicas fora desta lista e não utilize uma categoria apenas por afinidade tecnológica. A escolha deve refletir o setor econômico ou institucional no qual o produto, software, projeto ou produção é efetivamente aplicado.
+
+Quando mais de uma opção parecer plausível:
+- priorize o setor correspondente ao uso final predominante do projeto;
+- considere o público, a finalidade prática e o ambiente de utilização;
+- use o setor de desenvolvimento tecnológico somente quando a própria atividade-fim do projeto for tecnologia da informação;
+- em projetos de saúde, educação, pesquisa, administração pública ou outras áreas especializadas, prefira o setor final de aplicação quando ele estiver claramente definido;
+- se ainda houver ambiguidade, escolha a alternativa mais específica entre as opções disponíveis e apresente uma justificativa breve.
+
+OPÇÕES VÁLIDAS PARA "SETOR DE APLICAÇÃO DA TABELA CNAE":
+
+- Administração pública, defesa e seguridade social
+- Agências de viagens, operadores turísticos e serviços de reservas
+- Agricultura, Pecuária e Serviços Relacionados
+- Alimentação
+- Alojamento
+- Aluguéis não-imobiliários e gestão de ativos intangíveis não-financeiros
+- Armazenamento e atividades auxiliares dos transportes
+- Atividades artísticas, criativas e de espetáculos
+- Atividades auxiliares dos serviços financeiros, seguros, previdência complementar e planos de saúde
+- Atividades cinematográficas, produção de vídeos e de programas de televisão; gravação de som e edição de música
+- Atividades de Apoio à Extração de Minerais
+- Atividades de atenção à saúde humana
+- Atividades de atenção à saúde humana integradas com assistência social, prestadas em residências coletivas e particulares
+- Atividades de exploração de jogos de azar e apostas
+- Atividades de organizações associativas
+- Atividades de prestação de serviços de informação
+- Atividades de rádio e de televisão
+- Atividades de sedes de empresas e de consultoria em gestão empresarial
+- Atividades de serviços financeiros
+- Atividades de vigilância, segurança e investigação
+- Atividades dos serviços de tecnologia da informação
+- Atividades esportivas e de recreação e lazer
+- Atividades imobiliárias
+- Atividades jurídicas, de contabilidade e de auditoria
+- Atividades ligadas ao patrimônio cultural e ambiental
+- Atividades veterinárias
+- Captação, tratamento e distribuição de água
+- Coleta, tratamento e disposição de resíduos; recuperação de materiais
+- Comércio e reparação de veículos automotores e motocicletas
+- Comércio por atacado, exceto veículos automotores e motocicletas
+- Comércio varejista
+- Confecção de artigos do vestuário e acessórios
+- Construção de edifícios
+- Correio e outras atividades de entrega
+- Descontaminação e outros serviços de gestão de resíduos
+- Edição e edição integrada à impressão
+- Educação
+- Eletricidade, gás e outras utilidades
+- Esgoto e atividades relacionadas
+- Extração de Carvão Mineral
+- Extração de Minerais Metálicos
+- Extração de Minerais Não-Metálicos
+- Extração de Petróleo e Gás Natural
+- Fabricação de Bebidas
+- Fabricação de celulose, papel e produtos de papel
+- Fabricação de coque, de produtos derivados do petróleo e de biocombustíveis
+- Fabricação de equipamentos de informática, produtos eletrônicos e ópticos
+- Fabricação de máquinas, aparelhos e materiais elétricos
+- Fabricação de máquinas e equipamentos
+- Fabricação de móveis
+- Fabricação de outros equipamentos de transporte, exceto veículos automotores
+- Fabricação de Produtos Alimentícios
+- Fabricação de produtos de borracha e de material plástico
+- Fabricação de produtos de madeira
+- Fabricação de produtos de metal, exceto máquinas e equipamentos
+- Fabricação de produtos de minerais não-metálicos
+- Fabricação de produtos diversos
+- Fabricação de Produtos do Fumo
+- Fabricação de produtos farmoquímicos e farmacêuticos
+- Fabricação de produtos químicos
+- Fabricação de Produtos Têxteis
+- Fabricação de veículos automotores, reboques e carrocerias
+- Impressão e reprodução de gravações
+- Manutenção, reparação e instalação de máquinas e equipamentos
+- Metalurgia
+- Obras de infra-estrutura
+- Organismos internacionais e outras instituições extraterritoriais
+- Outras atividades de serviços pessoais
+- Outras atividades profissionais, científicas e técnicas
+- Pesca e Aqüicultura
+- Pesquisa e desenvolvimento científico
+- Preparação de couros e fabricação de artefatos de couro, artigos para viagem e calçados
+- Produção Florestal
+- Publicidade e pesquisa de mercado
+- Reparação e manutenção de equipamentos de informática e comunicação e de objetos pessoais e domésticos
+- Seguros, resseguros, previdência complementar e planos de saúde
+- Seleção, agenciamento e locação de mão-de-obra
+- Serviços de arquitetura e engenharia; testes e análises técnicas
+- Serviços de assistência social sem alojamento
+- Serviços de escritório, de apoio administrativo e outros serviços prestados às empresas
+- Serviços domésticos
+- Serviços especializados para construção
+- Serviços para edifícios e atividades paisagísticas
+- Telecomunicações
+- Transporte aéreo
+- Transporte aquaviário
+- Transporte terrestre
+
+
+O campo "Tipo de programa" é obrigatório na Plataforma Lattes. Sempre que esse campo for apresentado, selecione obrigatoriamente UMA das opções abaixo, reproduzindo sua denominação exatamente como cadastrada na plataforma. Não invente categorias, não corrija abreviações, grafias ou truncamentos aparentes presentes na lista e não substitua a opção oficial por uma denominação tecnicamente mais elegante.
+
+A escolha do "Tipo de programa" deve refletir prioritariamente a função principal efetivamente desempenhada pelo software. Não escolha automaticamente "Aplicativos" apenas porque o projeto possui interface ou é utilizado por um usuário final, nem "Inteligência artificial" apenas porque ferramentas de IA generativa foram utilizadas como recurso auxiliar no desenvolvimento. O uso de uma tecnologia durante o desenvolvimento não define, por si só, o tipo do programa.
+
+Quando mais de uma opção parecer plausível:
+- identifique qual é a função central do programa para o usuário;
+- diferencie a finalidade do produto das tecnologias, bibliotecas, linguagens ou métodos empregados em sua implementação;
+- prefira uma categoria funcional específica quando ela representar diretamente o comportamento principal do software;
+- utilize "Aplicativos" quando o programa for uma aplicação de propósito definido e nenhuma categoria funcional mais específica da lista descrevê-lo adequadamente;
+- utilize "Ferramenta de apoio" quando a função predominante for auxiliar uma atividade, fluxo de trabalho ou processo sem se enquadrar melhor em uma categoria mais específica;
+- utilize "Inteligência artificial", "Sistemas de processamento de linguagem natural", "Sistemas especialistas", "Reconhecimento de padrões" ou categorias semelhantes somente quando tais capacidades constituírem parte central do produto efetivamente implementado, e não apenas uma ferramenta utilizada em seu desenvolvimento;
+- se ainda houver ambiguidade, selecione a alternativa que melhor descreva a função predominante do programa e apresente uma justificativa breve.
+
+OPÇÕES VÁLIDAS PARA "TIPO DE PROGRAMA":
+
+- Administrador de dispositivos
+- Aplicaçõe técnico-científicas
+- Aplicativos
+- Aplicativos desenvolv. sist. de acordo com determ. metodologia
+- Apoio à programação
+- Auditoria
+- Automação
+- Automação bancária
+- Automação comercial
+- Automação da manufatura (Controle numérico computadorizado, robótica, etc)
+- Automação de escritório
+- Automação industrial
+- Avaliação de desempenho
+- Bibliotecas de rotinas (´Libraries´)
+- CAE/CAD/CAM/CAL/CBT/...
+- Classificador / Intercalador
+- Compilador
+- Compilador cruzado
+- Compressor de dados
+- Computer Aided Softw Engineering
+- Comunicação de dados
+- Comutação de dados
+- Comutação telefônica e telegráfica
+- Contabiliz
+- Contabilização de recursos
+- Controlador de processos
+- Controlador de redes
+- Controlador de spool
+- Controle
+- Controle de acessos
+- Controle de Processos
+- Conversor de sistemas
+- Conversor meios de armazenamento
+- Criptografia
+- Dicionário de dados
+- Eletrônica automotiva (computador de bordo, sistema de injeção e/ou ignição eletrônica, etc)
+- Emuladores de terminais
+- Entrada e validação da dados
+- Entreteniment
+- Ferramenta de apoio
+- Ferramentas de suporte ao desenvolv. de sistemas
+- Gerador de aplicações
+- Gerador de relatórios
+- Gerador de telas
+- Geradores de desenhos
+- Geradores de gráficos
+- Gerenc. disposit. e periféricos
+- Gerenciador de banco de dados
+- Gerenciador de informações
+- Gerenciador de rede de comunicação de dados
+- Gerenciador de usuários
+- Gerenciador operação e manutenção
+- Implementador de funções adicionais
+- Instrumentação
+- Instrumentação analítica
+- Instrumentação biomédica
+- Instrumentação de teste e medição
+- Inteligência artificial
+- Interface básica de disco
+- Interface de comunicação
+- Interface de entrada e saída
+- Interpretador
+- Jogos animados (´arcade games´)
+- Linguagem não procedural
+- Linguagem procedural
+- Linguagens
+- Manutenção da integridade dos dados
+- Monitores de teleprocessamento
+- Montador
+- Organização, tratamento, manutenção de arquivos
+- Pesquisa operacional
+- Planejamento
+- Planilhas eletrônicas
+- Pré-Compilador
+- Pré-Processador
+- Processador de comandos
+- Processadores de texto
+- Processamento de imagem
+- Reconhecimento de padrões
+- Recuperação de dados
+- Rede local
+- Segurança e proteção de dados
+- Senha
+- Simulação modelaem
+- Simulador de vôo/carro/submarino/...
+- Simuladores de ambiente operacional
+- Simuladores destinados ao lazer
+- Sistema operacional
+- Sistemas de processamento de linguagem natural
+- Sistemas especialistas
+- Suporte à documentação
+- Teleinformática
+- Terminais
+- Terminal de operação e manutenção de central
+- Transferência de arquivos
+- Transmissão de dados
+- Utilitários
+
+
+ÁREAS DE CONHECIMENTO — REGRAS OBRIGATÓRIAS
+
+O campo "Áreas de conhecimento" da Plataforma Lattes é obrigatório. Para preenchê-lo, utilize exclusivamente a taxonomia registrada abaixo, respeitando a hierarquia:
+
+Grande Área → Área → Subárea → Especialidade
+
+A opção final deve corresponder a UMA especialidade da lista. Sempre apresente também a Grande Área, a Área e a Subárea às quais essa especialidade pertence.
+
+REGRAS DE SELEÇÃO:
+
+- Analise a finalidade efetiva, o domínio de aplicação, o conteúdo tratado e as funcionalidades realmente implementadas no projeto.
+- Não classifique automaticamente todo software em Ciência da Computação. Um programa aplicado à Medicina, Educação, Engenharia, Administração, Estatística ou outro domínio pode ter como melhor enquadramento uma especialidade desse domínio.
+- Da mesma forma, não escolha uma especialidade temática apenas porque o projeto menciona determinado assunto superficialmente. A área selecionada deve ter relação material com a finalidade ou conteúdo central da produção.
+- Quando o projeto tiver natureza predominantemente computacional e não estiver direcionado de forma substantiva a outro campo do conhecimento, considere as especialidades de Ciência da Computação e escolha a que melhor corresponda à função predominante do projeto.
+- Diferencie a área de conhecimento da tecnologia utilizada. Linguagens de programação, frameworks, bibliotecas, bancos de dados ou uso auxiliar de IA não determinam isoladamente a especialidade.
+- O uso de ferramentas de inteligência artificial generativa durante o desenvolvimento não justifica, por si só, enquadramento em uma especialidade relacionada a inteligência artificial.
+- Quando houver mais de uma especialidade plausível, escolha a que representar de modo mais direto o objetivo principal do projeto. Na resposta, apresente uma justificativa breve para a escolha.
+- Não invente especialidades, não combine duas especialidades em uma única opção e não substitua a denominação oficial por sinônimos.
+- Preserve a grafia constante da lista abaixo ao informar a opção escolhida, inclusive quando houver grafias antigas, abreviações ou construções incomuns.
+- Caso nenhuma especialidade descreva perfeitamente o projeto, selecione a alternativa mais próxima dentro da taxonomia disponibilizada e explique sucintamente a aproximação.
+- A escolha de "Área de conhecimento" deve ser feita de forma independente das escolhas de "Tipo de programa" e "Setor de aplicação/CNAE". Os três campos podem apontar para dimensões diferentes do mesmo projeto: natureza funcional do software, campo do conhecimento e setor econômico/social de aplicação.
+
+TAXONOMIA VÁLIDA DE ÁREAS DE CONHECIMENTO / ESPECIALIDADES:
+
+- Especialidade: Conjuntos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Álgebra
+
+- Especialidade: Lógica  Matemática
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Álgebra
+
+- Especialidade: Teoria  dos  Números
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Álgebra
+
+- Especialidade: Grupos  de  Álgebra  Não-Comutativa
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Álgebra
+
+- Especialidade: Álgebra  Comutativa
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Álgebra
+
+- Especialidade: Geometria  Algébrica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Álgebra
+
+- Especialidade: Análise  Complexa
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Análise
+
+- Especialidade: Análise  Funcional
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Análise
+
+- Especialidade: Análise  Funcional  Não-Linear
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Análise
+
+- Especialidade: Equações  Diferenciais  Ordinárias
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Análise
+
+- Especialidade: Equações  Diferenciais  Parciais
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Análise
+
+- Especialidade: Equações  Diferenciais  Funcionais
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Análise
+
+- Especialidade: Geometria  Diferencial
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Geometria  e  Topologia
+
+- Especialidade: Topologia  Algébrica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Geometria  e  Topologia
+
+- Especialidade: Topologia  das  Variedades
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Geometria  e  Topologia
+
+- Especialidade: Sistemas  Dinâmicos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Geometria  e  Topologia
+
+- Especialidade: Teoria  das  Singularidades  e  Teoria  das  Catástrofes
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Geometria  e  Topologia
+
+- Especialidade: Teoria  das  Folheações
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Geometria  e  Topologia
+
+- Especialidade: Física  Matemática
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Matemática  Aplicada
+
+- Especialidade: Análise  Numérica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Matemática  Aplicada
+
+- Especialidade: Matemática  Discreta  e  Combinatória
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Matemática  Aplicada
+
+- Especialidade: Biomatemática
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Matemática
+  Subárea: Matemática  Aplicada
+
+- Especialidade: Teoria  Geral  e  Fundamentos  da  Probabilidade
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Probabilidade
+
+- Especialidade: Teoria  Geral  e  Processos  Estocásticos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Probabilidade
+
+- Especialidade: Teoremas  de  Limite
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Probabilidade
+
+- Especialidade: Processos  Markovianos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Probabilidade
+
+- Especialidade: Análise  Estocástica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Probabilidade
+
+- Especialidade: Processos  Estocásticos  Especiais
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Probabilidade
+
+- Especialidade: Fundamentos  da  Estatística
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Estatística
+
+- Especialidade: Inferência  Paramétrica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Estatística
+
+- Especialidade: Inferência  Não-Paramétrica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Estatística
+
+- Especialidade: Inferência  em  Processos  Estocásticos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Estatística
+
+- Especialidade: Análise  Multivariada
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Estatística
+
+- Especialidade: Regressão  e  Correlação
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Estatística
+
+- Especialidade: Planejamento  de  Experimentos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Estatística
+
+- Especialidade: Análise  de  Dados
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Probabilidade  e  Estatística
+  Subárea: Estatística
+
+- Especialidade: Computabilidade  e  Modelos  de  Computação
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Teoria  da  Computação
+
+- Especialidade: Linguagem  Formais  e  Autômatos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Teoria  da  Computação
+
+- Especialidade: Análise  de  Algoritmos  e  Complexidade  de  Computação
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Teoria  da  Computação
+
+- Especialidade: Lógicas  e  Semântica  de  Programas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Teoria  da  Computação
+
+- Especialidade: Matemática  Simbólica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Matemática  da  Computação
+
+- Especialidade: Modelos  Analíticos  e  de  Simulação
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Matemática  da  Computação
+
+- Especialidade: Linguagens  de  Programação
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Metodologia  e  Técnicas  da  Computação
+
+- Especialidade: Engenharia  de  Software
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Metodologia  e  Técnicas  da  Computação
+
+- Especialidade: Banco  de  Dados
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Metodologia  e  Técnicas  da  Computação
+
+- Especialidade: Sistemas  de  Informação
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Metodologia  e  Técnicas  da  Computação
+
+- Especialidade: Processamento  Gráfico  (Graphics)
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Metodologia  e  Técnicas  da  Computação
+
+- Especialidade: Hardware
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Sistemas  de  Computação
+
+- Especialidade: Arquitetura  de  Sistemas  de  Computação
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Sistemas  de  Computação
+
+- Especialidade: Software  Básico
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Sistemas  de  Computação
+
+- Especialidade: Teleinformática
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Ciência  da  Computação
+  Subárea: Sistemas  de  Computação
+
+- Especialidade: Astronomia  Fundamental
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Astronomia  de  Posição  e  Mecânica  Celeste
+
+- Especialidade: Astronomia  Dinâmica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Astronomia  de  Posição  e  Mecânica  Celeste
+
+- Especialidade: Meio  Interestelar
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Astrofísica  do  Meio  Interestelar
+
+- Especialidade: Nebulosa
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Astrofísica  do  Meio  Interestelar
+
+- Especialidade: Galáxias
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Astrofísica  Extragalactica
+
+- Especialidade: Aglomerados  de  Galáxias
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Astrofísica  Extragalactica
+
+- Especialidade: Quasares
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Astrofísica  Extragalactica
+
+- Especialidade: Cosmologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Astrofísica  Extragalactica
+
+- Especialidade: Física  Solar
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Astrofísica  do  Sistema  Solar
+
+- Especialidade: Movimento  da  Terra
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Astrofísica  do  Sistema  Solar
+
+- Especialidade: Sistema  Planetário
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Astrofísica  do  Sistema  Solar
+
+- Especialidade: Astronomia  Ótica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Instrumentação  Astronômica
+
+- Especialidade: Radioastronomia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Instrumentação  Astronômica
+
+- Especialidade: Astronomia  Espacial
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Instrumentação  Astronômica
+
+- Especialidade: Processamento  de  Dados  Astronômicos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Astronomia
+  Subárea: Instrumentação  Astronômica
+
+- Especialidade: Métodos  Matemáticos  da  Física
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Geral
+
+- Especialidade: Física  Clássica  e  Física  Quântica;  Mecânica  e  Campos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Geral
+
+- Especialidade: Relatividade  e  Gravitação
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Geral
+
+- Especialidade: Física  Estatística  e  Termodinâmica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Geral
+
+- Especialidade: Metrologia,  Técnicas  Gerais  de  Laboratório,  Sistema  de  Instrumentação
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Geral
+
+- Especialidade: Instrumentação  Específica  de  Uso  Geral  em  Física
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Geral
+
+- Especialidade: Eletricidade  e  Magnetismo;  Campos  e  Partículas  Carregadas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Áreas  Clássicas  de  Fenomenologia  e  suas  Aplicações
+
+- Especialidade: Ótica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Áreas  Clássicas  de  Fenomenologia  e  suas  Aplicações
+
+- Especialidade: Acústica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Áreas  Clássicas  de  Fenomenologia  e  suas  Aplicações
+
+- Especialidade: Transferência  de  Calor;  Processos  Térmicos  e  Termodinâmicos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Áreas  Clássicas  de  Fenomenologia  e  suas  Aplicações
+
+- Especialidade: Mecânica,  Elasticidade  e  Reologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Áreas  Clássicas  de  Fenomenologia  e  suas  Aplicações
+
+- Especialidade: Dinâmica  dos  Fluídos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Áreas  Clássicas  de  Fenomenologia  e  suas  Aplicações
+
+- Especialidade: Teoria  Geral  de  Partículas  e  Campos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  das  Partículas  Elementares  e  Campos
+
+- Especialidade: Teorias  Específicas  e  Modelos  de  Interação;  Sistemática  de  Partículas;  Raios  Cósmicos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  das  Partículas  Elementares  e  Campos
+
+- Especialidade: Reações  Específicas  e  Fenomiologia  de  Partículas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  das  Partículas  Elementares  e  Campos
+
+- Especialidade: Propriedades  de  Partículas  Específicas  e  Ressonâncias
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  das  Partículas  Elementares  e  Campos
+
+- Especialidade: Estrutura  Nuclear
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Nuclear
+
+- Especialidade: Desintegração  Nuclear  e  Radioatividade
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Nuclear
+
+- Especialidade: Reações  Nucleares  e  Espalhamento  Geral
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Nuclear
+
+- Especialidade: Reações  Nucleares  e  Espalhamento  (Reações  Específicas)
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Nuclear
+
+- Especialidade: Propriedades  de  Núcleos  Específicos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Nuclear
+
+- Especialidade: Métodos  Experimentais  e  Instrumentação  para  Partículas  Elementares  e  Física  Nuclear
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Nuclear
+
+- Especialidade: Estrutura  Eletrônica  de  Átomos  e  Moléculas;  Teoria
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Atômica  e  Molecular
+
+- Especialidade: Espectros  Atômicos  e  Integração  de  Fótons
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Atômica  e  Molecular
+
+- Especialidade: Espectros  Moleculares  e  Interações  de  Fótons  com  Moléculas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Atômica  e  Molecular
+
+- Especialidade: Processos  de  Colisão  e  Interações  de  Átomos  e  Moléculas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Atômica  e  Molecular
+
+- Especialidade: Inf.  sobre  Átomos  e  Moléculas  Obtidos  Experimentalmente;  Instrumentação  e  Técnicas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Atômica  e  Molecular
+
+- Especialidade: Estudos  de  Átomos  e  Moléculas  Especiais
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  Atômica  e  Molecular
+
+- Especialidade: Cinética  e  Teoria  de  Transporte  de  Fluídos;  Propriedades  Físicas  de  Gases
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  dos  Fluídos,  Física  de  Plasmas  e  Descargas  Elétricas
+
+- Especialidade: Física  de  Plasmas  e  Descargas  Elétricas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  dos  Fluídos,  Física  de  Plasmas  e  Descargas  Elétricas
+
+- Especialidade: Estrutura  de  Líquidos  e  Sólidos;  Cristalografia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Propriedades  Mecânicas  e  Acústicas  da  Matéria  Condensada
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Dinâmica  da  Rede  e  Estatística  de  Cristais
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Equação  de  Estado,  Equilíbrio  de  Fases  e  Transições  de  Fase
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Propriedades  Térmicas  da  Matéria  Condensada
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Propriedades  de  Transportes  de  Matéria  Condensada  (Não  Eletrônica)
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Campos  Quânticos  e  Sólidos,  Hélio,  Líquido,  Sólido
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Superfícies  e  Interfaces;  Películas  e  Filamentos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Estados  Eletrônicos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Transp.  Eletrônicos  e  Prop.  Elétricas  de  Superfícies;  Interfaces  e  Películas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Estruturas  Eletrônicas  e  Propriedades  Elétricas  de  Superfícies;  Interf.  e  Partículas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Supercondutividade
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Materiais  Magnéticos  e  Propriedades  Magnéticas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Ressonância  Mag.  e  Relax.  na  Mat.  Condens;  Efeitos  Mosbauer;  Corr.  Ang.  Pertubada
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Materiais  Dielétricos  e  Propriedades  Dielétricas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Prop.  Óticas  e  Espectrosc.  da  Mat.  Condens;  Outras  Inter.  da  Mat.  com  Rad.  e  Part.
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Emissão  Eletrônica  e  Iônica  por  Líquidos  e  Sólidos;  Fenômenos  de  Impacto
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Física
+  Subárea: Física  da  Matéria  Condensada
+
+- Especialidade: Estrutura,  Conformação  e  Estereoquímica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Orgânica
+
+- Especialidade: Síntese  Orgânica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Orgânica
+
+- Especialidade: Físico-Química  Orgânica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Orgânica
+
+- Especialidade: Fotoquímica  Orgânica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Orgânica
+
+- Especialidade: Química  dos  Produtos  Naturais
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Orgânica
+
+- Especialidade: Evolução,  Sistemática  e  Ecologia  Química
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Orgânica
+
+- Especialidade: Polímeros  e  Colóides
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Orgânica
+
+- Especialidade: Campos  de  Coordenação
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Inorgânica
+
+- Especialidade: Não-Metais  e  Seus  Compostos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Inorgânica
+
+- Especialidade: Compostos  Organo-Metálicos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Inorgânica
+
+- Especialidade: Determinação  de  Estrutura  de  Compostos  Inorgânicos
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Inorgânica
+
+- Especialidade: Foto-Química  Inorgânica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Inorgânica
+
+- Especialidade: Físico  Química  Inorgânica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Inorgânica
+
+- Especialidade: Química  Bio-Inorgânica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Inorgânica
+
+- Especialidade: Cinética  Química  e  Catálise
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Físico-Química
+
+- Especialidade: Eletroquímica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Físico-Química
+
+- Especialidade: Espectroscopia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Físico-Química
+
+- Especialidade: Química  de  Interfaces
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Físico-Química
+
+- Especialidade: Química  do  Estado  Condensado
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Físico-Química
+
+- Especialidade: Química  Nuclear  e  Radioquímica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Físico-Química
+
+- Especialidade: Química  Teórica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Físico-Química
+
+- Especialidade: Termodinâmica  Química
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Físico-Química
+
+- Especialidade: Separação
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Analítica
+
+- Especialidade: Métodos  Óticos  de  Análise
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Analítica
+
+- Especialidade: Eletroanalítica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Analítica
+
+- Especialidade: Gravimetria
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Analítica
+
+- Especialidade: Titimetria
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Analítica
+
+- Especialidade: Instrumentação  Analítica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Analítica
+
+- Especialidade: Análise  de  Traços  e  Química  Ambiental
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Química
+  Subárea: Química  Analítica
+
+- Especialidade: Mineralogia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Petrologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Geoquímica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Geologia  Regional
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Geotectônica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Geocronologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Cartografia  Geológica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Metalogenia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Hidrogeologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Prospecção  Mineral
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Sedimentologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Paleontologia  Estratigráfica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Estratigrafia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Geologia  Ambiental
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geologia
+
+- Especialidade: Geomagnetismo
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geofísica
+
+- Especialidade: Sismologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geofísica
+
+- Especialidade: Geotermia  e  Fluxo  Térmico
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geofísica
+
+- Especialidade: Propriedades  Físicas  das  Rochas
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geofísica
+
+- Especialidade: Geofísica  Nuclear
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geofísica
+
+- Especialidade: Sensoriamento  Remoto
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geofísica
+
+- Especialidade: Aeronomia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geofísica
+
+- Especialidade: Desenvolvimento  de  Instrumentação  Geofísica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geofísica
+
+- Especialidade: Geofísica  Aplicada
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geofísica
+
+- Especialidade: Gravimetria
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geofísica
+
+- Especialidade: Meteorologia  Dinâmica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Meteorologia
+
+- Especialidade: Meteorologia  Sinótica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Meteorologia
+
+- Especialidade: Meteorologia  Física
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Meteorologia
+
+- Especialidade: Química  da  Atmosfera
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Meteorologia
+
+- Especialidade: Instrumentação  Meteorológica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Meteorologia
+
+- Especialidade: Climatologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Meteorologia
+
+- Especialidade: Micrometeorologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Meteorologia
+
+- Especialidade: Sensoriamento  Remoto  da  Atmosfera
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Meteorologia
+
+- Especialidade: Meteorologia  Aplicada
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Meteorologia
+
+- Especialidade: Geodésia  Física
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geodésia
+
+- Especialidade: Geodésia  Geométrica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geodésia
+
+- Especialidade: Geodésia  Celeste
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geodésia
+
+- Especialidade: Fotogrametria
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geodésia
+
+- Especialidade: Cartografia  Básica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geodésia
+
+- Especialidade: Geomorfologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geografia  Física
+
+- Especialidade: Climatologia  Geográfica
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geografia  Física
+
+- Especialidade: Pedologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geografia  Física
+
+- Especialidade: Hidrogeografia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geografia  Física
+
+- Especialidade: Geoecologia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geografia  Física
+
+- Especialidade: Fotogeografia  (Físico-Ecológica)
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geografia  Física
+
+- Especialidade: Geocartografia
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Geociências
+  Subárea: Geografia  Física
+
+- Especialidade: Interação  entre  os  Organismos  Marinhos  e  os  Parâmetros  Ambientais
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Biológica
+
+- Especialidade: Variáveis  Físicas  da  Água  do  Mar
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Física
+
+- Especialidade: Movimento  da  Água  do  Mar
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Física
+
+- Especialidade: Origem  das  Massas  de  Água
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Física
+
+- Especialidade: Interação  do  Oceano  com  o  Leito  do  Mar
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Física
+
+- Especialidade: Interação  do  Oceano  com  a  Atmosfera
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Física
+
+- Especialidade: Propriedades  Químicas  da  Água  do  Mar
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Química
+
+- Especialidade: Interações  Químico-Biológicas/Geológicas  das  Substâncias  Químicas  da  Água  do  Mar
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Química
+
+- Especialidade: Geomorfologia  Submarina
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Geológica
+
+- Especialidade: Sedimentologia  Marinha
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Geológica
+
+- Especialidade: Geofísica  Marinha
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Geológica
+
+- Especialidade: Geoquímica  Marinha
+  Grande Área: Ciências  Exatas  e  da  Terra
+  Área: Oceanografia
+  Subárea: Oceanografia  Geológica
+
+- Especialidade: Morfologia  Externa
+  Grande Área: Ciências  Biológicas
+  Área: Botânica
+  Subárea: Morfologia  Vegetal
+
+- Especialidade: Citologia  Vegetal
+  Grande Área: Ciências  Biológicas
+  Área: Botânica
+  Subárea: Morfologia  Vegetal
+
+- Especialidade: Anatomia  Vegetal
+  Grande Área: Ciências  Biológicas
+  Área: Botânica
+  Subárea: Morfologia  Vegetal
+
+- Especialidade: Palinologia
+  Grande Área: Ciências  Biológicas
+  Área: Botânica
+  Subárea: Morfologia  Vegetal
+
+- Especialidade: Nutrição  e  Crescimento  Vegetal
+  Grande Área: Ciências  Biológicas
+  Área: Botânica
+  Subárea: Fisiologia  Vegetal
+
+- Especialidade: Reprodução  Vegetal
+  Grande Área: Ciências  Biológicas
+  Área: Botânica
+  Subárea: Fisiologia  Vegetal
+
+- Especialidade: Ecofisiologia  Vegetal
+  Grande Área: Ciências  Biológicas
+  Área: Botânica
+  Subárea: Fisiologia  Vegetal
+
+- Especialidade: Taxonomia  de  Criptógamos
+  Grande Área: Ciências  Biológicas
+  Área: Botânica
+  Subárea: Taxonomia  Vegetal
+
+- Especialidade: Taxonomia  de  Fanerógamos
+  Grande Área: Ciências  Biológicas
+  Área: Botânica
+  Subárea: Taxonomia  Vegetal
+
+- Especialidade: Conservação  das  Espécies  Animais
+  Grande Área: Ciências  Biológicas
+  Área: Zoologia
+  Subárea: Zoologia  Aplicada
+
+- Especialidade: Utilização  dos  Animais
+  Grande Área: Ciências  Biológicas
+  Área: Zoologia
+  Subárea: Zoologia  Aplicada
+
+- Especialidade: Controle  Populacional  de  Animais
+  Grande Área: Ciências  Biológicas
+  Área: Zoologia
+  Subárea: Zoologia  Aplicada
+
+- Especialidade: Anatomia  Humana
+  Grande Área: Ciências  Biológicas
+  Área: Morfologia
+  Subárea: Anatomia
+
+- Especialidade: Anatomia  Animal
+  Grande Área: Ciências  Biológicas
+  Área: Morfologia
+  Subárea: Anatomia
+
+- Especialidade: Neurofisiologia
+  Grande Área: Ciências  Biológicas
+  Área: Fisiologia
+  Subárea: Fisiologia  de  Órgãos  e  Sistemas
+
+- Especialidade: Fisiologia  Cardiovascular
+  Grande Área: Ciências  Biológicas
+  Área: Fisiologia
+  Subárea: Fisiologia  de  Órgãos  e  Sistemas
+
+- Especialidade: Fisiologia  da  Respiração
+  Grande Área: Ciências  Biológicas
+  Área: Fisiologia
+  Subárea: Fisiologia  de  Órgãos  e  Sistemas
+
+- Especialidade: Fisiologia  Renal
+  Grande Área: Ciências  Biológicas
+  Área: Fisiologia
+  Subárea: Fisiologia  de  Órgãos  e  Sistemas
+
+- Especialidade: Fisiologia  Endócrina
+  Grande Área: Ciências  Biológicas
+  Área: Fisiologia
+  Subárea: Fisiologia  de  Órgãos  e  Sistemas
+
+- Especialidade: Fisiologia  da  Digestão
+  Grande Área: Ciências  Biológicas
+  Área: Fisiologia
+  Subárea: Fisiologia  de  Órgãos  e  Sistemas
+
+- Especialidade: Cinesiologia
+  Grande Área: Ciências  Biológicas
+  Área: Fisiologia
+  Subárea: Fisiologia  de  Órgãos  e  Sistemas
+
+- Especialidade: Proteínas
+  Grande Área: Ciências  Biológicas
+  Área: Bioquímica
+  Subárea: Química  de  Macromoléculas
+
+- Especialidade: Lipídeos
+  Grande Área: Ciências  Biológicas
+  Área: Bioquímica
+  Subárea: Química  de  Macromoléculas
+
+- Especialidade: Glicídeos
+  Grande Área: Ciências  Biológicas
+  Área: Bioquímica
+  Subárea: Química  de  Macromoléculas
+
+- Especialidade: Farmacocinética
+  Grande Área: Ciências  Biológicas
+  Área: Farmacologia
+  Subárea: Farmacologia  Geral
+
+- Especialidade: Biodisponibilidade
+  Grande Área: Ciências  Biológicas
+  Área: Farmacologia
+  Subárea: Farmacologia  Geral
+
+- Especialidade: Virologia
+  Grande Área: Ciências  Biológicas
+  Área: Microbiologia
+  Subárea: Biologia  e  Fisiologia  dos  Microorganismos
+
+- Especialidade: Bacteriologia
+  Grande Área: Ciências  Biológicas
+  Área: Microbiologia
+  Subárea: Biologia  e  Fisiologia  dos  Microorganismos
+
+- Especialidade: Micologia
+  Grande Área: Ciências  Biológicas
+  Área: Microbiologia
+  Subárea: Biologia  e  Fisiologia  dos  Microorganismos
+
+- Especialidade: Microbiologia  Médica
+  Grande Área: Ciências  Biológicas
+  Área: Microbiologia
+  Subárea: Microbiologia  Aplicada
+
+- Especialidade: Microbiologia  Industrial  e  de  Fermentação
+  Grande Área: Ciências  Biológicas
+  Área: Microbiologia
+  Subárea: Microbiologia  Aplicada
+
+- Especialidade: Protozoologia  Parasitária  Humana
+  Grande Área: Ciências  Biológicas
+  Área: Parasitologia
+  Subárea: Protozoologia  de  Parasitos
+
+- Especialidade: Protozoologia  Parasitária  Animal
+  Grande Área: Ciências  Biológicas
+  Área: Parasitologia
+  Subárea: Protozoologia  de  Parasitos
+
+- Especialidade: Helmintologia  Humana
+  Grande Área: Ciências  Biológicas
+  Área: Parasitologia
+  Subárea: Helmintologia  de  Parasitos
+
+- Especialidade: Helmintologia  Animal
+  Grande Área: Ciências  Biológicas
+  Área: Parasitologia
+  Subárea: Helmintologia  de  Parasitos
+
+- Especialidade: Novas  Drogas  Terapêuticas
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  em  Saúde  Humana  e  Animal
+
+- Especialidade: Vacinas  e  Kits  para  Diagnósticos
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  em  Saúde  Humana  e  Animal
+
+- Especialidade: Técnicas  de  Reprodução
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  em  Saúde  Humana  e  Animal
+
+- Especialidade: Engenharia  de  Tecidos
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  em  Saúde  Humana  e  Animal
+
+- Especialidade: Ciências  de  Animais  de  Laboratórios
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  em  Saúde  Humana  e  Animal
+
+- Especialidade: Metodologias  Alternativas  ao  Uso  de  Animais
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  em  Saúde  Humana  e  Animal
+
+- Especialidade: Bioprocessos
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  Industrial
+
+- Especialidade: Biocombustíveis
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  Industrial
+
+- Especialidade: Melhoramento  de  Plantas
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  Vegetal
+
+- Especialidade: Tecnologia  de  Processos  e  Produtos
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  Vegetal
+
+- Especialidade: Plantas  Transgênicas
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  Vegetal
+
+- Especialidade: Conservação  e  Multiplicação  de  Germoplasma
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  Vegetal
+
+- Especialidade: Bioprospecção
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  Ambiental  e  Recursos  Naturais
+
+- Especialidade: Biodiversidade
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  Ambiental  e  Recursos  Naturais
+
+- Especialidade: Tratamento  Biológico  de  Residuos
+  Grande Área: Ciências  Biológicas
+  Área: Biotecnologia
+  Subárea: Biotecnologia  Ambiental  e  Recursos  Naturais
+
+- Especialidade: Materiais  e  Componentes  de  Construção
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Construção  Civil
+
+- Especialidade: Processos  Construtivos
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Construção  Civil
+
+- Especialidade: Instalações  Prediais
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Construção  Civil
+
+- Especialidade: Estruturas  de  Concreto
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Estruturas
+
+- Especialidade: Estruturas  de  Madeiras
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Estruturas
+
+- Especialidade: Estruturas  Metálicas
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Estruturas
+
+- Especialidade: Mecânica  das  Estruturas
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Estruturas
+
+- Especialidade: Fundações  e  Escavações
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Geotécnica
+
+- Especialidade: Mecânicas  das  Rochas
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Geotécnica
+
+- Especialidade: Mecânicas  dos  Solos
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Geotécnica
+
+- Especialidade: Obras  de  Terra  e  Enrocamento
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Geotécnica
+
+- Especialidade: Pavimentos
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Geotécnica
+
+- Especialidade: Hidráulica
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Engenharia  Hidráulica
+
+- Especialidade: Hidrologia
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Engenharia  Hidráulica
+
+- Especialidade: Aeroportos;  Projeto  e  Construção
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Infra-Estrutura  de  Transportes
+
+- Especialidade: Ferrovias;  Projetos  e  Construção
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Infra-Estrutura  de  Transportes
+
+- Especialidade: Portos  e  Vias  Navegáveis;  Projeto  e  Construção
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Infra-Estrutura  de  Transportes
+
+- Especialidade: Rodovias;  Projeto  e  Construção
+  Grande Área: Engenharias
+  Área: Engenharia  Civil
+  Subárea: Infra-Estrutura  de  Transportes
+
+- Especialidade: Caracterização  do  Minério
+  Grande Área: Engenharias
+  Área: Engenharia  de  Minas
+  Subárea: Pesquisa  Mineral
+
+- Especialidade: Dimensionamento  de  Jazidas
+  Grande Área: Engenharias
+  Área: Engenharia  de  Minas
+  Subárea: Pesquisa  Mineral
+
+- Especialidade: Lavra  a  Céu  Aberto
+  Grande Área: Engenharias
+  Área: Engenharia  de  Minas
+  Subárea: Lavra
+
+- Especialidade: Lavra  de  Mina  Subterrânea
+  Grande Área: Engenharias
+  Área: Engenharia  de  Minas
+  Subárea: Lavra
+
+- Especialidade: Equipamentos  de  Lavra
+  Grande Área: Engenharias
+  Área: Engenharia  de  Minas
+  Subárea: Lavra
+
+- Especialidade: Métodos  de  Concentração  e  Enriquecimento  de  Minérios
+  Grande Área: Engenharias
+  Área: Engenharia  de  Minas
+  Subárea: Tratamento  de  Minérios
+
+- Especialidade: Equipamentos  de  Beneficiamento  de  Minérios
+  Grande Área: Engenharias
+  Área: Engenharia  de  Minas
+  Subárea: Tratamento  de  Minérios
+
+- Especialidade: Instalações  Metalúrgicas
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Instalações  e  Equipamentos  Metalúrgicos
+
+- Especialidade: Equipamentos  Metalúrgicos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Instalações  e  Equipamentos  Metalúrgicos
+
+- Especialidade: Aglomeração
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  Extrativa
+
+- Especialidade: Eletrometalurgia
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  Extrativa
+
+- Especialidade: Hidrometalurgia
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  Extrativa
+
+- Especialidade: Pirometalurgia
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  Extrativa
+
+- Especialidade: Tratamento  de  Minérios
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  Extrativa
+
+- Especialidade: Conformação  Mecânica
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  de  Transformação
+
+- Especialidade: Fundição
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  de  Transformação
+
+- Especialidade: Metalurgia  de  Pó
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  de  Transformação
+
+- Especialidade: Recobrimentos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  de  Transformação
+
+- Especialidade: Soldagem
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  de  Transformação
+
+- Especialidade: Tratamentos  Térmicos,  Mecânicos  e  Químicos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  de  Transformação
+
+- Especialidade: Usinagem
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  de  Transformação
+
+- Especialidade: Estrutura  dos  Metais  e  Ligas
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  Física
+
+- Especialidade: Propriedades  Físicas  dos  Metais  e  Ligas
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  Física
+
+- Especialidade: Propriedades  Mecânicas  dos  Metais  e  Ligas
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  Física
+
+- Especialidade: Transformação  de  Fases
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  Física
+
+- Especialidade: Corrosão
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Metalurgia  Física
+
+- Especialidade: Extração  e  Transformação  de  Materiais
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Materiais  Não-Metálicos
+
+- Especialidade: Cerâmicos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Materiais  Não-Metálicos
+
+- Especialidade: Materiais  Conjugados  Não-Metálicos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Materiais  Não-Metálicos
+
+- Especialidade: Polímeros,  Aplicações
+  Grande Área: Engenharias
+  Área: Engenharia  de  Materiais  e  Metalúrgica
+  Subárea: Materiais  Não-Metálicos
+
+- Especialidade: Materiais  Condutores
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Materiais  Elétricos
+
+- Especialidade: Materiais  e  Componentes  Semicondutores
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Materiais  Elétricos
+
+- Especialidade: Materiais  e  Dispositivos  Supercondutores
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Materiais  Elétricos
+
+- Especialidade: Materiais  Dielétricos,  Piezoelétricos  e  Ferroelétricos
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Materiais  Elétricos
+
+- Especialidade: Materiais  e  Componentes  Eletroóticos  e  Magnetoóticos,  Materiais  Fotoelétricos
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Materiais  Elétricos
+
+- Especialidade: Materiais  e  Dispositivos  Magnéticos
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Materiais  Elétricos
+
+- Especialidade: Medidas  Elétricas
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Medidas  Elétricas,  Magnéticas  e  Eletrônicas;  Instrumentação
+
+- Especialidade: Medidas  Magnéticas
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Medidas  Elétricas,  Magnéticas  e  Eletrônicas;  Instrumentação
+
+- Especialidade: Instrumentação  Eletromecânica
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Medidas  Elétricas,  Magnéticas  e  Eletrônicas;  Instrumentação
+
+- Especialidade: Instrumentação  Eletrônica
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Medidas  Elétricas,  Magnéticas  e  Eletrônicas;  Instrumentação
+
+- Especialidade: Sistemas  Eletrônicos  de  Medida  e  de  Controle
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Medidas  Elétricas,  Magnéticas  e  Eletrônicas;  Instrumentação
+
+- Especialidade: Teoria  Geral  dos  Circuitos  Elétricos
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Circuitos  Elétricos,  Magnéticos  e  Eletrônicos
+
+- Especialidade: Circuitos  Lineares  e  Não-Lineares
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Circuitos  Elétricos,  Magnéticos  e  Eletrônicos
+
+- Especialidade: Circuitos  Eletrônicos
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Circuitos  Elétricos,  Magnéticos  e  Eletrônicos
+
+- Especialidade: Circuitos  Magnéticos  ,  Magnetismos  e  Eletromagnetismos
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Circuitos  Elétricos,  Magnéticos  e  Eletrônicos
+
+- Especialidade: Geração  da  Energia  Elétrica
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Sistemas  Elétricos  de  Potência
+
+- Especialidade: Transmissão  da  Energia  Elétrica,  Distribuição  da  Energia  Elétrica
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Sistemas  Elétricos  de  Potência
+
+- Especialidade: Conversão  e  Retificação  da  Energia  Elétrica
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Sistemas  Elétricos  de  Potência
+
+- Especialidade: Medição,  Controle,  Correção  e  Proteção  de  Sistemas  Elétricos  de  Potência
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Sistemas  Elétricos  de  Potência
+
+- Especialidade: Máquinas  Elétricas  e  Dispositivos  de  Potência
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Sistemas  Elétricos  de  Potência
+
+- Especialidade: Instalações  Elétricas  e  Industriais
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Sistemas  Elétricos  de  Potência
+
+- Especialidade: Eletrônica  Industrial
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Eletrônica  Industrial,  Sistemas  e  Controles  Eletrônicos
+
+- Especialidade: Automação  Eletrônica  de  Processos  Elétricos  e  Industriais
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Eletrônica  Industrial,  Sistemas  e  Controles  Eletrônicos
+
+- Especialidade: Controle  de  Processos  Eletrônicos,  Retroalimentação
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Eletrônica  Industrial,  Sistemas  e  Controles  Eletrônicos
+
+- Especialidade: Teoria  Eletromagnetica,  Microondas,  Propagação  de  Ondas,  Antenas
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Telecomunicações
+
+- Especialidade: Radionavegação  e  Radioastronomia
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Telecomunicações
+
+- Especialidade: Sistemas  de  Telecomunicações
+  Grande Área: Engenharias
+  Área: Engenharia  Elétrica
+  Subárea: Telecomunicações
+
+- Especialidade: Transferência  de  Calor
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Fenômenos  de  Transporte
+
+- Especialidade: Mecânica  dos  Fluídos
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Fenômenos  de  Transporte
+
+- Especialidade: Dinâmica  dos  Gases
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Fenômenos  de  Transporte
+
+- Especialidade: Princípios  Variacionais  e  Métodos  Numéricos
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Fenômenos  de  Transporte
+
+- Especialidade: Termodinâmica
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Engenharia  Térmica
+
+- Especialidade: Controle  Ambiental
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Engenharia  Térmica
+
+- Especialidade: Aproveitamento  da  Energia
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Engenharia  Térmica
+
+- Especialidade: Mecânica  dos  Corpos  Sólidos,  Elásticos  e  Plásticos
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Mecânica  dos  Sólidos
+
+- Especialidade: Dinâmica  dos  Corpos  Rígidos,  Elásticos  e  Plásticos
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Mecânica  dos  Sólidos
+
+- Especialidade: Análise  de  Tensões
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Mecânica  dos  Sólidos
+
+- Especialidade: Termoelasticidade
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Mecânica  dos  Sólidos
+
+- Especialidade: Teoria  dos  Mecanismos
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Projetos  de  Máquinas
+
+- Especialidade: Estática  e  Dinâmica  Aplicada
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Projetos  de  Máquinas
+
+- Especialidade: Elementos  de  Máquinas
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Projetos  de  Máquinas
+
+- Especialidade: Fundamentos  Gerais  de  Projetos  das  Máquinas
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Projetos  de  Máquinas
+
+- Especialidade: Máquinas,  Motores  e  Equipamentos
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Projetos  de  Máquinas
+
+- Especialidade: Métodos  de  Síntese  e  Otimização  Aplicados  ao  Projeto  Mecânico
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Projetos  de  Máquinas
+
+- Especialidade: Controle  de  Sistemas  Mecânicos
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Projetos  de  Máquinas
+
+- Especialidade: Aproveitamento  de  Energia
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Projetos  de  Máquinas
+
+- Especialidade: Matrizes  e  Ferramentas
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Processos  de  Fabricação
+
+- Especialidade: Maquinas  de  Usinagem  e  Conformação
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Processos  de  Fabricação
+
+- Especialidade: Controle  Numérico
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Processos  de  Fabricação
+
+- Especialidade: Robotização
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Processos  de  Fabricação
+
+- Especialidade: Processos  de  Fabricação,  Seleção  Econômica
+  Grande Área: Engenharias
+  Área: Engenharia  Mecânica
+  Subárea: Processos  de  Fabricação
+
+- Especialidade: Planejamento  Integrado  dos  Recursos  Hídricos
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Recursos  Hídricos
+
+- Especialidade: Tecnologia  e  Problemas  Sanitários  de  Irrigação
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Recursos  Hídricos
+
+- Especialidade: Águas  Subterráneas  e  Poços  Profundos
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Recursos  Hídricos
+
+- Especialidade: Controle  de  Enchentes  e  de  Barragens
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Recursos  Hídricos
+
+- Especialidade: Sedimentologia
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Recursos  Hídricos
+
+- Especialidade: Química  Sanitária
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Tratamento  de  Águas  de  Abastecimento  e  Residuárias
+
+- Especialidade: Processos  Simplificados  de  Tratamento  de  Águas
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Tratamento  de  Águas  de  Abastecimento  e  Residuárias
+
+- Especialidade: Técnicas  Convencionais  de  Tratamento  de  Águas
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Tratamento  de  Águas  de  Abastecimento  e  Residuárias
+
+- Especialidade: Técnicas  Avançadas  de  Tratamento  de  Águas
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Tratamento  de  Águas  de  Abastecimento  e  Residuárias
+
+- Especialidade: Estudos  e  Caracterização  de  Efluentes  Industriais
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Tratamento  de  Águas  de  Abastecimento  e  Residuárias
+
+- Especialidade: Layout  de  Processos  Industriais
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Tratamento  de  Águas  de  Abastecimento  e  Residuárias
+
+- Especialidade: Resíduos  Radioativos
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Tratamento  de  Águas  de  Abastecimento  e  Residuárias
+
+- Especialidade: Técnicas  de  Abastecimento  da  Água
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Básico
+
+- Especialidade: Drenagem  de  Águas  Residuárias
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Básico
+
+- Especialidade: Drenagem  Urbana  de  Águas  Pluviais
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Básico
+
+- Especialidade: Resíduos  Sólidos,  Domésticos  e  Industriais
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Básico
+
+- Especialidade: Limpeza  Pública
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Básico
+
+- Especialidade: Instalações  Hidráulico-Sanitárias
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Básico
+
+- Especialidade: Ecologia  Aplicada  a  Engenharia  Sanitária
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Ambiental
+
+- Especialidade: Microbiologia  Aplicada  e  Engenharia  Sanitária
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Ambiental
+
+- Especialidade: Parasitologia  Aplicada  a  Engenharia  Sanitária
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Ambiental
+
+- Especialidade: Qualidade  do  Ar,  das  Águas  e  do  Solo
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Ambiental
+
+- Especialidade: Controle  da  Poluição
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Ambiental
+
+- Especialidade: Legislação  Ambiental
+  Grande Área: Engenharias
+  Área: Engenharia  Sanitária
+  Subárea: Saneamento  Ambiental
+
+- Especialidade: Planejamento  de  Instalações  Industriais
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Gerência  de  Produção
+
+- Especialidade: Planejamento,  Projeto  e  Controle  de  Sistemas  de  Produção
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Gerência  de  Produção
+
+- Especialidade: Higiene  e  Segurança  do  Trabalho
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Gerência  de  Produção
+
+- Especialidade: Suprimentos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Gerência  de  Produção
+
+- Especialidade: Garantia  de  Controle  de  Qualidade
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Gerência  de  Produção
+
+- Especialidade: Processos  Estocásticos  e  Teoria  das  Filas
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Pesquisa  Operacional
+
+- Especialidade: Programação  Linear,  Não-Linear,  Mista  e  Dinâmica
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Pesquisa  Operacional
+
+- Especialidade: Séries  Temporais
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Pesquisa  Operacional
+
+- Especialidade: Teoria  dos  Grafos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Pesquisa  Operacional
+
+- Especialidade: Teoria  dos  Jogos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Pesquisa  Operacional
+
+- Especialidade: Ergonomia
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Engenharia  do  Produto
+
+- Especialidade: Metodologia  de  Projeto  do  Produto
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Engenharia  do  Produto
+
+- Especialidade: Processos  de  Trabalho
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Engenharia  do  Produto
+
+- Especialidade: Gerência  do  Projeto  e  do  Produto
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Engenharia  do  Produto
+
+- Especialidade: Desenvolvimento  de  Produto
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Engenharia  do  Produto
+
+- Especialidade: Estudo  de  Mercado
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Engenharia  Econômica
+
+- Especialidade: Localização  Industrial
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Engenharia  Econômica
+
+- Especialidade: Análise  de  Custos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Engenharia  Econômica
+
+- Especialidade: Economia  de  Tecnologia
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Engenharia  Econômica
+
+- Especialidade: Vida  Econômica  dos  Equipamentos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Engenharia  Econômica
+
+- Especialidade: Avaliação  de  Projetos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Produção
+  Subárea: Engenharia  Econômica
+
+- Especialidade: Produção  de  Radioisótopos
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Aplicações  de  Radioisótopos
+
+- Especialidade: Aplicações  Industriais  de  Radioisótopos
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Aplicações  de  Radioisótopos
+
+- Especialidade: Instrumentação  para  Medida  e  Controle  de  Radiação
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Aplicações  de  Radioisótopos
+
+- Especialidade: Processos  Industriais  da  Fusão  Controlada
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Fusão  Controlada
+
+- Especialidade: Problemas  Tecnológicos  da  Fusão  Controlada
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Fusão  Controlada
+
+- Especialidade: Extração  de  Combustível  Nuclear
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Combustível  Nuclear
+
+- Especialidade: Conversão,  Enriquecimento  e  Fabricação  de  Combustível  Nuclear
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Combustível  Nuclear
+
+- Especialidade: Reprocessamento  de  Combustível  Nuclear
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Combustível  Nuclear
+
+- Especialidade: Rejeitos  de  Combustível  Nuclear
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Combustível  Nuclear
+
+- Especialidade: Núcleo  do  Reator
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Tecnologia  dos  Reatores
+
+- Especialidade: Materiais  Nucleares  e  Blindagem  de  Reatores
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Tecnologia  dos  Reatores
+
+- Especialidade: Transferência  de  Calor  em  Reatores
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Tecnologia  dos  Reatores
+
+- Especialidade: Geração  e  Integração  com  Sistemas  Elétricos  em  Reatores
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Tecnologia  dos  Reatores
+
+- Especialidade: Instrumentação  para  Operação  e  Controle  de  Reatores
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Tecnologia  dos  Reatores
+
+- Especialidade: Segurança,  Localização  e  Licenciamento  de  Reatores
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Tecnologia  dos  Reatores
+
+- Especialidade: Aspectos  Econômicos  de  Reatores
+  Grande Área: Engenharias
+  Área: Engenharia  Nuclear
+  Subárea: Tecnologia  dos  Reatores
+
+- Especialidade: Planejamento  e  Organização  do  Sistema  de  Transporte
+  Grande Área: Engenharias
+  Área: Engenharia  de  Transportes
+  Subárea: Planejamento  de  Transportes
+
+- Especialidade: Economia  dos  Transportes
+  Grande Área: Engenharias
+  Área: Engenharia  de  Transportes
+  Subárea: Planejamento  de  Transportes
+
+- Especialidade: Vias  de  Transporte
+  Grande Área: Engenharias
+  Área: Engenharia  de  Transportes
+  Subárea: Veículos  e  Equipamentos  de  Controle
+
+- Especialidade: Veículos  de  Transportes
+  Grande Área: Engenharias
+  Área: Engenharia  de  Transportes
+  Subárea: Veículos  e  Equipamentos  de  Controle
+
+- Especialidade: Estação  de  Transporte
+  Grande Área: Engenharias
+  Área: Engenharia  de  Transportes
+  Subárea: Veículos  e  Equipamentos  de  Controle
+
+- Especialidade: Equipamentos  Auxiliares  e  Controles
+  Grande Área: Engenharias
+  Área: Engenharia  de  Transportes
+  Subárea: Veículos  e  Equipamentos  de  Controle
+
+- Especialidade: Engenharia  de  Tráfego
+  Grande Área: Engenharias
+  Área: Engenharia  de  Transportes
+  Subárea: Operações  de  Transportes
+
+- Especialidade: Capacidade  de  Vias  de  Transporte
+  Grande Área: Engenharias
+  Área: Engenharia  de  Transportes
+  Subárea: Operações  de  Transportes
+
+- Especialidade: Operação  de  Sistemas  de  Transporte
+  Grande Área: Engenharias
+  Área: Engenharia  de  Transportes
+  Subárea: Operações  de  Transportes
+
+- Especialidade: Resistência  Hidrodinâmica
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Hidrodinâmica  de  Navios  e  Sistemas  Oceânicos
+
+- Especialidade: Propulsão  de  Navios
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Hidrodinâmica  de  Navios  e  Sistemas  Oceânicos
+
+- Especialidade: Análise  Teórica  e  Experimental  de  Estrutura
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Estruturas  Navais  e  Oceânicas
+
+- Especialidade: Dinâmica  Estrutural  Naval  e  Oceânica
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Estruturas  Navais  e  Oceânicas
+
+- Especialidade: Síntese  Estrutural  Naval  e  Oceânica
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Estruturas  Navais  e  Oceânicas
+
+- Especialidade: Análise  de  Sistemas  Propulsores
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Máquinas  Marítimas
+
+- Especialidade: Controle  e  Automação  de  Sistemas  Propulsores
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Máquinas  Marítimas
+
+- Especialidade: Equipamentos  Auxiliares  do  Sistema  Propulsivo
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Máquinas  Marítimas
+
+- Especialidade: Motor  de  Propulsão
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Máquinas  Marítimas
+
+- Especialidade: Projetos  de  Navios
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Projeto  de  Navios  e  de  Sistemas  Oceânicos
+
+- Especialidade: Projetos  de  Sistemas  Oceânicos  Fixos  e  Semi-Fixos
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Projeto  de  Navios  e  de  Sistemas  Oceânicos
+
+- Especialidade: Projetos  de  Embarcações  Não-Convencionais
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Projeto  de  Navios  e  de  Sistemas  Oceânicos
+
+- Especialidade: Métodos  de  Fabricação  de  Navios  e  Sistemas  Oceânicos
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Tecnologia  de  Construção  Naval  e  de  Sistemas  Oceânicos
+
+- Especialidade: Soldagem  de  Estruturas  Navais  e  Oceânicos
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Tecnologia  de  Construção  Naval  e  de  Sistemas  Oceânicos
+
+- Especialidade: Custos  de  Construção  Naval
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Tecnologia  de  Construção  Naval  e  de  Sistemas  Oceânicos
+
+- Especialidade: Normatização  e  Certificação  de  Qualidade  de  Navios
+  Grande Área: Engenharias
+  Área: Engenharia  Naval  e  Oceânica
+  Subárea: Tecnologia  de  Construção  Naval  e  de  Sistemas  Oceânicos
+
+- Especialidade: Aerodinâmica  de  Aeronaves  Espaciais
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Aerodinâmica
+
+- Especialidade: Aerodinâmica  dos  Processos  Geofísicos  e  Interplanetários
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Aerodinâmica
+
+- Especialidade: Trajetórias  e  Órbitas
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Dinâmica  de  Voo
+
+- Especialidade: Estabilidade  e  Controle
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Dinâmica  de  Voo
+
+- Especialidade: Aeroelasticicidade
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Estruturas  Aeroespaciais
+
+- Especialidade: Fadiga
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Estruturas  Aeroespaciais
+
+- Especialidade: Projeto  de  Estruturas  Aeroespaciais
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Estruturas  Aeroespaciais
+
+- Especialidade: Combustão  e  Escoamento  com  Reações  Químicas
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Propulsão  Aeroespacial
+
+- Especialidade: Propulsão  de  Foguetes
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Propulsão  Aeroespacial
+
+- Especialidade: Máquinas  de  Fluxo
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Propulsão  Aeroespacial
+
+- Especialidade: Motores  Alternativos
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Propulsão  Aeroespacial
+
+- Especialidade: Aviões
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Sistemas  Aeroespaciais
+
+- Especialidade: Foguetes
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Sistemas  Aeroespaciais
+
+- Especialidade: Helicópteros
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Sistemas  Aeroespaciais
+
+- Especialidade: Hovercraft
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Sistemas  Aeroespaciais
+
+- Especialidade: Satélites  e  Outros  Dispositivos  Aeroespaciais
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Sistemas  Aeroespaciais
+
+- Especialidade: Normatização  e  Certificação  de  Qualidade  de  Aeronaves  e  Componentes
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Sistemas  Aeroespaciais
+
+- Especialidade: Manutenção  de  Sistemas  Aeroespaciais
+  Grande Área: Engenharias
+  Área: Engenharia  Aeroespacial
+  Subárea: Sistemas  Aeroespaciais
+
+- Especialidade: Processamento  de  Sinais  Biológicos
+  Grande Área: Engenharias
+  Área: Engenharia  Biomédica
+  Subárea: Bioengenharia
+
+- Especialidade: Modelagem  de  Fenômenos  Biológicos
+  Grande Área: Engenharias
+  Área: Engenharia  Biomédica
+  Subárea: Bioengenharia
+
+- Especialidade: Modelagem  de  Sistemas  Biológicos
+  Grande Área: Engenharias
+  Área: Engenharia  Biomédica
+  Subárea: Bioengenharia
+
+- Especialidade: Biomateriais  e  Materiais  Biocompatíveis
+  Grande Área: Engenharias
+  Área: Engenharia  Biomédica
+  Subárea: Engenharia  Médica
+
+- Especialidade: Transdutores  para  Aplicações  Biomédicas
+  Grande Área: Engenharias
+  Área: Engenharia  Biomédica
+  Subárea: Engenharia  Médica
+
+- Especialidade: Instrumentação  Odontológica  e  Médico-Hospitalar
+  Grande Área: Engenharias
+  Área: Engenharia  Biomédica
+  Subárea: Engenharia  Médica
+
+- Especialidade: Tecnologia  de  Próteses
+  Grande Área: Engenharias
+  Área: Engenharia  Biomédica
+  Subárea: Engenharia  Médica
+
+- Especialidade: Sistemas  Energéticos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Energia
+  Subárea: Planejamento  Energético
+
+- Especialidade: Política  Energética  Regional  e  Nacional
+  Grande Área: Engenharias
+  Área: Engenharia  de  Energia
+  Subárea: Planejamento  Energético
+
+- Especialidade: Uso  Eficiente  de  Energia
+  Grande Área: Engenharias
+  Área: Engenharia  de  Energia
+  Subárea: Planejamento  Energético
+
+- Especialidade: Análise  de  Impactos  Produzidos  por  Sistemas  Energéticos
+  Grande Área: Engenharias
+  Área: Engenharia  de  Energia
+  Subárea: Planejamento  Energético
+
+- Especialidade: Energia  Solar  Térmica
+  Grande Área: Engenharias
+  Área: Engenharia  de  Energia
+  Subárea: Fontes  Renováveis  de  Energia
+
+- Especialidade: Energia  Solar  Fotovoltáica
+  Grande Área: Engenharias
+  Área: Engenharia  de  Energia
+  Subárea: Fontes  Renováveis  de  Energia
+
+- Especialidade: Energia  Eólica
+  Grande Área: Engenharias
+  Área: Engenharia  de  Energia
+  Subárea: Fontes  Renováveis  de  Energia
+
+- Especialidade: Micro-centrais  Hidrelétricas
+  Grande Área: Engenharias
+  Área: Engenharia  de  Energia
+  Subárea: Fontes  Renováveis  de  Energia
+
+- Especialidade: Energia  das  Ondas  e  Marés
+  Grande Área: Engenharias
+  Área: Engenharia  de  Energia
+  Subárea: Fontes  Renováveis  de  Energia
+
+- Especialidade: Energia  de  Biomassa
+  Grande Área: Engenharias
+  Área: Engenharia  de  Energia
+  Subárea: Fontes  Renováveis  de  Energia
+
+- Especialidade: Sistemas  Híbridos  e  Sistemas  Não-convencionais  de  Armazenagem  de  Energia
+  Grande Área: Engenharias
+  Área: Engenharia  de  Energia
+  Subárea: Fontes  Renováveis  de  Energia
+
+- Especialidade: Angiologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Dermatologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Alergologia  e  Imunologia  Clínica
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Cancerologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Hematologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Endocrinologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Neurologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Pediatria
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Doenças  Infecciosas  e  Parasitárias
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Cardiologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Gastroenterologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Pneumologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Nefrologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Reumatologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Ginecologia  e  Obstetrícia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Fisiatria
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Oftalmologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Ortopedia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Clínica  Médica
+
+- Especialidade: Cirurgia  Plástica  e  Restauradora
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Cirurgia  Otorrinolaringológica
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Cirurgia  Oftalmológica
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Cirurgia  Cardiovascular
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Cirurgia  Toráxica
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Cirurgia  Gastroenterologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Cirurgia  Pediátrica
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Neurocirurgia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Cirurgia  Urológica
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Cirurgia  Proctológica
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Cirurgia  Ortopédica
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Cirurgia  Traumatológica
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Anestesiologia
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Cirurgia  Experimental
+  Grande Área: Ciências  da  Saúde
+  Área: Medicina
+  Subárea: Cirurgia
+
+- Especialidade: Gênese,  Morfologia  e  Classificação  dos  Solos
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Ciência  do  Solo
+
+- Especialidade: Física  do  Solo
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Ciência  do  Solo
+
+- Especialidade: Química  do  Solo
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Ciência  do  Solo
+
+- Especialidade: Microbiologia  e  Bioquímica  do  Solo
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Ciência  do  Solo
+
+- Especialidade: Fertilidade  do  Solo  e  Adubação
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Ciência  do  Solo
+
+- Especialidade: Manejo  e  Conservação  do  Solo
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Ciência  do  Solo
+
+- Especialidade: Fitopatologia
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitossanidade
+
+- Especialidade: Entomologia  Agrícola
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitossanidade
+
+- Especialidade: Parasitologia  Agrícola
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitossanidade
+
+- Especialidade: Microbiologia  Agrícola
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitossanidade
+
+- Especialidade: Defesa  Fitossanitária
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitossanidade
+
+- Especialidade: Manejo  e  Tratos  Culturais
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitotecnia
+
+- Especialidade: Mecanização  Agrícola
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitotecnia
+
+- Especialidade: Produção  e  Beneficiamento  de  Sementes
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitotecnia
+
+- Especialidade: Produção  de  Mudas
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitotecnia
+
+- Especialidade: Melhoramento  Vegetal
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitotecnia
+
+- Especialidade: Fisiologia  de  Plantas  Cultivadas
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitotecnia
+
+- Especialidade: Matologia
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Fitotecnia
+
+- Especialidade: Floricultura
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Floricultura,  Parques  e  Jardins
+
+- Especialidade: Parques  e  Jardins
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Floricultura,  Parques  e  Jardins
+
+- Especialidade: Arborização  de  Vias  Públicas
+  Grande Área: Ciências  Agrárias
+  Área: Agronomia
+  Subárea: Floricultura,  Parques  e  Jardins
+
+- Especialidade: Dendrologia
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Silvicultura
+
+- Especialidade: Florestamento  e  Reflorestamento
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Silvicultura
+
+- Especialidade: Genética  e  Melhoramento  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Silvicultura
+
+- Especialidade: Sementes  Florestais
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Silvicultura
+
+- Especialidade: Nutrição  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Silvicultura
+
+- Especialidade: Fisiologia  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Silvicultura
+
+- Especialidade: Solos  Florestais
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Silvicultura
+
+- Especialidade: Proteção  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Silvicultura
+
+- Especialidade: Economia  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Manejo  Florestal
+
+- Especialidade: Política  e  Legislação  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Manejo  Florestal
+
+- Especialidade: Administração  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Manejo  Florestal
+
+- Especialidade: Dendrometria  e  Inventário  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Manejo  Florestal
+
+- Especialidade: Fotointerpretação  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Manejo  Florestal
+
+- Especialidade: Ordenamento  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Manejo  Florestal
+
+- Especialidade: Exploração  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Técnicas  e  Operações  Florestais
+
+- Especialidade: Mecanização  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Técnicas  e  Operações  Florestais
+
+- Especialidade: Anatomia  e  Identificação  de  Produtos  Florestais
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Tecnologia  e  Utilização  de  Produtos  Florestais
+
+- Especialidade: Propriedades  Fisico-Mecânicas  da  Madeira
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Tecnologia  e  Utilização  de  Produtos  Florestais
+
+- Especialidade: Relações  Água-Madeira  e  Secagem
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Tecnologia  e  Utilização  de  Produtos  Florestais
+
+- Especialidade: Tratamento  da  Madeira
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Tecnologia  e  Utilização  de  Produtos  Florestais
+
+- Especialidade: Processamento  Mecânico  da  Madeira
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Tecnologia  e  Utilização  de  Produtos  Florestais
+
+- Especialidade: Química  da  Madeira
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Tecnologia  e  Utilização  de  Produtos  Florestais
+
+- Especialidade: Resinas  de  Madeiras
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Tecnologia  e  Utilização  de  Produtos  Florestais
+
+- Especialidade: Tecnologia  de  Celulose  e  Papel
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Tecnologia  e  Utilização  de  Produtos  Florestais
+
+- Especialidade: Tecnologia  de  Chapas
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Tecnologia  e  Utilização  de  Produtos  Florestais
+
+- Especialidade: Hidrologia  Florestal
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Conservação  da  Natureza
+
+- Especialidade: Conservação  de  Áreas  Silvestres
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Conservação  da  Natureza
+
+- Especialidade: Conservação  de  Bacias  Hidrográficas
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Conservação  da  Natureza
+
+- Especialidade: Recuperação  de  Areas  Degradadas
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Florestais  e  Engenharia  Florestal
+  Subárea: Conservação  da  Natureza
+
+- Especialidade: Irrigação  e  Drenagem
+  Grande Área: Ciências  Agrárias
+  Área: Engenharia  Agrícola
+  Subárea: Engenharia  de  Água  e  Solo
+
+- Especialidade: Conservação  de  Solo  e  Água
+  Grande Área: Ciências  Agrárias
+  Área: Engenharia  Agrícola
+  Subárea: Engenharia  de  Água  e  Solo
+
+- Especialidade: Pré-Processamento  de  Produtos  Agrícolas
+  Grande Área: Ciências  Agrárias
+  Área: Engenharia  Agrícola
+  Subárea: Engenharia  de  Processamento  de  Produtos  Agrícolas
+
+- Especialidade: Armazenamento  de  Produtos  Agrícolas
+  Grande Área: Ciências  Agrárias
+  Área: Engenharia  Agrícola
+  Subárea: Engenharia  de  Processamento  de  Produtos  Agrícolas
+
+- Especialidade: Transferência  de  Produtos  Agrícolas
+  Grande Área: Ciências  Agrárias
+  Área: Engenharia  Agrícola
+  Subárea: Engenharia  de  Processamento  de  Produtos  Agrícolas
+
+- Especialidade: Assentamento  Rural
+  Grande Área: Ciências  Agrárias
+  Área: Engenharia  Agrícola
+  Subárea: Construções  Rurais  e  Ambiência
+
+- Especialidade: Engenharia  de  Construções  Rurais
+  Grande Área: Ciências  Agrárias
+  Área: Engenharia  Agrícola
+  Subárea: Construções  Rurais  e  Ambiência
+
+- Especialidade: Saneamento  Rural
+  Grande Área: Ciências  Agrárias
+  Área: Engenharia  Agrícola
+  Subárea: Construções  Rurais  e  Ambiência
+
+- Especialidade: Exigências  Nutricionais  dos  Animais
+  Grande Área: Ciências  Agrárias
+  Área: Zootecnia
+  Subárea: Nutrição  e  Alimentação  Animal
+
+- Especialidade: Avaliação  de  Alimentos  para  Animais
+  Grande Área: Ciências  Agrárias
+  Área: Zootecnia
+  Subárea: Nutrição  e  Alimentação  Animal
+
+- Especialidade: Conservação  de  Alimentos  para  Animais
+  Grande Área: Ciências  Agrárias
+  Área: Zootecnia
+  Subárea: Nutrição  e  Alimentação  Animal
+
+- Especialidade: Avaliação,  Produção  e  Conservação  de  Forragens
+  Grande Área: Ciências  Agrárias
+  Área: Zootecnia
+  Subárea: Pastagem  e  Forragicultura
+
+- Especialidade: Manejo  e  Conservação  de  Pastagens
+  Grande Área: Ciências  Agrárias
+  Área: Zootecnia
+  Subárea: Pastagem  e  Forragicultura
+
+- Especialidade: Fisiologia  de  Plantas  Forrageiras
+  Grande Área: Ciências  Agrárias
+  Área: Zootecnia
+  Subárea: Pastagem  e  Forragicultura
+
+- Especialidade: Melhoramento  de  Plantas  Forrageiras  e  Produção  de  Sementes
+  Grande Área: Ciências  Agrárias
+  Área: Zootecnia
+  Subárea: Pastagem  e  Forragicultura
+
+- Especialidade: Toxicologia  e  Plantas  Tóxicas
+  Grande Área: Ciências  Agrárias
+  Área: Zootecnia
+  Subárea: Pastagem  e  Forragicultura
+
+- Especialidade: Criação  de  Animais
+  Grande Área: Ciências  Agrárias
+  Área: Zootecnia
+  Subárea: Produção  Animal
+
+- Especialidade: Manejo  de  Animais
+  Grande Área: Ciências  Agrárias
+  Área: Zootecnia
+  Subárea: Produção  Animal
+
+- Especialidade: Instalações  para  Produção  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Zootecnia
+  Subárea: Produção  Animal
+
+- Especialidade: Anestesiologia  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Clínica  e  Cirurgia  Animal
+
+- Especialidade: Técnica  Cirúrgica  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Clínica  e  Cirurgia  Animal
+
+- Especialidade: Radiologia  de  Animais
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Clínica  e  Cirurgia  Animal
+
+- Especialidade: Farmacologia  e  Terapêutica  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Clínica  e  Cirurgia  Animal
+
+- Especialidade: Obstetrícia  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Clínica  e  Cirurgia  Animal
+
+- Especialidade: Clínica  Veterinária
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Clínica  e  Cirurgia  Animal
+
+- Especialidade: Clínica  Cirúrgica  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Clínica  e  Cirurgia  Animal
+
+- Especialidade: Toxicologia  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Clínica  e  Cirurgia  Animal
+
+- Especialidade: Epidemiologia  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Medicina  Veterinária  Preventiva
+
+- Especialidade: Saneamento  Aplicado  a  Saúde  do  Homem
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Medicina  Veterinária  Preventiva
+
+- Especialidade: Doenças  Infecciosas  de  Animais
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Medicina  Veterinária  Preventiva
+
+- Especialidade: Doenças  Parasitárias  de  Animais
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Medicina  Veterinária  Preventiva
+
+- Especialidade: Saúde  Animal  (Programas  Sanitários)
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Medicina  Veterinária  Preventiva
+
+- Especialidade: Patologia  Aviária
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Patologia  Animal
+
+- Especialidade: Anatomia  Patologia  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Patologia  Animal
+
+- Especialidade: Patologia  Clínica  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Patologia  Animal
+
+- Especialidade: Ginecologia  e  Andrologia  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Reprodução  Animal
+
+- Especialidade: Inseminação  Artificial  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Reprodução  Animal
+
+- Especialidade: Fisiopatologia  da  Reprodução  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Medicina  Veterinária
+  Subárea: Reprodução  Animal
+
+- Especialidade: Fatores  Abióticos  do  Mar
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Recursos  Pesqueiros  Marinhos
+
+- Especialidade: Avaliação  de  Estoques  Pesqueiros  Marinhos
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Recursos  Pesqueiros  Marinhos
+
+- Especialidade: Exploração  Pesqueira  Marinha
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Recursos  Pesqueiros  Marinhos
+
+- Especialidade: Manejo  e  Conservação  de  Recursos  Pesqueiros  Marinhos
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Recursos  Pesqueiros  Marinhos
+
+- Especialidade: Fatores  Abióticos  de  Águas  Interiores
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Recursos  Pesqueiros  de  Águas  Interiores
+
+- Especialidade: Avaliação  de  Estoques  Pesqueiros  de  Águas  Interiores
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Recursos  Pesqueiros  de  Águas  Interiores
+
+- Especialidade: Explotação  Pesqueira  de  Águas  Interiores
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Recursos  Pesqueiros  de  Águas  Interiores
+
+- Especialidade: Manejo  e  Conservação  de  Recursos  Pesqueiros  de  Águas  Interiores
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Recursos  Pesqueiros  de  Águas  Interiores
+
+- Especialidade: Maricultura
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Aqüicultura
+
+- Especialidade: Carcinocultura
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Aqüicultura
+
+- Especialidade: Ostreicultura
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Aqüicultura
+
+- Especialidade: Piscicultura
+  Grande Área: Ciências  Agrárias
+  Área: Recursos  Pesqueiros  e  Engenharia  de  Pesca
+  Subárea: Aqüicultura
+
+- Especialidade: Valor  Nutritivo  de  Alimentos
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Ciência  de  Alimentos
+
+- Especialidade: Química,  Física,  Fisico-Química  e  Bioquímica  dos  Alim.  e  das  Mat-Primas  Alimentares
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Ciência  de  Alimentos
+
+- Especialidade: Microbiologia  de  Alimentos
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Ciência  de  Alimentos
+
+- Especialidade: Fisiologia  Pós-Colheita
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Ciência  de  Alimentos
+
+- Especialidade: Toxicidade  e  Resíduos  de  Pesticidas  em  Alimentos
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Ciência  de  Alimentos
+
+- Especialidade: Avaliação  e  Controle  de  Qualidade  de  Alimentos
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Ciência  de  Alimentos
+
+- Especialidade: Padrões,  Legislação  e  Fiscalização  de  Alimentos
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Ciência  de  Alimentos
+
+- Especialidade: Tecnologia  de  Produtos  de  Origem  Animal
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Tecnologia  de  Alimentos
+
+- Especialidade: Tecnologia  de  Produtos  de  Origem  Vegetal
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Tecnologia  de  Alimentos
+
+- Especialidade: Tecnologia  das  Bebidas
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Tecnologia  de  Alimentos
+
+- Especialidade: Tecnologia  de  Alimentos  Dietéticos  e  Nutricionais
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Tecnologia  de  Alimentos
+
+- Especialidade: Aproveitamento  de  Subprodutos
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Tecnologia  de  Alimentos
+
+- Especialidade: Embalagens  de  Produtos  Alimentares
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Tecnologia  de  Alimentos
+
+- Especialidade: Instalações  Industriais  de  Produção  de  Alimentos
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Engenharia  de  Alimentos
+
+- Especialidade: Armazenamento  de  Alimentos
+  Grande Área: Ciências  Agrárias
+  Área: Ciência  e  Tecnologia  de  Alimentos
+  Subárea: Engenharia  de  Alimentos
+
+- Especialidade: Teoria  Geral  do  Direito
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Teoria  do  Direito
+
+- Especialidade: Teoria  Geral  do  Processo
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Teoria  do  Direito
+
+- Especialidade: Teoria  do  Estado
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Teoria  do  Direito
+
+- Especialidade: História  do  Direito
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Teoria  do  Direito
+
+- Especialidade: Filosofia  do  Direito
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Teoria  do  Direito
+
+- Especialidade: Lógica  Jurídica
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Teoria  do  Direito
+
+- Especialidade: Sociologia  Jurídica
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Teoria  do  Direito
+
+- Especialidade: Antropologia  Jurídica
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Teoria  do  Direito
+
+- Especialidade: Direito  Tributário
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Direito  Público
+
+- Especialidade: Direito  Penal
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Direito  Público
+
+- Especialidade: Direito  Processual  Penal
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Direito  Público
+
+- Especialidade: Direito  Processual  Civil
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Direito  Público
+
+- Especialidade: Direito  Constitucional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Direito  Público
+
+- Especialidade: Direito  Administrativo
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Direito  Público
+
+- Especialidade: Direito  Internacional  Público
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Direito  Público
+
+- Especialidade: Direito  Civil
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Direito  Privado
+
+- Especialidade: Direito  Comercial
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Direito  Privado
+
+- Especialidade: Direito  do  Trabalho
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Direito  Privado
+
+- Especialidade: Direito  Internacional  Privado
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Direito
+  Subárea: Direito  Privado
+
+- Especialidade: Administração  da  Produção
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Administração
+  Subárea: Administração  de  Empresas
+
+- Especialidade: Administração  Financeira
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Administração
+  Subárea: Administração  de  Empresas
+
+- Especialidade: Mercadologia
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Administração
+  Subárea: Administração  de  Empresas
+
+- Especialidade: Negócios  Internacionais
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Administração
+  Subárea: Administração  de  Empresas
+
+- Especialidade: Administração  de  Recursos  Humanos
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Administração
+  Subárea: Administração  de  Empresas
+
+- Especialidade: Contabilidade  e  Finanças  Públicas
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Administração
+  Subárea: Administração  Pública
+
+- Especialidade: Organizações  Públicas
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Administração
+  Subárea: Administração  Pública
+
+- Especialidade: Política  e  Planejamento  Governamentais
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Administração
+  Subárea: Administração  Pública
+
+- Especialidade: Administração  de  Pessoal
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Administração
+  Subárea: Administração  Pública
+
+- Especialidade: Planejamento  em  Ciência  e  Tecnologia
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Administração
+  Subárea: Administração  Pública
+
+- Especialidade: Economia  Geral
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Teoria  Econômica
+
+- Especialidade: Teoria  Geral  da  Economia
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Teoria  Econômica
+
+- Especialidade: História  do  Pensamento  Econômico
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Teoria  Econômica
+
+- Especialidade: História  Econômica
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Teoria  Econômica
+
+- Especialidade: Sistemas  Econômicos
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Teoria  Econômica
+
+- Especialidade: Métodos  e  Modelos  Matemáticos,  Econométricos  e  Estatísticos
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Métodos  Quantitativos  em  Economia
+
+- Especialidade: Estatística  Sócio-Econômica
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Métodos  Quantitativos  em  Economia
+
+- Especialidade: Contabilidade  Nacional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Métodos  Quantitativos  em  Economia
+
+- Especialidade: Economia  Matemática
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Métodos  Quantitativos  em  Economia
+
+- Especialidade: Teoria  Monetária  e  Financeira
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Monetária  e  Fiscal
+
+- Especialidade: Instituições  Monetárias  e  Financeiras  do  Brasil
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Monetária  e  Fiscal
+
+- Especialidade: Finanças  Públicas  Internas
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Monetária  e  Fiscal
+
+- Especialidade: Política  Fiscal  do  Brasil
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Monetária  e  Fiscal
+
+- Especialidade: Crescimento  e  Desenvolvimento  Econômico
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Crescimento,  Flutuações  e  Planejamento  Econômico
+
+- Especialidade: Teoria  e  Política  de  Planejamento  Econômico
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Crescimento,  Flutuações  e  Planejamento  Econômico
+
+- Especialidade: Flutuações  Cíclicas  e  Projeções  Econômicas
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Crescimento,  Flutuações  e  Planejamento  Econômico
+
+- Especialidade: Inflação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Crescimento,  Flutuações  e  Planejamento  Econômico
+
+- Especialidade: Teoria  do  Comércio  Internacional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Internacional
+
+- Especialidade: Relações  do  Comércio;  Política  Comercial;  Integração  Econômica
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Internacional
+
+- Especialidade: Balanço  de  Pagamentos;  Finanças  Internacionais
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Internacional
+
+- Especialidade: Investimentos  Internacionais  e  Ajuda  Externa
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Internacional
+
+- Especialidade: Treinamento  e  Alocação  de  Mão-de-Obra;  Oferta  de  Mão-de-Obra  e  Força  de  Trabalho
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  dos  Recursos  Humanos
+
+- Especialidade: Mercado  de  Trabalho;  Política  do  Governo
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  dos  Recursos  Humanos
+
+- Especialidade: Sindicatos,  Dissídios  Coletivos,  Relações  de  Emprego  (Empregador/Empregado)
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  dos  Recursos  Humanos
+
+- Especialidade: Capital  Humano
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  dos  Recursos  Humanos
+
+- Especialidade: Demografia  Econômica
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  dos  Recursos  Humanos
+
+- Especialidade: Organização  Industrial  e  Estudos  Industriais
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Industrial
+
+- Especialidade: Mudança  Tecnológica
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Industrial
+
+- Especialidade: Economia  dos  Programas  de  Bem-Estar  Social
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  do  Bem-Estar  Social
+
+- Especialidade: Economia  do  Consumidor
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  do  Bem-Estar  Social
+
+- Especialidade: Economia  Regional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Regional  e  Urbana
+
+- Especialidade: Economia  Urbana
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Regional  e  Urbana
+
+- Especialidade: Renda  e  Tributação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economia  Regional  e  Urbana
+
+- Especialidade: Economia  Agrária
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economias  Agrária  e  dos  Recursos  Naturais
+
+- Especialidade: Economia  dos  Recursos  Naturais
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Economia
+  Subárea: Economias  Agrária  e  dos  Recursos  Naturais
+
+- Especialidade: História  da  Arquitetura  e  Urbanismo
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Fundamentos  de  Arquitetura  e  Urbanismo
+
+- Especialidade: Teoria  da  Arquitetura
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Fundamentos  de  Arquitetura  e  Urbanismo
+
+- Especialidade: História  do  Urbanismo
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Fundamentos  de  Arquitetura  e  Urbanismo
+
+- Especialidade: Teoria  do  Urbanismo
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Fundamentos  de  Arquitetura  e  Urbanismo
+
+- Especialidade: Planejamento  e  Projetos  da  Edificação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Projeto  de  Arquitetura  e  Urbanismo
+
+- Especialidade: Planejamento  e  Projeto  do  Espaço  Urbano
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Projeto  de  Arquitetura  e  Urbanismo
+
+- Especialidade: Planejamento  e  Projeto  do  Equipamento
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Projeto  de  Arquitetura  e  Urbanismo
+
+- Especialidade: Adequação  Ambiental
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Tecnologia  de  Arquitetura  e  Urbanismo
+
+- Especialidade: Desenvolvimento  Histórico  do  Paisagismo
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Paisagismo
+
+- Especialidade: Conceituação  de  Paisagismo  e  Metodologia  do  Paisagismo
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Paisagismo
+
+- Especialidade: Estudos  de  Organização  do  Espaço  Exterior
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Paisagismo
+
+- Especialidade: Projetos  de  Espaços  Livres  Urbanos
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Arquitetura  e  Urbanismo
+  Subárea: Paisagismo
+
+- Especialidade: Teoria  do  Planejamento  Urbano  e  Regional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Fundamentos  do  Planejamento  Urbano  e  Regional
+
+- Especialidade: Teoria  da  Urbanização
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Fundamentos  do  Planejamento  Urbano  e  Regional
+
+- Especialidade: Política  Urbana
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Fundamentos  do  Planejamento  Urbano  e  Regional
+
+- Especialidade: História  Urbana
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Fundamentos  do  Planejamento  Urbano  e  Regional
+
+- Especialidade: Informação,  Cadastro  e  Mapeamento
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Métodos  e  Técnicas  do  Planejamento  Urbano  e  Regional
+
+- Especialidade: Técnica  de  Previsão  Urbana  e  Regional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Métodos  e  Técnicas  do  Planejamento  Urbano  e  Regional
+
+- Especialidade: Técnicas  de  Análise  e  Avaliação  Urbana  e  Regional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Métodos  e  Técnicas  do  Planejamento  Urbano  e  Regional
+
+- Especialidade: Técnicas  de  Planejamento  e  Projeto  Urbanos  e  Regionais
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Métodos  e  Técnicas  do  Planejamento  Urbano  e  Regional
+
+- Especialidade: Administração  Municipal  e  Urbana
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Serviços  Urbanos  e  Regionais
+
+- Especialidade: Estudos  da  Habitação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Serviços  Urbanos  e  Regionais
+
+- Especialidade: Aspectos  Sociais  do  Planejamento  Urbano  e  Regional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Serviços  Urbanos  e  Regionais
+
+- Especialidade: Aspectos  Econômicos  do  Planejamento  Urbano  e  Regional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Serviços  Urbanos  e  Regionais
+
+- Especialidade: Aspectos  Físico-Ambientais  do  Planejamento  Urbano  e  Regional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Serviços  Urbanos  e  Regionais
+
+- Especialidade: Serviços  Comunitários
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Serviços  Urbanos  e  Regionais
+
+- Especialidade: Infra-Estruturas  Urbanas  e  Regionais
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Serviços  Urbanos  e  Regionais
+
+- Especialidade: Transporte  e  Tráfego  Urbano  e  Regional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Serviços  Urbanos  e  Regionais
+
+- Especialidade: Legislação  Urbana  e  Regional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Planejamento  Urbano  e  Regional
+  Subárea: Serviços  Urbanos  e  Regionais
+
+- Especialidade: Distribuição  Espacial  Geral
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Distribuição  Espacial
+
+- Especialidade: Distribuição  Espacial  Urbana
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Distribuição  Espacial
+
+- Especialidade: Distribuição  Espacial  Rural
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Distribuição  Espacial
+
+- Especialidade: Tendências  Passadas
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Tendência  Populacional
+
+- Especialidade: Taxas  e  Estimativas  Correntes
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Tendência  Populacional
+
+- Especialidade: Projeções
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Tendência  Populacional
+
+- Especialidade: Fecundidade
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Componentes  da  Dinâmica  Demográfica
+
+- Especialidade: Mortalidade
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Componentes  da  Dinâmica  Demográfica
+
+- Especialidade: Migração
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Componentes  da  Dinâmica  Demográfica
+
+- Especialidade: Casamento  e  Divórcio
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Nupcialidade  e  Família
+
+- Especialidade: Família  e  Reprodução
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Nupcialidade  e  Família
+
+- Especialidade: Distribuição  Espacial
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Demografia  Histórica
+
+- Especialidade: Natalidade,  Mortalidade,  Migração
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Demografia  Histórica
+
+- Especialidade: Nupcialidade  e  Família
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Demografia  Histórica
+
+- Especialidade: Métodos  e  Técnicas  de  Demografia  Histórica
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Demografia  Histórica
+
+- Especialidade: Política  Populacional
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Política  Pública  e  População
+
+- Especialidade: Políticas  de  Redistribuição  de  População
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Política  Pública  e  População
+
+- Especialidade: Políticas  de  Planejamento  Familiar
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Demografia
+  Subárea: Política  Pública  e  População
+
+- Especialidade: Teoria  Geral  da  Informação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Ciência  da  Informação
+  Subárea: Teoria  da  Informação
+
+- Especialidade: Processos  da  Comunicação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Ciência  da  Informação
+  Subárea: Teoria  da  Informação
+
+- Especialidade: Representação  da  Informação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Ciência  da  Informação
+  Subárea: Teoria  da  Informação
+
+- Especialidade: Teoria  da  Classificação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Ciência  da  Informação
+  Subárea: Biblioteconomia
+
+- Especialidade: Métodos  Quantitativos.  Bibliometria
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Ciência  da  Informação
+  Subárea: Biblioteconomia
+
+- Especialidade: Técnicas  de  Recuperação  de  Informação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Ciência  da  Informação
+  Subárea: Biblioteconomia
+
+- Especialidade: Processos  de  Disseminação  da  Informação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Ciência  da  Informação
+  Subárea: Biblioteconomia
+
+- Especialidade: Organização  de  Arquivos
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Ciência  da  Informação
+  Subárea: Arquivologia
+
+- Especialidade: Teoria  e  Ética  do  Jornalismo
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Comunicação
+  Subárea: Jornalismo  e  Editoração
+
+- Especialidade: Organização  Editorial  de  Jornais
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Comunicação
+  Subárea: Jornalismo  e  Editoração
+
+- Especialidade: Organização  Comercial  de  Jornais
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Comunicação
+  Subárea: Jornalismo  e  Editoração
+
+- Especialidade: Jornalismo  Especializado  (Comunitário,  Rural,  Empresarial,  Científico)
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Comunicação
+  Subárea: Jornalismo  e  Editoração
+
+- Especialidade: Radiodifusão
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Comunicação
+  Subárea: Rádio  e  Televisão
+
+- Especialidade: Videodifusão
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Comunicação
+  Subárea: Rádio  e  Televisão
+
+- Especialidade: Serviço  Social  do  Trabalho
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Serviço  Social
+  Subárea: Serviço  Social  Aplicado
+
+- Especialidade: Serviço  Social  da  Educação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Serviço  Social
+  Subárea: Serviço  Social  Aplicado
+
+- Especialidade: Serviço  Social  do  Menor
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Serviço  Social
+  Subárea: Serviço  Social  Aplicado
+
+- Especialidade: Serviço  Social  da  Saúde
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Serviço  Social
+  Subárea: Serviço  Social  Aplicado
+
+- Especialidade: Serviço  Social  da  Habitação
+  Grande Área: Ciências  Sociais  Aplicadas
+  Área: Serviço  Social
+  Subárea: Serviço  Social  Aplicado
+
+- Especialidade: Teoria  Sociológica
+  Grande Área: Ciências  Humanas
+  Área: Sociologia
+  Subárea: Fundamentos  da  Sociologia
+
+- Especialidade: História  da  Sociologia
+  Grande Área: Ciências  Humanas
+  Área: Sociologia
+  Subárea: Fundamentos  da  Sociologia
+
+- Especialidade: História  dos  Estados  Unidos
+  Grande Área: Ciências  Humanas
+  Área: História
+  Subárea: História  da  América
+
+- Especialidade: História  Latino-Americana
+  Grande Área: Ciências  Humanas
+  Área: História
+  Subárea: História  da  América
+
+- Especialidade: História  do  Brasil  Colônia
+  Grande Área: Ciências  Humanas
+  Área: História
+  Subárea: História  do  Brasil
+
+- Especialidade: História  do  Brasil  Império
+  Grande Área: Ciências  Humanas
+  Área: História
+  Subárea: História  do  Brasil
+
+- Especialidade: História  do  Brasil  República
+  Grande Área: Ciências  Humanas
+  Área: História
+  Subárea: História  do  Brasil
+
+- Especialidade: História  Regional  do  Brasil
+  Grande Área: Ciências  Humanas
+  Área: História
+  Subárea: História  do  Brasil
+
+- Especialidade: Geografia  da  População
+  Grande Área: Ciências  Humanas
+  Área: Geografia
+  Subárea: Geografia  Humana
+
+- Especialidade: Geografia  Agrária
+  Grande Área: Ciências  Humanas
+  Área: Geografia
+  Subárea: Geografia  Humana
+
+- Especialidade: Geografia  Urbana
+  Grande Área: Ciências  Humanas
+  Área: Geografia
+  Subárea: Geografia  Humana
+
+- Especialidade: Geografia  Econômica
+  Grande Área: Ciências  Humanas
+  Área: Geografia
+  Subárea: Geografia  Humana
+
+- Especialidade: Geografia  Política
+  Grande Área: Ciências  Humanas
+  Área: Geografia
+  Subárea: Geografia  Humana
+
+- Especialidade: Teoria  do  Desenvolvimento  Regional
+  Grande Área: Ciências  Humanas
+  Área: Geografia
+  Subárea: Geografia  Regional
+
+- Especialidade: Regionalização
+  Grande Área: Ciências  Humanas
+  Área: Geografia
+  Subárea: Geografia  Regional
+
+- Especialidade: Análise  Regional
+  Grande Área: Ciências  Humanas
+  Área: Geografia
+  Subárea: Geografia  Regional
+
+- Especialidade: História,  Teorias  e  Sistemas  em  Psicologia
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Fundamentos  e  Medidas  da  Psicologia
+
+- Especialidade: Metodologia,  Instrumentação  e  Equipamento  em  Psicologia
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Fundamentos  e  Medidas  da  Psicologia
+
+- Especialidade: Construção  e  Validade  de  Testes,  Escalas  e  Outras  Medidas  Psicológicas
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Fundamentos  e  Medidas  da  Psicologia
+
+- Especialidade: Técnicas  de  Processamento  Estatístico,  Matemático  e  Computacional  em  Psicologia
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Fundamentos  e  Medidas  da  Psicologia
+
+- Especialidade: Processos  Perceptuais  e  Motores
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Experimental
+
+- Especialidade: Processos  de  Aprendizagem,  Memória  e  Motivação
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Experimental
+
+- Especialidade: Processos  Cognitivos  e  Atencionais
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Experimental
+
+- Especialidade: Estados  Subjetivos  e  Emoção
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Experimental
+
+- Especialidade: Neurologia,  Eletrofisiologia  e  Comportamento
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Fisiológica
+
+- Especialidade: Processos  Psico-Fisiológicos
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Fisiológica
+
+- Especialidade: Estimulação  Elétrica  e  com  Drogas;  Comportamento
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Fisiológica
+
+- Especialidade: Psicobiologia
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Fisiológica
+
+- Especialidade: Estudos  Naturalísticos  do  Comportamento  Animal
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Comparativa
+
+- Especialidade: Mecanismos  Instintivos  e  Processos  Sociais  em  Animais
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Comparativa
+
+- Especialidade: Relações  Interpessoais
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Social
+
+- Especialidade: Processos  Grupais  e  de  Comunicação
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Social
+
+- Especialidade: Papeis  e  Estruturas  Sociais;  Indivíduo
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  Social
+
+- Especialidade: Processos  Perceptuais  e  Cognitivos;  Desenvolvimento
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Desenvolvimento  Humano
+
+- Especialidade: Desenvolvimento  Social  e  da  Personalidade
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Desenvolvimento  Humano
+
+- Especialidade: Planejamento  Institucional
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Ensino  e  da  Aprendizagem
+
+- Especialidade: Programação  de  Condições  de  Ensino
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Ensino  e  da  Aprendizagem
+
+- Especialidade: Treinamento  de  Pessoal
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Ensino  e  da  Aprendizagem
+
+- Especialidade: Aprendizagem  e  Desempenho  Acadêmicos
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Ensino  e  da  Aprendizagem
+
+- Especialidade: Ensino  e  Aprendizagem  na  Sala  de  Aula
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Ensino  e  da  Aprendizagem
+
+- Especialidade: Análise  Institucional
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Trabalho  e  Organizacional
+
+- Especialidade: Recrutamento  e  Seleção  de  Pessoal
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Trabalho  e  Organizacional
+
+- Especialidade: Treinamento  e  Avaliação
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Trabalho  e  Organizacional
+
+- Especialidade: Fatores  Humanos  no  Trabalho
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Trabalho  e  Organizacional
+
+- Especialidade: Planejamento  Ambiental  e  Comportamento  Humano
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Psicologia  do  Trabalho  e  Organizacional
+
+- Especialidade: Intervenção  Terapêutica
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Tratamento  e  Prevenção  Psicológica
+
+- Especialidade: Programas  de  Atendimento  Comunitário
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Tratamento  e  Prevenção  Psicológica
+
+- Especialidade: Treinamento  e  Reabilitação
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Tratamento  e  Prevenção  Psicológica
+
+- Especialidade: Desvios  da  Conduta
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Tratamento  e  Prevenção  Psicológica
+
+- Especialidade: Distúrbios  da  Linguagem
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Tratamento  e  Prevenção  Psicológica
+
+- Especialidade: Distúrbios  Psicossomáticos
+  Grande Área: Ciências  Humanas
+  Área: Psicologia
+  Subárea: Tratamento  e  Prevenção  Psicológica
+
+- Especialidade: Filosofia  da  Educação
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Fundamentos  da  Educação
+
+- Especialidade: História  da  Educação
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Fundamentos  da  Educação
+
+- Especialidade: Sociologia  da  Educação
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Fundamentos  da  Educação
+
+- Especialidade: Antropologia  Educacional
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Fundamentos  da  Educação
+
+- Especialidade: Economia  da  Educação
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Fundamentos  da  Educação
+
+- Especialidade: Psicologia  Educacional
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Fundamentos  da  Educação
+
+- Especialidade: Administração  de  Sistemas  Educacionais
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Administração  Educacional
+
+- Especialidade: Administração  de  Unidades  Educativas
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Administração  Educacional
+
+- Especialidade: Política  Educacional
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Política,  Planejamento  e  Avaliação  Educacional
+
+- Especialidade: Planejamento  Educacional
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Política,  Planejamento  e  Avaliação  Educacional
+
+- Especialidade: Avaliação  de  Sistemas,  Instituições,  Planos  e  Programas  Educacionais
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Política,  Planejamento  e  Avaliação  Educacional
+
+- Especialidade: Teorias  da  Instrução
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Ensino-Aprendizagem
+
+- Especialidade: Métodos  e  Técnicas  de  Ensino
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Ensino-Aprendizagem
+
+- Especialidade: Tecnologia  Educacional
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Ensino-Aprendizagem
+
+- Especialidade: Avaliação  da  Aprendizagem
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Ensino-Aprendizagem
+
+- Especialidade: Teoria  Geral  de  Planejamento  e  Desenvolvimento  Curricular
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Currículo
+
+- Especialidade: Currículos  Específicos  para  Níveis  e  Tipos  de  Educação
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Currículo
+
+- Especialidade: Orientação  Educacional
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Orientação  e  Aconselhamento
+
+- Especialidade: Orientação  Vocacional
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Orientação  e  Aconselhamento
+
+- Especialidade: Educação  de  Adultos
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Tópicos  Específicos  de  Educação
+
+- Especialidade: Educação  Permanente
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Tópicos  Específicos  de  Educação
+
+- Especialidade: Educação  Rural
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Tópicos  Específicos  de  Educação
+
+- Especialidade: Educação  em  Periferias  Urbanas
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Tópicos  Específicos  de  Educação
+
+- Especialidade: Educação  Especial
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Tópicos  Específicos  de  Educação
+
+- Especialidade: Educação  Pré-Escolar
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Tópicos  Específicos  de  Educação
+
+- Especialidade: Ensino  Profissionalizante
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Tópicos  Específicos  de  Educação
+
+- Especialidade: Educação  e  Relações  Étnico-Raciais
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Educação  e  Diversidade
+
+- Especialidade: Educação,  Gênero  e  Diversidade  Sexual
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Educação  e  Diversidade
+
+- Especialidade: Educação  Escolar  Indígena
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Educação  e  Diversidade
+
+- Especialidade: Educação  Inclusiva
+  Grande Área: Ciências  Humanas
+  Área: Educação
+  Subárea: Educação  e  Diversidade
+
+- Especialidade: Teoria  Política  Clássica
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Teoria  Política
+
+- Especialidade: Teoria  Política  Medieval
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Teoria  Política
+
+- Especialidade: Teoria  Política  Moderna
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Teoria  Política
+
+- Especialidade: Teoria  Política  Contemporânea
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Teoria  Política
+
+- Especialidade: Estrutura  e  Transformação  do  Estado
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Estado  e  Governo
+
+- Especialidade: Sistemas  Governamentais  Comparados
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Estado  e  Governo
+
+- Especialidade: Relações  Intergovernamentais
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Estado  e  Governo
+
+- Especialidade: Estudos  do  Poder  Local
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Estado  e  Governo
+
+- Especialidade: Instituições  Governamentais  Específicas
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Estado  e  Governo
+
+- Especialidade: Estudos  Eleitorais  e  Partidos  Políticos
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Comportamento  Político
+
+- Especialidade: Atitude  e  Ideologias  Políticas
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Comportamento  Político
+
+- Especialidade: Conflitos  e  Coalizões  Políticas
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Comportamento  Político
+
+- Especialidade: Comportamento  Legislativo
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Comportamento  Político
+
+- Especialidade: Classes  Sociais  e  Grupos  de  Interesse
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Comportamento  Político
+
+- Especialidade: Análise  do  Processo  Decisório
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Políticas  Públicas
+
+- Especialidade: Análise  Institucional
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Políticas  Públicas
+
+- Especialidade: Técnicas  de  Antecipação
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Políticas  Públicas
+
+- Especialidade: Política  Externa  do  Brasil
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Política  Internacional
+
+- Especialidade: Organizações  Internacionais
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Política  Internacional
+
+- Especialidade: Integração  Internacional,  Conflito,  Guerra  e  Paz
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Política  Internacional
+
+- Especialidade: Relações  Internacionais,  Bilaterais  e  Multilaterais
+  Grande Área: Ciências  Humanas
+  Área: Ciência  Política
+  Subárea: Política  Internacional
+
+- Especialidade: Teoria  da  Arte
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Fundamentos  e  Crítica  das  Artes
+
+- Especialidade: História  da  Arte
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Fundamentos  e  Crítica  das  Artes
+
+- Especialidade: Crítica  da  Arte
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Fundamentos  e  Crítica  das  Artes
+
+- Especialidade: Pintura
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Artes  Plásticas
+
+- Especialidade: Desenho
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Artes  Plásticas
+
+- Especialidade: Gravura
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Artes  Plásticas
+
+- Especialidade: Escultura
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Artes  Plásticas
+
+- Especialidade: Cerâmica
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Artes  Plásticas
+
+- Especialidade: Tecelagem
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Artes  Plásticas
+
+- Especialidade: Regência
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Música
+
+- Especialidade: Instrumentação  Musical
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Música
+
+- Especialidade: Composição  Musical
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Música
+
+- Especialidade: Canto
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Música
+
+- Especialidade: Execução  da  Dança
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Dança
+
+- Especialidade: Coreografia
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Dança
+
+- Especialidade: Dramaturgia
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Teatro
+
+- Especialidade: Direção  Teatral
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Teatro
+
+- Especialidade: Cenografia
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Teatro
+
+- Especialidade: Interpretação  Teatral
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Teatro
+
+- Especialidade: Administração  e  Produção  de  Filmes
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Cinema
+
+- Especialidade: Roteiro  e  Direção  Cinematográficos
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Cinema
+
+- Especialidade: Técnicas  de  Registro  e  Processamento  de  Filmes
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Cinema
+
+- Especialidade: Interpretação  Cinematográfica
+  Grande Área: Linguística,  Letras  e  Artes
+  Área: Artes
+  Subárea: Cinema
+
+FORMATO DA RESPOSTA
+
+Após analisar o projeto e realizar as alterações permitidas, responda nesta ordem:
+
+## 1. Classificação do projeto
+Informe a denominação tecnicamente mais adequada e justifique em poucas linhas.
+
+## 2. Alterações realizadas no README
+Informe explicitamente:
+- se `README.md` foi criado ou atualizado;
+- se `README-en.md` foi criado ou atualizado;
+- que os links recíprocos de idioma foram inseridos ou verificados;
+- em qual ou quais arquivos a seção de autoria foi inserida;
+- o texto final utilizado em português e em inglês.
+
+## 3. Alteração realizada no código
+Informe:
+- qual arquivo principal foi escolhido;
+- por que ele foi considerado o arquivo mais adequado;
+- o comentário/cabeçalho inserido.
+
+Lembre-se: o comentário deve existir em apenas um arquivo principal do projeto.
+
+## 4. Descrição do GitHub
+Forneça apenas o texto pronto para inserção manual e informe:
+"Contagem: X caracteres com espaços."
+
+## 5. Currículo Lattes
+Forneça apenas o texto pronto para utilização manual.
+
+## 6. Campos estruturados do Lattes
+Quando aplicável, informe:
+- Tipo:
+- Tipo de programa: selecione exatamente uma das opções válidas registradas neste prompt e, quando houver ambiguidade, acrescente uma justificativa breve para a escolha.
+- Área de conhecimento:
+  - Grande Área:
+  - Área:
+  - Subárea:
+  - Especialidade: selecione exatamente uma especialidade da taxonomia registrada neste prompt e reproduza também sua hierarquia correspondente. Quando houver ambiguidade, acrescente uma justificativa breve.
+- Finalidade:
+- Natureza:
+- Palavras-chave:
+- Setor de aplicação/CNAE: selecione exatamente uma das opções válidas registradas neste prompt e, quando houver ambiguidade, acrescente uma justificativa breve para a escolha.
+
+## 7. Observações de coerência
+Aponte somente se necessário eventuais inconsistências entre código, README e apresentação pública do projeto, como:
+- README descrevendo funcionalidades inexistentes;
+- projeto chamado de script apesar de possuir GUI completa;
+- alegação de validação não documentada;
+- tecnologias ou funcionalidades desatualizadas;
+- terminologia divergente entre português e inglês.
+
+## 8. Linguagens
+Liste as linguagens de programação usadas para a criação do projeto.
+
+Não altere o projeto apenas para adequá-lo aos textos. Primeiro descreva fielmente o que ele efetivamente é.
