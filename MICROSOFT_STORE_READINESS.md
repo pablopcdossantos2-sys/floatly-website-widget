@@ -7,7 +7,7 @@ O produto **Floatly** e as propriedades básicas da Store já estão configurado
 
 ## Ações pendentes
 
-- [ ] Confirmar com uma autoridade certificadora se ela emite Code Signing OV/AuthentiCode para a situação do desenvolvedor no Brasil (pessoa física/CPF ou empresa/CNPJ), se a cadeia atende ao Microsoft Trusted Root Program e qual é a forma de proteção da chave.
+- [ ] Confirmar com uma autoridade certificadora se ela emite Code Signing OV/Authenticode para a situação do desenvolvedor no Brasil (pessoa física/CPF ou empresa/CNPJ), se a cadeia atende ao Microsoft Trusted Root Program e qual é a forma de proteção da chave.
 - [ ] Depois da confirmação, contratar o certificado adequado e informar ao mantenedor apenas o nome exato do publisher, a AC/produto e a modalidade de assinatura. Não enviar chave privada, PIN, senha ou PFX.
 - [ ] Gerar a chave do Tauri Updater e cadastrar \`TAURI_SIGNING_PRIVATE_KEY\` e, se aplicável, \`TAURI_SIGNING_PRIVATE_KEY_PASSWORD\`.
 - [ ] Aguardar a adaptação do script/workflow de assinatura Authenticode ao token, HSM ou serviço remoto escolhido; o workflow atual ainda pressupõe PFX e não deve ser executado com um token USB sem essa adaptação.
