@@ -3,8 +3,8 @@ use tauri_plugin_autostart::ManagerExt;
 
 #[cfg(windows)]
 use windows::{
-    ApplicationModel::{Package, StartupTask, StartupTaskState},
     core::HSTRING,
+    ApplicationModel::{Package, StartupTask, StartupTaskState},
 };
 #[cfg(windows)]
 use windows_future::*;
@@ -63,9 +63,7 @@ pub fn set_enabled(app: &AppHandle, enabled: bool) -> Result<bool, String> {
                     format!("Não foi possível solicitar a inicialização MSIX: {error}")
                 })?
                 .join()
-                .map_err(|error| {
-                    format!("A solicitação de inicialização MSIX falhou: {error}")
-                })?;
+                .map_err(|error| format!("A solicitação de inicialização MSIX falhou: {error}"))?;
             return Ok(startup_state_enabled(state));
         }
 
@@ -75,13 +73,13 @@ pub fn set_enabled(app: &AppHandle, enabled: bool) -> Result<bool, String> {
     }
 
     if enabled {
-        app.autolaunch()
-            .enable()
-            .map_err(|error| format!("Não foi possível ativar a inicialização automática: {error}"))?;
+        app.autolaunch().enable().map_err(|error| {
+            format!("Não foi possível ativar a inicialização automática: {error}")
+        })?;
     } else {
-        app.autolaunch()
-            .disable()
-            .map_err(|error| format!("Não foi possível desativar a inicialização automática: {error}"))?;
+        app.autolaunch().disable().map_err(|error| {
+            format!("Não foi possível desativar a inicialização automática: {error}")
+        })?;
     }
 
     app.autolaunch()
