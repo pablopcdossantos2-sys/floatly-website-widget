@@ -30,6 +30,8 @@
 
   <Resources>
     <Resource Language="pt-BR" />
+    <Resource Language="en-US" />
+    <Resource Language="es-ES" />
   </Resources>
 
   <Applications>
