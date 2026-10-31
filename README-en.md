@@ -1,10 +1,8 @@
 # Floatly — Windows
 
-*Leia isto em outros idiomas: [Português](README.md)*
+**Languages:** [Português (Brasil)](README.md) · English · [Español](README.es.md)
 
 ---
-
-**Languages:** [Português (Brasil)](README.md) · English · [Español](README.es.md)
 
 A compact Windows desktop browser that keeps a user-chosen HTTP/HTTPS address visible in a small, frameless WebView2 window. The address is configured on first launch; no third-party website is prefilled. Built with Tauri 2 for Windows 10/11 x64.
 
