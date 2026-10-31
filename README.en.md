@@ -49,7 +49,7 @@ For a concrete example URL, see the example section below.
 
 Floatly is prepared for the Store as an **x64 MSIX** package. Follow the [step-by-step guide in Portuguese](GUIA_PUBLICACAO_MICROSOFT_STORE.md) and use the [multilingual listing draft](MICROSOFT_STORE_LISTING_DRAFT.md).
 
-The **Build MSIX for Microsoft Store** workflow takes the three package-identity values copied from Partner Center and produces an unsigned `.msix` file. This is intentional: Microsoft signs the MSIX after approval. No code-signing certificate, PFX file or signing secrets are required for this route.
+The **Build MSIX for Microsoft Store** workflow runs automatically when changes are pushed to `main` and uses the package identity already confirmed in Partner Center. It produces an unsigned `.msix` file. This is intentional: Microsoft signs the MSIX after approval. No code-signing certificate, PFX file or signing secrets are required for this route.
 
 ## Interface language
 
