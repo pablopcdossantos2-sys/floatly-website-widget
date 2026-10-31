@@ -15,6 +15,9 @@ use tauri_plugin_global_shortcut::Shortcut;
 use url::Url;
 
 pub const DEFAULT_SITE: &str = "";
+// One earlier release persisted this URL as its built-in default. Clear only that exact
+// legacy value on upgrade so existing users are returned to the first-run website picker.
+const LEGACY_DEFAULT_SITE: &str = "https://br.investing.com/economic-calendar";
 pub const DEFAULT_WIDTH: u32 = 350;
 pub const DEFAULT_HEIGHT: u32 = 550;
 
@@ -404,6 +407,12 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
         }
     }
     let mut config = serde_json::from_value::<AppConfig>(merged).unwrap_or_default();
+    if config.site_url.trim() == LEGACY_DEFAULT_SITE {
+        config.site_url = DEFAULT_SITE.to_owned();
+        warnings.push(
+            "Endereço de site predefinido de uma versão anterior removido; escolha o site que deseja usar.".into(),
+        );
+    }
     let before_normalize = config.clone();
     let mut normalization_retries = 0;
     loop {
@@ -532,6 +541,33 @@ mod tests {
         assert!(config.site_url.is_empty());
         config.normalize().unwrap();
         assert!(config.site_url.is_empty());
+    }
+
+    #[test]
+    fn load_migrates_legacy_default_site_to_empty_and_preserves_other_settings() {
+        let dir = std::env::temp_dir().join(format!(
+            "widget-website-legacy-default-site-{}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(
+            dir.join("config.json"),
+            r#"{"site_url":"https://br.investing.com/economic-calendar","width":860,"language":"es"}"#,
+        )
+        .unwrap();
+
+        let (config, warnings, safe_to_persist) = load_with_warnings(&dir);
+
+        assert!(safe_to_persist);
+        assert!(config.site_url.is_empty());
+        assert_eq!(config.width, 860);
+        assert_eq!(config.language, "es");
+        assert!(warnings
+            .iter()
+            .any(|warning| warning.contains("predefinido de uma versão anterior")));
+
+        fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]
