@@ -51,7 +51,7 @@ O workflow **Build MSIX for Microsoft Store** é executado automaticamente na br
 
 ## Idioma da interface
 
-Abra **Configurações → Idioma** e escolha Português (Brasil), English ou Español. A escolha é salva em `%APPDATA%\\WidgetWebsite\\config.json` e afeta a janela de configurações, menus da bandeja, a janela auxiliar de login e as mensagens próprias do widget. O conteúdo do site escolhido continua no idioma fornecido pelo próprio site.
+Abra **Configurações → Idioma** e escolha Português (Brasil), English ou Español. A escolha é salva em `%APPDATA%\WidgetWebsite\config.json` e afeta a janela de configurações, menus da bandeja, a janela auxiliar de login e as mensagens próprias do widget. O conteúdo do site escolhido continua no idioma fornecido pelo próprio site.
 
 ## Assinatura opcional do instalador independente (não usada pela Store)
 
@@ -74,7 +74,7 @@ O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é 
 
 ## Diagnóstico, privacidade e limitações
 
-- Os registros locais ficam normalmente em `%APPDATA%\\WidgetWebsite\\diagnostics.log`. Eles usam horário UTC, rotação de aproximadamente 1 MiB e até três arquivos anteriores. Os registros não são enviados automaticamente ao desenvolvedor.
+- Os registros locais ficam normalmente em `%APPDATA%\WidgetWebsite\diagnostics.log`. Eles usam horário UTC, rotação de aproximadamente 1 MiB e até três arquivos anteriores. Os registros não são enviados automaticamente ao desenvolvedor.
 - Para reduzir a exposição de dados, URLs registradas não incluem credenciais, parâmetros de consulta ou fragmentos; o caminho é reduzido aos dois primeiros segmentos e segmentos longos ou semelhantes a identificadores são mascarados. Ainda assim, revise os registros antes de compartilhá-los.
 - O monitor de atividade registra um aviso quando deixa de receber o sinal do WebView2 por aproximadamente 20 segundos. Ele não reinicia nem encerra o aplicativo automaticamente e ignora períodos em que a janela está minimizada ou oculta.
 - O Floatly não implementa telemetria própria. O site escolhido e os provedores de autenticação podem receber dados de conexão e manter cookies/sessões no perfil local do WebView2 conforme as políticas desses serviços.
@@ -91,7 +91,7 @@ O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é 
 
 ## Desinstalação e dados
 
-O desinstalador NSIS oferece a opção **Delete the application data**. Quando marcada, ela remove `%APPDATA%\\WidgetWebsite` (configuração, logs e sessão WebView2) e `%LOCALAPPDATA%\\WidgetWebsite`, se existir. Se a opção ficar desmarcada, esses dados são preservados para uma futura reinstalação. A entrada de início automático do Windows é removida sempre que o aplicativo é desinstalado.
+O desinstalador NSIS oferece a opção **Delete the application data**. Quando marcada, ela remove `%APPDATA%\WidgetWebsite` (configuração, logs e sessão WebView2) e `%LOCALAPPDATA%\WidgetWebsite`, se existir. Se a opção ficar desmarcada, esses dados são preservados para uma futura reinstalação. A entrada de início automático do Windows é removida sempre que o aplicativo é desinstalado.
 
 ## 👤 Autoria e desenvolvimento
 
