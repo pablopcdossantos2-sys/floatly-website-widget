@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: http://asset.localhost; connect-src ipc: http://ipc.localhost https:; object-src 'none'; base-uri 'self'; form-action 'self' https:",
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: http://asset.localhost; connect-src ipc: http://ipc.localhost http: https:; object-src 'none'; base-uri 'self'; form-action 'self' https:",
       "capabilities": [
         "main-local",
         "settings-local",
