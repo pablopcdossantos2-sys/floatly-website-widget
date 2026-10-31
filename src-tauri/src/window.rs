@@ -1007,7 +1007,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
             let config = popup.state::<AppState>().snapshot();
             match decide_login(&url, &config) {
                 NavAction::Allow | NavAction::OpenLogin => {
-                    if is_auth_page(url, &config) {
+                    if is_auth_page(&url, &config) {
                         popup_seen_auth.store(true, Ordering::SeqCst);
                     }
                     if allow_login_popup() {
