@@ -1,6 +1,6 @@
 # Política de Privacidade — Floatly
 
-**Última atualização:** 30 de outubro de 2026
+**Última atualização:** 31 de outubro de 2026
 
 
 ## 1. Sobre o Floatly
@@ -40,6 +40,8 @@ O Floatly salva localmente as informações necessárias para manter a configura
 
 Essas informações são usadas para abrir o site escolhido e restaurar as preferências nas próximas execuções. Elas são mantidas em um arquivo de configuração no perfil local do usuário do Windows, normalmente em %APPDATA%\WidgetWebsite\config.json.
 
+Quando o JSON de configuração está completamente inválido, o arquivo original é movido para um backup com o nome `config.json.bad-*`. Quando o JSON é válido, mas contém campos que precisam ser reparados, o Floatly cria uma cópia `config.json.repaired-*` antes de gravar os valores corrigidos e mantém até três cópias recentes desse tipo. Os backups permanecem na pasta de dados do aplicativo e são removidos quando essa pasta é excluída.
+
 ### 3.2. Registros técnicos e de diagnóstico
 
 Para identificar falhas e investigar congelamentos, o aplicativo cria registros técnicos no computador. Eles podem conter:
@@ -50,7 +52,7 @@ Para identificar falhas e investigar congelamentos, o aplicativo cria registros 
 - mensagens de erro e informações técnicas do Windows;
 - eventos de navegação, incluindo esquema, domínio, porta e parte do caminho da URL.
 
-Ao registrar uma URL, o Floatly remove credenciais, parâmetros de consulta e fragmentos e limita o trecho do caminho registrado. **Isso reduz, mas não elimina, a possibilidade de uma URL revelar informação pessoal:** um caminho pode conter um nome, identificador ou outro dado inserido pelo próprio site.
+Ao registrar uma URL, o Floatly remove credenciais, parâmetros de consulta e fragmentos. Do caminho, conserva no máximo os dois primeiros segmentos e substitui segmentos longos ou que se pareçam com identificadores por reticências. **Isso reduz, mas não elimina, a possibilidade de uma URL revelar informação pessoal:** segmentos curtos ainda podem conter nomes ou outros dados inseridos pelo próprio site.
 
 Algumas mensagens técnicas também podem conter caminhos de arquivos do perfil do Windows, que eventualmente incluem o nome da conta local. Os registros ficam no dispositivo, em diagnostics.log, dentro da pasta de dados do Floatly. O aplicativo faz rotação dos arquivos para limitar seu crescimento e manter um número limitado de cópias anteriores.
 
@@ -154,7 +156,7 @@ Para dúvidas, solicitações de privacidade ou exercício de direitos relaciona
 
 # Privacy Policy — Floatly
 
-**Last updated:** October 30, 2026
+**Last updated:** October 31, 2026
 
 
 ## 1. About Floatly
@@ -194,6 +196,8 @@ Floatly locally saves information needed to preserve the user's choices, such as
 
 This information is used to open the selected website and restore preferences on subsequent launches. It is stored in a configuration file in the user's local Windows profile, normally at %APPDATA%\WidgetWebsite\config.json.
 
+If the configuration JSON is completely invalid, the original file is moved to a backup named `config.json.bad-*`. If the JSON is valid but contains fields that need repair, Floatly creates a `config.json.repaired-*` copy before writing corrected values and keeps up to three recent repair copies. These backups remain in the application's data folder and are removed when that folder is deleted.
+
 ### 3.2. Technical and diagnostic logs
 
 To identify failures and investigate freezes, the application creates technical logs on the computer. They may contain:
@@ -204,7 +208,7 @@ To identify failures and investigate freezes, the application creates technical 
 - error messages and technical Windows information;
 - navigation events, including URL scheme, domain, port, and part of the URL path.
 
-When recording a URL, Floatly removes credentials, query parameters, and fragments, and limits the recorded portion of the path. **This reduces, but does not eliminate, the possibility that a URL reveals personal information:** a path may contain a name, identifier, or other information supplied by the website.
+When recording a URL, Floatly removes credentials, query parameters, and fragments. It keeps at most the first two path segments and replaces long or identifier-like segments with an ellipsis. **This reduces, but does not eliminate, the possibility that a URL reveals personal information:** short path segments may still contain names or other information supplied by the website.
 
 Some technical messages may also contain local file paths, which can sometimes include the name of the Windows account. Logs are stored on the device in diagnostics.log, inside Floatly's data folder. The application rotates log files to limit their size and retain only a limited number of previous copies.
 
@@ -308,7 +312,7 @@ For questions, privacy requests, or to exercise rights related to data processin
 
 # Política de privacidad — Floatly
 
-**Última actualización:** 30 de octubre de 2026
+**Última actualización:** 31 de octubre de 2026
 
 
 ## 1. Acerca de Floatly
@@ -348,6 +352,8 @@ Floatly guarda localmente la información necesaria para conservar las eleccione
 
 Esta información se utiliza para abrir el sitio elegido y restaurar las preferencias en los siguientes inicios. Se almacena en un archivo de configuración dentro del perfil local del usuario de Windows, normalmente en %APPDATA%\WidgetWebsite\config.json.
 
+Si el JSON de configuración está completamente dañado, el archivo original se mueve a una copia de seguridad llamada `config.json.bad-*`. Si el JSON es válido, pero contiene campos que deben repararse, Floatly crea una copia `config.json.repaired-*` antes de guardar los valores corregidos y conserva hasta tres copias recientes de reparación. Estas copias permanecen en la carpeta de datos de la aplicación y se eliminan cuando se borra esa carpeta.
+
 ### 3.2. Registros técnicos y de diagnóstico
 
 Para identificar fallos e investigar bloqueos, la aplicación crea registros técnicos en el ordenador. Pueden contener:
@@ -358,7 +364,7 @@ Para identificar fallos e investigar bloqueos, la aplicación crea registros té
 - mensajes de error e información técnica de Windows;
 - eventos de navegación, incluido el esquema, dominio, puerto y parte de la ruta de la URL.
 
-Al registrar una URL, Floatly elimina las credenciales, los parámetros de consulta y los fragmentos, y limita la parte de la ruta registrada. **Esto reduce, pero no elimina, la posibilidad de que una URL revele información personal:** una ruta puede contener un nombre, identificador u otra información introducida por el propio sitio.
+Al registrar una URL, Floatly elimina las credenciales, los parámetros de consulta y los fragmentos. Conserva como máximo los dos primeros segmentos de la ruta y sustituye por puntos suspensivos los segmentos largos o que parecen identificadores. **Esto reduce, pero no elimina, la posibilidad de que una URL revele información personal:** los segmentos cortos todavía pueden contener nombres u otros datos introducidos por el propio sitio.
 
 Algunos mensajes técnicos también pueden contener rutas de archivos locales, que en ocasiones incluyen el nombre de la cuenta de Windows. Los registros se guardan en el dispositivo en diagnostics.log, dentro de la carpeta de datos de Floatly. La aplicación rota los archivos para limitar su tamaño y conservar solo un número limitado de copias anteriores.
 
