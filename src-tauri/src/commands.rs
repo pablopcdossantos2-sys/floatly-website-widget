@@ -5,7 +5,6 @@ use crate::{
 use serde::Serialize;
 use std::str::FromStr;
 use tauri::{AppHandle, Emitter, Manager, State};
-use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 #[derive(Serialize)]
 pub struct SaveResult {
@@ -132,8 +131,8 @@ pub fn heartbeat(token: String, state: State<'_, AppState>) -> Result<(), String
 #[tauri::command]
 pub fn get_config(app: AppHandle, state: State<'_, AppState>) -> AppConfig {
     let mut c = state.snapshot();
-    if let Ok(v) = app.autolaunch().is_enabled() {
-        c.autostart = v
+    if let Ok(enabled) = crate::autostart::is_enabled(&app) {
+        c.autostart = enabled;
     }
     c
 }
@@ -146,7 +145,7 @@ pub fn save_config(
 ) -> Result<SaveResult, String> {
     let patch = config;
     let actual_autostart = if patch.autostart.is_none() {
-        app.autolaunch().is_enabled().ok()
+        crate::autostart::is_enabled(&app).ok()
     } else {
         None
     };
@@ -238,26 +237,38 @@ pub fn save_config(
         }
     }
 
-    let previous_autostart = app.autolaunch().is_enabled().unwrap_or(old.autostart);
+    let previous_autostart =
+        crate::autostart::is_enabled(&app).unwrap_or(old.autostart);
     let mut autostart_changed = false;
     if c.autostart != previous_autostart {
-        let result = if c.autostart {
-            app.autolaunch().enable()
-        } else {
-            app.autolaunch().disable()
-        };
-        if result.is_ok() {
-            autostart_changed =
-                app.autolaunch().is_enabled().unwrap_or(c.autostart) != previous_autostart;
-        } else {
-            let actual = app.autolaunch().is_enabled().unwrap_or(previous_autostart);
-            if actual != c.autostart {
-                c.autostart = actual;
-                warns.push(if requested.autostart {
-                    "autostart_enable_failed".to_owned()
-                } else {
-                    "autostart_disable_failed".to_owned()
-                });
+        match crate::autostart::set_enabled(&app, c.autostart) {
+            Ok(actual) => {
+                autostart_changed = actual != previous_autostart;
+                if actual != c.autostart {
+                    c.autostart = actual;
+                    warns.push(if requested.autostart {
+                        "autostart_enable_failed".to_owned()
+                    } else {
+                        "autostart_disable_failed".to_owned()
+                    });
+                }
+            }
+            Err(error) => {
+                crate::diagnostics::log(
+                    &state.app_dir,
+                    "WARN",
+                    format!("Não foi possível alterar a inicialização automática: {error}"),
+                );
+                let actual =
+                    crate::autostart::is_enabled(&app).unwrap_or(previous_autostart);
+                if actual != c.autostart {
+                    c.autostart = actual;
+                    warns.push(if requested.autostart {
+                        "autostart_enable_failed".to_owned()
+                    } else {
+                        "autostart_disable_failed".to_owned()
+                    });
+                }
             }
         }
     }
@@ -294,11 +305,7 @@ pub fn save_config(
                 }
             }
             if autostart_changed {
-                let _ = if previous_autostart {
-                    app.autolaunch().enable()
-                } else {
-                    app.autolaunch().disable()
-                };
+                let _ = crate::autostart::set_enabled(&app, previous_autostart);
             }
             if let Err(rollback_error) = config::save(&state.app_dir, &old) {
                 crate::diagnostics::log(
