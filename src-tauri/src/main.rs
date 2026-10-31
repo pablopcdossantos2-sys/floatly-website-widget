@@ -200,9 +200,8 @@ fn main() {
                     Err(error) => diagnostics::log(&dir, "ERRO", format!("O atalho alternativo CTRL+ALT+C não pôde ser interpretado: {error}")),
                 }
             }
-            if let Ok(mut current) = app.state::<AppState>().registered_shortcut.lock() {
-                *current = active_shortcut.clone().unwrap_or_default();
-            }
+            *app.state::<AppState>().lock_registered_shortcut() =
+                active_shortcut.clone().unwrap_or_default();
             if let Some(active) = active_shortcut.as_deref() {
                 if cfg.global_shortcut != active {
                     diagnostics::log(
