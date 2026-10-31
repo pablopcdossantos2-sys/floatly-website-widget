@@ -1,6 +1,8 @@
 # Floatly — Windows
 
-**Idiomas:** [Português (Brasil)](README.md) · [English](README-en.md) · Español
+**Idiomas / Languages / Idiomas:** [Português (Brasil)](README.md) · [English](README-en.md) · Español
+
+---
 
 Navegador compacto para Windows que mantiene una dirección HTTP/HTTPS elegida por el usuario en una pequeña ventana WebView2 sin bordes. La dirección se configura en el primer inicio; no se incluye ningún sitio de terceros por defecto. Desarrollado con Tauri 2 para Windows 10/11 x64.
 
