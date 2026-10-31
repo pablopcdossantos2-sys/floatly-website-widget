@@ -1,13 +1,13 @@
-# Guia passo a passo — publicação do Widget Website na Microsoft Store
+# Guia passo a passo — publicação do Floatly na Microsoft Store
 
-**Revisado em:** 29 de outubro de 2026  
+**Revisado em:** 30 de outubro de 2026  
 **Estado atual:** preparação técnica inicial concluída; ainda não pronto para submissão.
 
 Este guia foi escrito para que o desenvolvedor consiga executar a preparação e a publicação sem precisar conhecer previamente o Partner Center, o Tauri ou o fluxo de distribuição Win32 da Microsoft Store.
 
 ## 1. Entenda o caminho de publicação escolhido
 
-O Widget Website é um **navegador compacto para desktop Windows**, desenvolvido para manter um endereço HTTP/HTTPS escolhido pela pessoa usuária em uma janela flutuante. Ele pode exibir um site próprio, uma ferramenta hospedada pela própria pessoa ou outro site compatível. Não é um aplicativo dedicado a um serviço específico e não vem associado a nenhum domínio.
+O Floatly é um **navegador compacto para desktop Windows**, desenvolvido para manter um endereço HTTP/HTTPS escolhido pela pessoa usuária em uma janela flutuante. Ele pode exibir um site próprio, uma ferramenta hospedada pela própria pessoa ou outro site compatível. Não é um aplicativo dedicado a um serviço específico e não vem associado a nenhum domínio.
 
 A janela oferece integração própria com o desktop: aba para movimentação, redimensionamento, opção de manter no topo, bandeja do sistema, atalho global, sessão WebView2 persistente e zoom. Seu escopo é intencionalmente compacto: a pessoa configura o endereço nas Configurações e usa uma janela dedicada, em vez de substituir um navegador completo com abas e histórico.
 
@@ -17,9 +17,9 @@ A publicação EXE/MSI é diferente de enviar um ZIP ou um artefato do GitHub Ac
 
 ### Enquadramento nas políticas da Microsoft Store
 
-A regra 10.1.1 que exige que aplicativos da Web sejam publicados pelo proprietário do domínio é destinada a produtos enviados como web apps. O Widget Website não é a publicação de um site dentro de um invólucro: é um aplicativo Win32 genérico, distribuído como EXE, cuja função é fornecer uma janela de navegação configurável. O usuário escolhe o destino; o produto não depende de um site ou serviço específico. Portanto, essa regra não deve ser tratada como um bloqueio prévio para este projeto.
+A regra 10.1.1 que exige que aplicativos da Web sejam publicados pelo proprietário do domínio é destinada a produtos enviados como web apps. O Floatly não é a publicação de um site dentro de um invólucro: é um aplicativo Win32 genérico, distribuído como EXE, cuja função é fornecer uma janela de navegação configurável. O usuário escolhe o destino; o produto não depende de um site ou serviço específico. Portanto, essa regra não deve ser tratada como um bloqueio prévio para este projeto.
 
-Como o Widget Website navega na Web, a regra diretamente relevante é a **10.2.1**: o mecanismo deve ser Chromium ou Gecko e precisa permanecer dentro de duas versões principais do projeto de código aberto correspondente. O Tauri usa WebView2, baseado em Chromium. A configuração de Store seleciona offlineInstaller, que instala o Evergreen WebView2 Runtime; ela não fixa uma versão privada do Chromium. O Evergreen recebe atualizações automáticas da Microsoft.
+Como o Floatly navega na Web, a regra diretamente relevante é a **10.2.1**: o mecanismo deve ser Chromium ou Gecko e precisa permanecer dentro de duas versões principais do projeto de código aberto correspondente. O Tauri usa WebView2, baseado em Chromium. A configuração de Store seleciona offlineInstaller, que instala o Evergreen WebView2 Runtime; ela não fixa uma versão privada do Chromium. O Evergreen recebe atualizações automáticas da Microsoft.
 
 Há, porém, um detalhe operacional: uma instância do aplicativo que já está aberta pode continuar usando a versão anterior do Runtime até ser reiniciada. O processo de validação deve confirmar a versão efetivamente carregada e verificar que o aplicativo adota a versão atualizada após reiniciar. Se a pessoa mantiver o widget aberto por períodos longos, convém avaliar um aviso de reinicialização quando uma nova versão do Runtime estiver disponível.
 
@@ -39,7 +39,15 @@ Os itens abaixo foram implementados diretamente na branch `main`:
 - `npm run build:store` executa o build e assinatura no Windows. Ele assina o executável principal antes do empacotamento; usa o `bundle.windows.signCommand` do Tauri para assinar o desinstalador NSIS e o instalador externo; faz uma primeira compilação para materializar o toolset NSIS; assina também as DLLs originais da pasta de plugins usada pelo `makensis`; e reconstrói o instalador. Depois extrai o EXE e verifica a assinatura Authenticode de **todos os arquivos PE** encontrados. Se houver um executável ou DLL sem assinatura válida, interrompe o build. O processo gera `SHA256SUMS.txt` com a versão, o hash do instalador e a lista dos PE verificados.
 - O workflow manual **Build Microsoft Store package** executa os testes e gera o instalador assinado como artefato temporário do GitHub Actions.
 
-Esses recursos são preparação, não aprovação de certificação. O build de Store para quando não encontra `bundle.publisher` preenchido com a identidade real do desenvolvedor ou quando faltam os segredos do certificado.
+A marca Floatly agora também está aplicada ao pacote e à interface. O identificador do Tauri e as pastas internas `WidgetWebsite` foram preservados deliberadamente para manter compatibilidade com instalações já existentes.
+
+Esses recursos são preparação, não aprovação de certificação. O build de Store para quando não encontra `bundle.publisher` preenchido com a identidade real do publicador ou quando faltam os segredos do certificado.
+
+### Situação já preenchida no Partner Center
+
+O nome **Floatly** já está criado. A disponibilidade foi configurada como gratuita, pesquisável e habilitada para 240 de 240 regiões. A categoria principal é **Productivity**; a classificação etária IARC foi concluída. As notas para certificação já orientam o avaliador a configurar um endereço de teste na primeira execução. Os campos opcionais de requisitos de sistema foram deixados em branco, e o desenvolvedor removeu endereço residencial e telefone pessoais dos contatos públicos.
+
+A política de privacidade já contém o nome do responsável individual e o e-mail de privacidade. A página de suporte dedicada está em [SUPPORT.md](SUPPORT.md); use sua URL direta no campo de suporte do Partner Center, em vez da raiz do repositório.
 
 ## 3. Tarefas que exigem o desenvolvedor humano
 
@@ -50,24 +58,25 @@ O desenvolvedor já possui uma conta em storedeveloper.microsoft.com e já publi
 1. Acesse o Partner Center com a mesma conta Microsoft usada na publicação anterior.
 2. Abra **Apps and Games**.
 3. Confirme que a conta e o painel de publicação continuam acessíveis.
-4. Continue usando essa conta para reservar e administrar o Widget Website.
+4. Continue usando essa conta para administrar o produto Floatly já criado.
 
-### Etapa 2 — Reservar o nome do produto
+### Etapa 2 — Confirmar o produto já criado
+
+O produto já foi criado na conta Partner Center existente, com o nome **Floatly**. O breadcrumb do Partner Center e as telas de disponibilidade e propriedades compartilhadas pelo desenvolvedor confirmam que o produto está disponível para edição. **Não crie um segundo produto nem tente reservar o nome novamente.**
 
 1. No Partner Center, abra **Apps and Games**.
-2. Escolha **New Product**.
-3. Selecione **EXE or MSI app**.
-4. Reserve um nome exclusivo e apropriado.
-5. Registre o nome e o identificador do produto em um local seguro para a equipe.
+2. Localize e abra o produto **Floatly**.
+3. Confirme que o tipo de distribuição continua sendo **EXE or MSI app**.
+4. Continue usando essa mesma entrada para as próximas etapas da publicação.
 
-O nome **Widget Website** é o nome atual no código, não uma garantia de disponibilidade na Store. Se a reserva exigir outro nome, decida a marca final antes da primeira submissão. A listagem deve usar um nome único, sem empilhar palavras-chave ou descrições no título.
+A reserva de nome na Store não substitui uma pesquisa de marca registrada nem constitui, por si só, autorização jurídica de uso da marca.
 
 ### Etapa 3 — Definir a identidade do publisher
 
-O Tauri exige que o nome do publisher seja diferente do nome do produto. O valor deve representar a pessoa ou entidade que realmente publica o aplicativo e deve ser coerente com a identidade usada no certificado de assinatura e no Partner Center.
+O Tauri exige que o nome do publisher seja diferente do nome do produto. O valor deve representar a pessoa ou entidade que realmente publica o aplicativo e deve ser coerente com a identidade usada no certificado de assinatura e no Partner Center. O nome inserido na política de privacidade identifica o responsável pelo tratamento de dados; não o copie automaticamente para o publisher se o certificado apresentar outro nome.
 
-1. Defina o nome de publisher que aparecerá no Windows.
-2. Confirme a grafia com a conta Individual/Company e com o certificado de assinatura.
+1. Obtenha ou confirme o certificado Authenticode que será usado no pacote.
+2. Use para `bundle.publisher` o nome de publisher compatível com a identidade do certificado e com a conta Individual/Company do Partner Center.
 3. Abra `src-tauri/tauri.conf.json`.
 4. Dentro de `bundle`, adicione o campo `publisher` com o nome verdadeiro, por exemplo:
 
@@ -244,7 +253,7 @@ O instalador deve completar sem exibir uma interface de instalação. Um aviso d
 1. Abra **Configurações do Windows → Aplicativos → Aplicativos instalados** (ou **Painel de Controle → Programas e Recursos**).
 2. Confirme que nome do aplicativo, publisher e versão aparecem corretamente; nenhum campo pode ficar em branco ou mostrar uma identidade sem relação com o produto.
 3. Confirme que a instalação criou somente a entrada do próprio aplicativo, sem software adicional ou bundleware.
-4. Abra o Widget Website. A primeira execução deve pedir que você escolha um site.
+4. Abra o Floatly. A primeira execução deve pedir que você escolha um site.
 5. Configure uma página HTTPS de teste sob seu controle, se possível. Teste também um site de terceiros somente quando seus termos permitirem.
 6. Teste janela flutuante, aba de movimentação, redimensionamento, sempre no topo, bandeja, atalho global, zoom, sessão persistente, idioma e fluxo de login quando aplicável.
 7. Teste reinício do Windows, atualização e encerramento.
@@ -296,7 +305,7 @@ Antes de publicar:
 - Use capturas reais do aplicativo executando no Windows. Não use mockups que mostrem funções ainda não implementadas.
 - Mostre a primeira execução, a janela flutuante com uma página de demonstração autorizada e os controles nativos de desktop.
 - Não use telas do Investing.com, logotipos de sites de terceiros, marcas, imagens ou termos de pesquisa que sugiram parceria ou publicação por esses serviços.
-- Use no máximo sete termos/frases de pesquisa únicos, relevantes e próprios do Widget Website.
+- Use no máximo sete termos/frases de pesquisa únicos, relevantes e próprios do Floatly.
 - Não prometa que todos os sites, anúncios, players, autenticações ou páginas protegidas funcionarão. O comportamento depende da tecnologia e dos termos de cada site.
 - Defina a categoria correta. Não escolha uma categoria de navegador, calendário ou finanças só porque o usuário pode abrir um desses conteúdos.
 - Informe um canal real de suporte e uma página de política de privacidade acessível.
@@ -306,11 +315,11 @@ Antes de publicar:
 
 O produto mantém uma sessão WebView2 local, grava configuração/logs no perfil do usuário e acessa o site escolhido por essa pessoa. O repositório informa que não há telemetria e que os logs omitem query strings e fragments das URLs. O desenvolvedor deve verificar se essa descrição continua precisa na versão que será enviada.
 
-1. Defina e publique uma política de privacidade em URL estável, caso exigida pelas políticas ou pela legislação aplicável. A página deve explicar quais dados são armazenados, onde ficam, por quanto tempo, e como apagar a sessão/configuração.
-2. Informe na listagem o canal de suporte e os contatos de suporte exigidos pelo Partner Center.
+1. A política pública está em [PRIVACY_POLICY.md](PRIVACY_POLICY.md), com versão em português, inglês e espanhol, identificação do responsável e canal de privacidade. Confirme que a URL informada no Partner Center aponta para este arquivo e permanece acessível sem login.
+2. Use a página [SUPPORT.md](SUPPORT.md) como site de suporte e mantenha o e-mail de contato monitorado. Não publique endereço residencial ou telefone pessoal se não houver uma necessidade comercial e consentimento para essa exposição.
 3. Em **Certification notes**, explique que é um utilitário desktop de sites escolhidos pelo usuário, e descreva como o testador configura a URL na primeira execução.
 4. Forneça uma página de demonstração pública e controlada pelo desenvolvedor para a avaliação, caso a Microsoft solicite uma URL de teste. Não dependa de uma conta pessoal ou de credenciais privadas.
-5. Explique as limitações conhecidas: compatibilidade depende do site, alguns provedores bloqueiam certas navegações ou autenticações, e o Widget Website não é afiliado aos serviços exibidos.
+5. Explique as limitações conhecidas: compatibilidade depende do site, alguns provedores bloqueiam certas navegações ou autenticações, e o Floatly não é afiliado aos serviços exibidos.
 
 ## 7. Validação e envio
 
@@ -372,7 +381,7 @@ Para cada atualização:
 
 ## 10. Bloqueios atuais — não marcar como pronto
 
-- [ ] Nome do produto reservado na conta Partner Center existente.
+- [x] Produto **Floatly** criado na conta Partner Center existente.
 - [ ] Nome real do publisher definido e configurado em `src-tauri/tauri.conf.json`.
 - [ ] Certificado Authenticode obtido e segredos GitHub configurados.
 - [ ] Integração do Tauri Updater, chaves e endpoint de atualização implementados e testados.
@@ -380,7 +389,7 @@ Para cada atualização:
 - [ ] WebView2 Evergreen validado em Windows limpo: versão Chromium dentro do limite da regra 10.2.1 e adoção da versão atualizada após reiniciar o aplicativo.
 - [ ] Instalador silencioso, atualização, desinstalação e teste em máquina limpa aprovados.
 - [ ] Instalador hospedado em URL HTTPS direta, versionada e imutável.
-- [ ] Capturas reais, textos finais, classificação etária, suporte e privacidade prontos.
+- [ ] Capturas reais da versão final em Windows preparadas e revisadas.
 - [ ] Package validation aprovada no Partner Center.
 - [ ] Submissão enviada e certificação concluída.
 
