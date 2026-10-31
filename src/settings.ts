@@ -26,7 +26,7 @@ const translations: Record<Language, Record<string, string>> = {
     pageTitle: "Configurações", subtitle: "Personalize a janela do site escolhido.",
     themeGroup: "Tema da interface", themeLight: "Modo claro", themeDark: "Modo escuro",
     languageSection: "Idioma", languageLabel: "Idioma do programa",
-    languageHelp: "Altera o idioma das configurações e dos menus do Widget Website.",
+    languageHelp: "Altera o idioma das configurações e dos menus do Floatly.",
     siteSection: "Site", siteUrl: "URL do site", width: "Largura (px)", height: "Altura (px)",
     windowSection: "Janela", rememberPosition: "Lembrar posição e tamanho",
     rememberPositionHelp: "Reposiciona a janela se o monitor salvo não estiver conectado.",
@@ -56,7 +56,7 @@ const translations: Record<Language, Record<string, string>> = {
     pageTitle: "Settings", subtitle: "Customize the window for your chosen website.",
     themeGroup: "Settings appearance", themeLight: "Light mode", themeDark: "Dark mode",
     languageSection: "Language", languageLabel: "Application language",
-    languageHelp: "Changes the language of Widget Website settings and menus.",
+    languageHelp: "Changes the language of Floatly settings and menus.",
     siteSection: "Website", siteUrl: "Website URL", width: "Width (px)", height: "Height (px)",
     windowSection: "Window", rememberPosition: "Remember position and size",
     rememberPositionHelp: "Repositions the window if the saved monitor is no longer connected.",
@@ -86,7 +86,7 @@ const translations: Record<Language, Record<string, string>> = {
     pageTitle: "Configuración", subtitle: "Personaliza la ventana del sitio web elegido.",
     themeGroup: "Tema de la interfaz", themeLight: "Modo claro", themeDark: "Modo oscuro",
     languageSection: "Idioma", languageLabel: "Idioma del programa",
-    languageHelp: "Cambia el idioma de la configuración y los menús de Widget Website.",
+    languageHelp: "Cambia el idioma de la configuración y los menús de Floatly.",
     siteSection: "Sitio web", siteUrl: "URL del sitio", width: "Ancho (px)", height: "Alto (px)",
     windowSection: "Ventana", rememberPosition: "Recordar posición y tamaño",
     rememberPositionHelp: "Reubica la ventana si el monitor guardado ya no está conectado.",
@@ -170,8 +170,8 @@ function applyLanguage(language: string) {
   activeLanguage = language === "en" || language === "es" ? language : "pt-BR";
   document.documentElement.lang = activeLanguage;
   document.title = activeLanguage === "en"
-    ? "Settings — Widget Website"
-    : activeLanguage === "es" ? "Configuración — Widget Website" : "Configurações — Widget Website";
+    ? "Settings — Floatly"
+    : activeLanguage === "es" ? "Configuración — Floatly" : "Configurações — Floatly";
   document.querySelectorAll<HTMLElement>("[data-i18n]").forEach((element) => {
     const key = element.dataset.i18n;
     if (key) element.textContent = t(key);
