@@ -155,7 +155,7 @@ fn main() {
             diagnostics::log(&dir, "INFO", "Preparando configuração e janela principal.");
 
             let config_file_existed = dir.join("config.json").exists();
-            let (mut cfg, load_warnings, safe_to_persist) = config::load_with_warnings(&dir);
+            let (cfg, load_warnings, safe_to_persist) = config::load_with_warnings(&dir);
             for warning in &load_warnings {
                 diagnostics::log(&dir, "WARN", warning);
             }
@@ -203,15 +203,16 @@ fn main() {
             if let Ok(mut current) = app.state::<AppState>().registered_shortcut.lock() {
                 *current = active_shortcut.clone().unwrap_or_default();
             }
-            if let Some(active) = active_shortcut {
+            if let Some(active) = active_shortcut.as_deref() {
                 if cfg.global_shortcut != active {
-                    cfg.global_shortcut = active.clone();
-                    *app.state::<AppState>().lock_config() = cfg.clone();
-                    if safe_to_persist {
-                        if let Err(error) = config::save(&dir, &cfg) {
-                            diagnostics::log(&dir, "ERRO", format!("Não foi possível salvar o atalho alternativo ativo: {error}"));
-                        }
-                    }
+                    diagnostics::log(
+                        &dir,
+                        "WARN",
+                        format!(
+                            "Atalho alternativo {active} está ativo nesta sessão; a preferência salva {} será preservada para uma próxima tentativa.",
+                            cfg.global_shortcut
+                        ),
+                    );
                 }
             }
 
