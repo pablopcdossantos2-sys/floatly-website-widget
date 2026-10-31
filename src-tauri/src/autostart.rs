@@ -66,7 +66,10 @@ pub fn set_enabled(app: &AppHandle, enabled: bool) -> Result<bool, String> {
 
         task.Disable()
             .map_err(|error| format!("Não foi possível desativar a inicialização MSIX: {error}"))?;
-        return Ok(false);
+        let state = task.State().map_err(|error| {
+            format!("Não foi possível confirmar o estado da inicialização MSIX: {error}")
+        })?;
+        return Ok(startup_state_enabled(state));
     }
 
     if enabled {
