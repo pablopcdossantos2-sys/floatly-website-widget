@@ -1,6 +1,6 @@
 [package]
 name = "widget-website"
-version = "0.1.0"
+version = "1.0.0"
 description = "Floatly: navegador compacto para manter um site escolhido pelo usuário visível em uma janela flutuante"
 authors = ["pablopcdossantos2-sys"]
 edition = "2021"
