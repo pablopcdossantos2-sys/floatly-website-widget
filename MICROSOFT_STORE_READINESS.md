@@ -1,13 +1,21 @@
 # Microsoft Store — prontidão do Floatly (MSIX)
 
-**Última revisão:** 30 de outubro de 2026  
+**Última revisão:** 31 de outubro de 2026  
 **Formato:** MSIX x64. Não usar o fluxo EXE/MSI.
+
+## Identidade confirmada no Partner Center
+
+- Package/Identity/Name: `pablopcdsantos.Floatly`
+- Package/Identity/Publisher: `CN=A3E973B8-1411-4314-B754-F3DADD99C070`
+- Package/Properties/PublisherDisplayName: `pablopcdsantos`
+
+Os três valores já estão definidos como padrões do workflow. O build MSIX é acionado automaticamente a cada push para `main`.
 
 ## Próxima ação humana
 
-- [ ] Criar uma nova ficha em Partner Center → Apps and games → New product → **MSIX or PWA app** e reservar o nome Floatly.
-- [ ] Iniciar a submissão e copiar, em Product management → Product identity, o Package/Identity Name, Publisher e Publisher display name.
-- [ ] Informar esses três valores ao workflow **Build MSIX for Microsoft Store** na branch main e baixar o artefato floatly-msix-x64.
+- [ ] Aguardar o workflow **Build MSIX for Microsoft Store** concluir e baixar o artefato `floatly-msix-x64`.
+- [ ] Enviar o arquivo .msix ao Partner Center e executar a validação do pacote.
+- [ ] Finalizar listagem, screenshots reais e notas de certificação.
 
 Siga o [guia passo a passo](GUIA_PUBLICACAO_MICROSOFT_STORE.md). Não escolha EXE/MSI.
 
