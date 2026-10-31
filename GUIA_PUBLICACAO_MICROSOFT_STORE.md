@@ -3,15 +3,63 @@
 **Revisado em:** 30 de outubro de 2026  
 **Situação:** o produto Floatly já existe no Partner Center. Ainda não enviar para certificação.
 
-Este guia contém apenas tarefas humanas ainda pendentes e explica o que fazer sem pressupor experiência com certificados digitais ou ferramentas de desenvolvimento. As configurações básicas já concluídas no Partner Center não precisam ser refeitas.
+Este guia contém somente tarefas humanas ainda pendentes e explica o que fazer sem pressupor experiência com certificados digitais ou ferramentas de desenvolvimento. As configurações básicas já concluídas no Partner Center não precisam ser refeitas.
 
 ## Antes de começar
 
-O produto Floatly foi criado no Partner Center pelo caminho **EXE ou MSI app**. Portanto, estamos seguindo o modelo de instalador tradicional do Tauri. Nesse modelo, o instalador e os executáveis/DLLs contidos nele precisam receber assinatura Authenticode antes do envio à Store.
+O produto Floatly e suas propriedades básicas já estão cadastrados no Partner Center. Não refaça as etapas de disponibilidade, preço, categoria, classificação etária, política de privacidade ou site de suporte.
 
-Não compre nenhum certificado antes de concluir a etapa 1 deste guia. Há detalhes importantes sobre emissão para pessoa física no Brasil e sobre a proteção da chave privada.
+## 1. Primeiro, escolher o formato de publicação — não compre certificado agora
 
-## 1. Entender e escolher o certificado de assinatura
+Há duas formas de distribuir aplicativos Win32 na Microsoft Store. **O fato de o Floatly ser gratuito não determina se é necessário pagar por certificado. O que determina isso é o formato do pacote.**
+
+| Formato enviado à Store | Assinatura | Certificado pago pelo desenvolvedor |
+|---|---|---|
+| **MSIX** | A Microsoft assina novamente o pacote após a aprovação | **Não** |
+| **EXE/MSI tradicional** | O desenvolvedor assina o instalador e os executáveis/DLLs incluídos | **Sim** |
+
+A Microsoft recomenda MSIX e confirma que fornece assinatura e hospedagem para esse formato. Para MSIX, não é necessário comprar certificado de uma autoridade certificadora, fornecer PFX ou usar token USB/HSM. Já para EXE/MSI, a Store não assina novamente o instalador e exige assinatura Authenticode do publicador.
+
+Fontes oficiais:
+- https://learn.microsoft.com/en-us/windows/apps/publish/get-started
+- https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements
+- https://learn.microsoft.com/en-us/windows/apps/distribute-through-store/how-to-distribute-your-win32-app-through-microsoft-store
+
+### O que foi escolhido até agora no Floatly
+
+O projeto está atualmente configurado para gerar um instalador **NSIS EXE** pelo Tauri (bundle.targets: ["nsis"]), e o produto Floatly foi iniciado no Partner Center pelo fluxo **EXE ou MSI app**. Por isso, os guias anteriores passaram a exigir um certificado.
+
+Essa exigência é válida somente enquanto mantivermos esse formato. **Não é uma exigência geral da Microsoft Store nem uma consequência de o aplicativo ser gratuito.**
+
+### Minha recomendação: verificar a possibilidade de MSIX antes de gastar dinheiro
+
+A Microsoft recomenda MSIX. Há também um guia oficial específico para empacotar aplicativos Tauri como MSIX usando a ferramenta WinApp CLI:
+
+https://learn.microsoft.com/pt-br/windows/apps/dev-tools/winapp-cli/guides/tauri
+
+A migração exige alterações técnicas no repositório — manifesto de pacote, identidade, empacotamento, instalação e testes de recursos do Windows. Esse trabalho será feito no código; você não precisa editar Rust, TypeScript, YAML ou PowerShell.
+
+No formato MSIX, a Store também gerencia a distribuição de atualizações. Não precisamos implementar o Tauri Updater apenas para atualizar a versão instalada pela Store. A atualização in-app só continuará relevante se decidirmos manter o instalador EXE/MSI ou distribuir o aplicativo também fora da Store por esse mecanismo.
+
+### A única providência humana agora: consultar o suporte do Partner Center
+
+Como a ficha Floatly já foi reservada/criada como **EXE ou MSI app**, ainda precisamos confirmar se é possível alterar o tipo do produto antes da primeira publicação. A documentação da Microsoft descreve os fluxos de reserva MSIX e EXE/MSI separadamente, mas não encontrei uma orientação oficial que garanta a conversão de uma ficha já criada e ainda não publicada.
+
+**Não exclua o produto, não libere o nome e não crie outra ficha por conta própria.** Primeiro, abra o Partner Center, clique no ícone de ajuda (?) e selecione **Contact Support / Contato com Suporte**. Envie esta mensagem:
+
+> Olá. Reservei/criei o produto **Floatly** no Partner Center pelo fluxo **EXE or MSI app**, mas ainda não publiquei a primeira versão.
+>
+> Gostaria de distribuir o aplicativo como **MSIX**, para utilizar a assinatura de pacote fornecida pela própria Microsoft Store, em vez de manter o instalador EXE tradicional.
+>
+> É possível converter a ficha Floatly existente, ainda não publicada, de EXE/MSI para MSIX, preservando o nome reservado e a identidade do produto?
+>
+> Caso a conversão não seja possível, qual é o procedimento recomendado para publicar o Floatly como MSIX sem perder indevidamente o nome reservado? Devo solicitar a alteração dessa ficha ou será necessário criar outro produto?
+>
+> Por favor, não quero excluir nem liberar a reserva atual antes de receber essa orientação.
+
+Guarde a resposta do suporte e traga-a para que a próxima etapa seja definida corretamente. Até lá, não compre certificado, não gere chave de assinatura e não altere a ficha atual.
+
+## 2. Rota alternativa: manter o instalador EXE/NSIS e obter Code Signing
 
 ### O que é esse certificado?
 
@@ -106,21 +154,12 @@ Não basta o vendedor dizer que comercializa certificados digitais ou que o cert
 
 O campo \`bundle.publisher\` será ajustado no repositório para corresponder à identidade confirmada. Não edite Rust ou JSON manualmente.
 
-## 2. Alternativa caso não seja viável obter o certificado
+> **Atenção:** as etapas 3 a 8 abaixo só devem ser executadas se decidirmos manter a rota EXE/MSI. Se o suporte autorizar a conversão para MSIX, o fluxo de compilação, instalação, testes, atualização e envio será diferente; ele será preparado no repositório sem exigir que você compre certificado.
 
-A Microsoft também aceita aplicativos empacotados como **MSIX**. Nesse formato, quando o aplicativo é distribuído pela Store, a própria Microsoft assina novamente o pacote depois da certificação. Assim, não é necessário comprar um certificado Code Signing de uma AC para a publicação na Store.
 
-Documentação oficial:
-https://learn.microsoft.com/pt-br/windows/apps/package-and-deploy/code-signing-options
+## 3. Somente se mantivermos EXE/MSI: preparar a chave do atualizador
 
-Há uma documentação da Microsoft que ensina a empacotar aplicativos Tauri como MSIX usando o utilitário WinApp CLI:
-https://learn.microsoft.com/en-us/windows/apps/dev-tools/winapp-cli/guides/tauri
-
-Essa alternativa exige uma migração técnica do processo de empacotamento. Além disso, o Floatly já foi criado no Partner Center como produto EXE/MSI. Não sabemos se a Microsoft permitirá mudar o tipo desse produto em vez de abrir uma nova ficha. Portanto, não altere nem exclua o produto atual. Se nenhuma AC confirmar a emissão adequada para sua situação, podemos consultar o suporte do Partner Center sobre a conversão do produto existente para MSIX antes de decidir o caminho.
-
-## 3. Preparar a chave do atualizador
-
-O instalador EXE/MSI da Store não atualiza automaticamente as instalações existentes. Para que o Floatly consiga receber versões futuras, precisamos de atualização dentro do próprio aplicativo.
+Esta etapa é exclusiva da rota EXE/MSI. Nesse formato, a Store não gerencia as atualizações do instalador, então o Floatly precisa de atualização dentro do próprio aplicativo. **Se a Microsoft permitir a rota MSIX, não execute esta etapa para a distribuição pela Store:** o serviço da Store/Windows gerencia as atualizações do pacote.
 
 A opção planejada é o **Tauri Updater**, com um feed estático publicado em GitHub Releases. A integração do plugin, as permissões, a verificação de atualizações e o workflow são trabalho técnico no repositório; não edite esses arquivos manualmente.
 
@@ -149,7 +188,7 @@ https://github.com/pablopcdossantos2-sys/floatly-website-widget/releases/latest/
 
 Esse endereço só deverá ser usado depois que a integração estiver implementada e um release real publicar o arquivo e os artefatos assinados correspondentes.
 
-## 4. Gerar o pacote assinado da Microsoft Store
+## 4. Somente na rota EXE/MSI: gerar o pacote assinado da Microsoft Store
 
 Esta etapa depende da conclusão de duas tarefas técnicas no repositório: integração do atualizador e adaptação do processo Authenticode ao tipo de certificado contratado.
 
@@ -166,7 +205,7 @@ Quando o mantenedor confirmar que o processo está pronto:
 
 O ZIP do Actions é temporário; não use a URL do artefato como endereço permanente do pacote na Store. Se o workflow falhar, abra a execução, identifique o primeiro passo com falha e corrija-o antes de prosseguir.
 
-## 5. Testar o instalador em um Windows limpo
+## 5. Somente na rota EXE/MSI: testar o instalador em um Windows limpo
 
 Use uma máquina virtual ou um computador Windows de teste que não tenha uma instalação anterior do Floatly. Preserve uma cópia exata do EXE e do manifesto de hashes.
 
@@ -218,7 +257,7 @@ Compare a versão efetivamente instalada com as versões atuais documentadas pel
 
 Não publique se a assinatura, a atualização, a instalação offline do WebView2 ou qualquer função essencial falhar.
 
-## 6. Hospedar o instalador em uma URL permanente
+## 6. Somente na rota EXE/MSI: hospedar o instalador em uma URL permanente
 
 O Partner Center precisa de uma URL HTTPS pública que baixe diretamente o EXE, sem login, cookies ou etapas intermediárias.
 
@@ -237,7 +276,7 @@ Substitua a versão e o nome do arquivo pelos valores reais.
 
 Caso o Partner Center não aceite o redirecionamento do link de release, use uma hospedagem HTTPS que forneça um download direto.
 
-## 7. Finalizar a submissão existente no Partner Center
+## 7. Somente na rota EXE/MSI: finalizar a submissão existente no Partner Center
 
 O produto Floatly já existe e suas propriedades básicas estão preenchidas. Não volte a configurar disponibilidade, preço, categoria, classificação etária, requisitos do sistema, notas de certificação ou política de privacidade.
 
@@ -252,7 +291,7 @@ O produto Floatly já existe e suas propriedades básicas estão preenchidas. N�
 9. Quando a validação estiver aprovada, revise a submissão e clique em **Submit to the Store**.
 10. Acompanhe o resultado no Partner Center. Só anuncie a disponibilidade depois que o produto estiver publicado.
 
-## 8. Para futuras versões
+## 8. Somente na rota EXE/MSI: publicar futuras versões
 
 Depois da primeira publicação:
 
@@ -263,6 +302,10 @@ Depois da primeira publicação:
 
 ## Referências oficiais
 
+- [Microsoft Learn — iniciar publicação na Store e comparar MSIX com EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/get-started).
+- [Microsoft Learn — requisitos e assinatura de pacotes MSIX](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements).
+- [Microsoft Learn — comparação de distribuição Win32 pela Store](https://learn.microsoft.com/en-us/windows/apps/distribute-through-store/how-to-distribute-your-win32-app-through-microsoft-store).
+- [Microsoft Learn — guia Tauri + MSIX com WinApp CLI](https://learn.microsoft.com/pt-br/windows/apps/dev-tools/winapp-cli/guides/tauri).
 - [Microsoft Learn — opções de assinatura de código](https://learn.microsoft.com/pt-br/windows/apps/package-and-deploy/code-signing-options).
 - [Microsoft Learn — requisitos de pacote EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/app-package-requirements).
 - [Microsoft Trusted Root Program — participantes](https://ccadb.my.salesforce-sites.com/microsoft/IncludedCACertificateReportForMSFT).
