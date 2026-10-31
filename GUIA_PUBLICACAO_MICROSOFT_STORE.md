@@ -123,7 +123,7 @@ O script de Store verifica a validade do certificado, a finalidade Code Signing,
 
 Esta é uma pendência técnica real. O projeto ainda não tem o plugin Tauri Updater configurado, não possui chave pública/privada de atualização, endpoint de atualização nem artefatos assinados de atualização.
 
-O guia do Tauri para Microsoft Store indica que o instalador EXE/MSI precisa tratar atualizações. A solução Tauri usual é o plugin `tauri-plugin-updater`, que usa uma assinatura própria dos arquivos de atualização.
+Há uma distinção importante: a Microsoft informa que a Store não entrega atualizações automaticamente nem manualmente aos usuários que já instalaram um aplicativo EXE/MSI. O usuário existente só pode receber uma atualização dentro do aplicativo se o próprio instalador e o aplicativo oferecerem esse mecanismo. Novos clientes recebem o pacote atual da URL cadastrada na Store. O guia do Tauri para Microsoft Store também orienta que o instalador trate atualizações automáticas. Para este projeto, o caminho recomendado é implementar o plugin `tauri-plugin-updater`, que valida os arquivos de atualização com uma assinatura própria.
 
 O desenvolvedor precisa:
 
@@ -141,7 +141,7 @@ npm run tauri signer generate -- -w "$HOME\.tauri\widget-website.key"
 7. Ativar a geração dos artefatos do atualizador, implementar a consulta/aviso ao usuário e testar a atualização de uma versão anterior para a nova.
 8. Confirmar que a estratégia de atualização escolhida é compatível com a distribuição EXE/MSI cadastrada no Partner Center e com as obrigações da Store.
 
-A chave privada do atualizador nunca deve ser publicada. Se for perdida, os usuários das versões existentes podem ficar impossibilitados de validar atualizações futuras.
+A chave privada do atualizador nunca deve ser publicada. Se for perdida, os usuários das versões existentes podem ficar impossibilitados de validar atualizações futuras. A implementação do atualizador é, portanto, um requisito importante para manter instalações existentes atualizadas; não confunda o feed do Tauri com a submissão de uma nova URL versionada no Partner Center.
 
 Não configure um endpoint de exemplo ou uma chave falsa: o atualizador só deve ser ativado quando o endpoint, o feed, as chaves e o processo de release forem reais e testados.
 
@@ -283,7 +283,7 @@ https://downloads.seudominio.example/widget-website/0.1.0/widget-website-setup.e
 ### Etapa 11 — Criar a submissão no Partner Center
 
 1. Entre em **Partner Center → Apps and Games**.
-2. Abra o produto reservado na Etapa 2.
+2. Abra o produto **Floatly** já criado na Etapa 2.
 3. Complete as seções da submissão:
    - **Availability:** mercados, disponibilidade, preço e agenda de publicação.
    - **Properties:** categoria, subcategoria quando disponível, requisitos de sistema e informações de produto.
@@ -365,7 +365,7 @@ Para cada atualização:
 | Tarefa | Responsável |
 |---|---|
 | Acessar a conta Partner Center já existente | Já concluído pelo desenvolvedor |
-| Reservar o nome do produto e preencher o Partner Center | Desenvolvedor humano |
+| Criar o produto Floatly e preencher as propriedades básicas do Partner Center | Nome e propriedades principais já configurados pelo desenvolvedor |
 | Definir publisher real e preencher `bundle.publisher` | Desenvolvedor humano |
 | Obter certificado Authenticode de uma CA confiável | Desenvolvedor humano |
 | Guardar o PFX e criar GitHub Actions Secrets | Desenvolvedor humano |
@@ -376,24 +376,31 @@ Para cada atualização:
 | Testar instalação, desinstalação, atualização e comportamento em Windows limpo | Desenvolvedor humano |
 | Verificar WebView2 Evergreen/Chromium e adoção de atualizações após reiniciar o widget | Desenvolvedor humano |
 | Hospedar pacote em URL HTTPS versionada e imutável | Desenvolvedor humano |
-| Criar listagem, capturas reais, classificação etária e política de privacidade | Desenvolvedor humano |
+| Revisar textos finais e criar capturas reais da versão final | Desenvolvedor humano |
 | Executar package validation, submeter e responder à certificação | Desenvolvedor humano |
 
 ## 10. Bloqueios atuais — não marcar como pronto
 
 - [x] Produto **Floatly** criado na conta Partner Center existente.
+- [x] Disponibilidade gratuita, descoberta habilitada, 240 de 240 regiões e categoria Productivity configuradas.
+- [x] Classificação etária IARC, notas para certificação e requisitos de sistema opcionais revisados.
+- [x] Política de privacidade com responsável e contato preenchidos; telefone e endereço pessoais removidos dos dados públicos.
+- [ ] Alterar o Website de suporte no Partner Center para a URL direta de SUPPORT.md.
 - [ ] Nome real do publisher definido e configurado em `src-tauri/tauri.conf.json`.
 - [ ] Certificado Authenticode obtido e segredos GitHub configurados.
-- [ ] Integração do Tauri Updater, chaves e endpoint de atualização implementados e testados.
+- [ ] Integrar e testar o Tauri Updater (ou outro mecanismo de atualização dentro do aplicativo) para usuários de versões já instaladas.
 - [ ] Build Store executado com sucesso no Windows usando certificado real, com `SHA256SUMS.txt` validando todos os PE extraídos.
 - [ ] WebView2 Evergreen validado em Windows limpo: versão Chromium dentro do limite da regra 10.2.1 e adoção da versão atualizada após reiniciar o aplicativo.
-- [ ] Instalador silencioso, atualização, desinstalação e teste em máquina limpa aprovados.
+- [ ] Instalação silenciosa, atualização dentro do aplicativo, desinstalação e teste em máquina limpa aprovados.
 - [ ] Instalador hospedado em URL HTTPS direta, versionada e imutável.
 - [ ] Capturas reais da versão final em Windows preparadas e revisadas.
 - [ ] Package validation aprovada no Partner Center.
 - [ ] Submissão enviada e certificação concluída.
 
 ## Fontes oficiais consultadas
+
+- [Microsoft Learn — Publish update to your MSI/EXE app on the Store](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/publish-update-to-your-app-on-store) — a Store não distribui atualizações automaticamente aos usuários existentes de aplicativos EXE/MSI; o aplicativo pode oferecer atualizações in-app quando o instalador dá suporte a isso.
+- [Tauri — Microsoft Store](https://tauri.app/distribute/microsoft-store/) — orientação de que o instalador deve ser offline, assinado e tratar atualizações automáticas.
 
 - [Microsoft Store Policies — versão 7.20 (publicada em 15/09/2026; efetiva em 22/10/2026)](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies), especialmente as regras 10.1.1 (representação correta do produto) e 10.2.1 (mecanismo de navegação Web).
 - [WebView2: boas práticas de desenvolvimento](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/developer-guide) — uso do Evergreen Runtime e adoção de atualizações.
