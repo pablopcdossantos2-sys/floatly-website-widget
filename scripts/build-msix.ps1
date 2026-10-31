@@ -109,7 +109,7 @@ try {
     if (Test-Path $outputPath) { Remove-Item $outputPath -Force }
 
     Invoke-Checked "Empacotar MSIX sem assinatura para submissão à Microsoft Store" {
-        winapp pack $stageDirectory --no-sign --output $outputPath
+        winapp pack $stageDirectory --no-sign --executable "widget-website.exe" --output $outputPath
     }
 
     if (!(Test-Path $outputPath)) {
