@@ -24,11 +24,32 @@ static CONFIG_POISON_WARNING_LOGGED: AtomicBool = AtomicBool::new(false);
 static REGISTERED_SHORTCUT_POISON_WARNING_LOGGED: AtomicBool = AtomicBool::new(false);
 
 const RESERVED_SHORTCUTS: &[&str] = &[
-    "CTRL+C", "CTRL+V", "CTRL+X", "CTRL+Z", "CTRL+Y", "CTRL+A", "CTRL+S",
-    "CTRL+F", "CTRL+P", "CTRL+W", "CTRL+T", "CTRL+N",
-    "CTRL+ESC", "CTRL+ESCAPE", "CTRL+SHIFT+ESC", "CTRL+SHIFT+ESCAPE",
-    "ALT+F4", "ALT+TAB", "ALT+ESC", "ALT+ESCAPE", "ALT+SPACE",
-    "SUPER+L", "SUPER+D", "SUPER+E", "SUPER+R", "SUPER+TAB",
+    "CTRL+C",
+    "CTRL+V",
+    "CTRL+X",
+    "CTRL+Z",
+    "CTRL+Y",
+    "CTRL+A",
+    "CTRL+S",
+    "CTRL+F",
+    "CTRL+P",
+    "CTRL+W",
+    "CTRL+T",
+    "CTRL+N",
+    "CTRL+ESC",
+    "CTRL+ESCAPE",
+    "CTRL+SHIFT+ESC",
+    "CTRL+SHIFT+ESCAPE",
+    "ALT+F4",
+    "ALT+TAB",
+    "ALT+ESC",
+    "ALT+ESCAPE",
+    "ALT+SPACE",
+    "SUPER+L",
+    "SUPER+D",
+    "SUPER+E",
+    "SUPER+R",
+    "SUPER+TAB",
 ];
 
 fn default_language() -> String {
@@ -238,11 +259,7 @@ fn roaming_directory(
 ) -> PathBuf {
     appdata
         .or_else(|| {
-            local_appdata.map(|path| {
-                path.parent()
-                    .unwrap_or(path.as_path())
-                    .join("Roaming")
-            })
+            local_appdata.map(|path| path.parent().unwrap_or(path.as_path()).join("Roaming"))
         })
         .or_else(|| user_profile.map(|path| path.join("AppData").join("Roaming")))
         .unwrap_or_else(|| temp_dir.join("Floatly").join("Roaming"))
@@ -288,7 +305,12 @@ pub fn backup_before_repair(dir: &Path) -> Result<Option<PathBuf>, String> {
     let mut backups = fs::read_dir(dir)
         .map_err(|error| format!("Não foi possível listar os backups de configuração: {error}"))?
         .filter_map(Result::ok)
-        .filter(|entry| entry.file_name().to_string_lossy().starts_with("config.json.repaired-"))
+        .filter(|entry| {
+            entry
+                .file_name()
+                .to_string_lossy()
+                .starts_with("config.json.repaired-")
+        })
         .map(|entry| entry.path())
         .collect::<Vec<_>>();
     backups.sort();
@@ -686,7 +708,11 @@ mod tests {
         ));
         fs::create_dir_all(&dir).unwrap();
         let source = dir.join("config.json");
-        fs::write(&source, r#"{"site_url":"https://example.com/reset/secret"}"#).unwrap();
+        fs::write(
+            &source,
+            r#"{"site_url":"https://example.com/reset/secret"}"#,
+        )
+        .unwrap();
 
         let mut latest_backup = None;
         for _ in 0..5 {
@@ -700,7 +726,12 @@ mod tests {
         let backups = fs::read_dir(&dir)
             .unwrap()
             .filter_map(Result::ok)
-            .filter(|entry| entry.file_name().to_string_lossy().starts_with("config.json.repaired-"))
+            .filter(|entry| {
+            entry
+                .file_name()
+                .to_string_lossy()
+                .starts_with("config.json.repaired-")
+        })
             .count();
         assert_eq!(backups, 3);
         assert!(source.exists());
@@ -736,7 +767,12 @@ mod tests {
     #[test]
     fn normalization_rejects_reserved_system_shortcuts() {
         for shortcut in [
-            "CTRL+C", "ctrl+v", "CTRL+SHIFT+ESC", "ALT+F4", "ALT+TAB", "SUPER+L",
+            "CTRL+C",
+            "ctrl+v",
+            "CTRL+SHIFT+ESC",
+            "ALT+F4",
+            "ALT+TAB",
+            "SUPER+L",
         ] {
             let mut config = AppConfig {
                 global_shortcut: shortcut.into(),
