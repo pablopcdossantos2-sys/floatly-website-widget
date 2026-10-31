@@ -15,7 +15,7 @@ use tauri::{
 use url::Url;
 static LOGIN_ID: AtomicU64 = AtomicU64::new(1);
 const INIT: &str = r#"(function boot(){
-const localTauriOrigin=(location.protocol==='tauri:'&&location.host==='localhost')||(location.protocol==='http:'&&['tauri.localhost','127.0.0.1','localhost'].includes(location.host));
+const localTauriOrigin=(location.protocol==='tauri:'&&location.hostname==='localhost'&&!location.port)||(location.protocol==='http:'&&((location.hostname==='tauri.localhost'&&!location.port)||(location.hostname==='127.0.0.1'&&location.port==='1420')));
 if(!(/^https?:$/.test(location.protocol)||localTauriOrigin)||window.top!==window)return;
 if(!document.documentElement){document.addEventListener('DOMContentLoaded',boot,{once:true});return;}
 let UI_LANGUAGE='__WIDGET_LANGUAGE__';
@@ -1632,7 +1632,7 @@ mod navigation_policy_tests {
     fn configured_www_and_apex_hosts_are_treated_as_the_same_site() {
         let cfg = config("https://www.example.com/dashboard");
         assert_eq!(decide_main(&Url::parse("https://example.com/account/profile").unwrap(), &cfg), NavAction::Allow);
-        assert_eq!(decide_main(&Url::parse("https://api.example.com/v1").unwrap(), &cfg), NavAction::Allow);
+        assert_eq!(decide_main(&Url::parse("https://api.example.com/v1").unwrap(), &cfg), NavAction::External);
         assert_eq!(decide_main(&Url::parse("https://evilexample.com/").unwrap(), &cfg), NavAction::External);
     }
 
@@ -1794,9 +1794,13 @@ mod internal_app_navigation_tests {
             "tauri://localhost:4444/",
             "http://tauri.localhost:8080/",
             "https://tauri.localhost/",
+            "http://127.0.0.1:1421/",
         ] {
             let url = Url::parse(address).unwrap();
             assert!(!is_internal_app_url(&url), "accepted unexpected origin: {address}");
+        }
+        if cfg!(debug_assertions) {
+            assert!(is_internal_app_url(&Url::parse("http://127.0.0.1:1420/").unwrap()));
         }
     }
 }
