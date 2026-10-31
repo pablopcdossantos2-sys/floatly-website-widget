@@ -206,14 +206,30 @@ pub fn log(dir: &Path, level: &str, message: impl AsRef<str>) {
     }
 }
 
-pub fn sanitize_url(url: &url::Url) -> String {
-    // Never include credentials, query strings, fragments, or an unbounded path.
-    let path: String = url.path().chars().take(96).collect();
-    let path = if url.path().chars().count() > 96 {
-        format!("{path}…")
+fn redact_path(path: &str) -> String {
+    let segments = path
+        .split('/')
+        .filter(|segment| !segment.is_empty())
+        .take(2)
+        .map(|segment| {
+            let contains_digit = segment.chars().any(|character| character.is_ascii_digit());
+            if segment.chars().count() >= 20 || (segment.chars().count() >= 8 && contains_digit) {
+                "…".to_owned()
+            } else {
+                segment.to_owned()
+            }
+        })
+        .collect::<Vec<_>>();
+    if segments.is_empty() {
+        "/".to_owned()
     } else {
-        path
-    };
+        format!("/{}", segments.join("/"))
+    }
+}
+
+pub fn sanitize_url(url: &url::Url) -> String {
+    // Never include credentials, query strings, fragments, IDs, or token-like path segments.
+    let path = redact_path(url.path());
     let port = url
         .port()
         .map(|port| format!(":{port}"))
@@ -334,7 +350,7 @@ pub fn start_watchdog(_app: AppHandle, dir: PathBuf) {
             let now = now_ms();
 
             // Read cached visibility rather than calling Tauri window APIs from a worker thread.
-            if !NATIVE_WINDOW_VISIBLE.load(Ordering::SeqCst) {
+            if !NATIVE_WINDOW_VISIBLE.load(Ordering::SeqCst) || native_window_minimized() {
                 reset_grace();
                 continue;
             }
@@ -384,6 +400,21 @@ pub fn start_watchdog(_app: AppHandle, dir: PathBuf) {
             format!("Não foi possível iniciar o monitor de atividade: {error}"),
         );
     }
+}
+
+#[cfg(windows)]
+fn native_window_minimized() -> bool {
+    use windows_sys::Win32::UI::WindowsAndMessaging::IsIconic;
+
+    let raw = NATIVE_WINDOW_HANDLE.load(Ordering::SeqCst);
+    raw != 0 && unsafe {
+        IsIconic(raw as windows_sys::Win32::Foundation::HWND) != 0
+    }
+}
+
+#[cfg(not(windows))]
+fn native_window_minimized() -> bool {
+    false
 }
 
 #[cfg(windows)]
@@ -517,6 +548,18 @@ mod tests {
         let contents = fs::read_to_string(log_path(&dir)).unwrap();
         assert!(contents.contains("[TEST] diagnostic log test"));
         fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn sanitize_url_redacts_identifiers_and_token_like_path_segments() {
+        let url = url::Url::parse("https://example.com/reset/ab12cd34ef56?t=secret").unwrap();
+        assert_eq!(sanitize_url(&url), "scheme=https host=example.com path=/reset/…");
+    }
+
+    #[test]
+    fn sanitize_url_keeps_short_non_identifying_path_segments() {
+        let url = url::Url::parse("https://example.com/login").unwrap();
+        assert_eq!(sanitize_url(&url), "scheme=https host=example.com path=/login");
     }
 
     #[test]
