@@ -68,9 +68,9 @@ No guardes una clave privada en el repositorio ni en este README. La compilació
 
 **Importante:** una firma válida no garantiza que Microsoft Defender SmartScreen nunca muestre un aviso. Las aplicaciones o los archivos nuevos pueden mostrar advertencias hasta que se establezca la reputación del editor y del archivo. Publicar en Microsoft Store es la forma más directa de evitar avisos de descarga de SmartScreen. Consulta la [guía de reputación de SmartScreen de Microsoft](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) y la [guía de firma de Tauri para Windows](https://tauri.app/distribute/sign/windows/).
 
-## Ejemplo de uso: Investing.com
+## Ejemplo de uso
 
-Investing.com es solo un ejemplo de sitio web que puede mostrar el widget. Para usarlo, abre **Configuración → URL del sitio** e introduce `https://br.investing.com/economic-calendar`. El widget no es exclusivo de este servicio: puedes configurar cualquier sitio HTTP o HTTPS.
+Para probar el widget, abre **Configuración → URL del sitio** e introduce `https://example.com`. Esta es solo una dirección de demostración: sustitúyela por la dirección HTTP o HTTPS del sitio web que quieras mantener abierto.
 
 Para los sitios que requieren inicio de sesión, utiliza el flujo de autenticación proporcionado por el propio sitio. El menú de la bandeja permite iniciar sesión o configurar el sitio web.
 
