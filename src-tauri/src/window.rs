@@ -513,7 +513,7 @@ pub fn create_main(
         .replace("__WIDGET_HEARTBEAT_TOKEN__", &heartbeat_token);
     let navigation_action_token = action_token.clone();
     let page_load_app = app.clone();
-    let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Widget Website").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(init_script)
+    let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Floatly").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(init_script)
 .on_page_load(move|window,payload|{
     if payload.event()!=PageLoadEvent::Finished{return;}
     let url=payload.url();
