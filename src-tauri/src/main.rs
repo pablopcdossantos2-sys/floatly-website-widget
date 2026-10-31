@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod autostart;
 mod commands;
 mod config;
 mod diagnostics;
@@ -10,7 +11,7 @@ mod window;
 use config::AppState;
 use std::str::FromStr;
 use tauri::{AppHandle, Manager, WindowEvent};
-use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
+use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 #[cfg(windows)]
@@ -148,13 +149,9 @@ fn main() {
             for warning in &load_warnings {
                 diagnostics::log(&dir, "WARN", warning);
             }
-            let saved_autostart = cfg.autostart;
-            if let Ok(enabled) = app.autolaunch().is_enabled() {
-                cfg.autostart = enabled;
-            }
-            let config_needs_persist = !config_file_existed
-                || !load_warnings.is_empty()
-                || cfg.autostart != saved_autostart;
+            // The settings command reads the actual OS startup state. Avoid blocking
+            // the application setup thread on WinRT's asynchronous StartupTask API.
+            let config_needs_persist = !config_file_existed || !load_warnings.is_empty();
             if safe_to_persist && config_needs_persist {
                 if let Err(error) = config::save(&dir, &cfg) {
                     diagnostics::log(&dir, "ERRO", format!("Não foi possível persistir a configuração inicial: {error}"));
