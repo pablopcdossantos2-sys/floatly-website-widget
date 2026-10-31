@@ -48,6 +48,8 @@ jobs:
 
       - name: Set up WinApp CLI
         uses: microsoft/setup-WinAppCli@cc8ea9a08b3ee3db43d5aa6bddda4a0e87d800f7 # v0.1
+        with:
+          version: v0.7.1
 
       - name: Cache Cargo registry only
         uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # actions/cache v6.2.0
