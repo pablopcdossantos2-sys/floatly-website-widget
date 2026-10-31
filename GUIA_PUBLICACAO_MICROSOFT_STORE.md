@@ -65,7 +65,7 @@ Guarde a resposta do suporte e traga-a para que a próxima etapa seja definida c
 
 É uma identidade digital usada para assinar programas do Windows. Ela permite ao Windows verificar quem publicou o executável e se o arquivo foi alterado depois da assinatura.
 
-Para o Floatly, precisamos de um certificado público **Code Signing OV**, compatível com **Microsoft Authenticode**, cuja cadeia de certificação termine em uma autoridade certificadora (AC/CA) participante do **Microsoft Trusted Root Program**.
+Somente se decidirmos manter o Floatly como instalador EXE/NSIS, será necessário um certificado público **Code Signing OV**, compatível com **Microsoft Authenticode**, cuja cadeia de certificação termine em uma autoridade certificadora (AC/CA) participante do **Microsoft Trusted Root Program**. Essa compra não se aplica à publicação MSIX pela Store.
 
 Não confunda os produtos:
 
