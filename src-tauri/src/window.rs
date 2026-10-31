@@ -1434,7 +1434,7 @@ pub fn save_window_state(app: &AppHandle, e: &WindowEvent) {
     let copy = c.clone();
     drop(c);
     schedule_debounced_config_save(app);
-    let _ = app.emit("config-changed", &copy);
+    let _ = app.emit_to("settings", "config-changed", &copy);
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 struct ReloadState {
