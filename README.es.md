@@ -7,7 +7,7 @@ Navegador compacto para Windows que mantiene una dirección HTTP/HTTPS elegida p
 ## Funciones
 
 - Icono en la bandeja del sistema, instancia única y atajo global (predeterminado: CTRL+ALT+C). Cerrar la ventana la oculta en la bandeja; usa **Salir** para cerrar la aplicación.
-- Sesión WebView2 persistente en `%APPDATA%\\WidgetWebsite\\webview-data`; configuración en `%APPDATA%\\WidgetWebsite\\config.json`. Se conserva el nombre interno anterior de la carpeta para mantener los datos de instalaciones previas de Floatly.idgetWebsite\config.json.
+- Sesión WebView2 persistente en %APPDATA%\WidgetWebsite\webview-data; configuración en %APPDATA%\WidgetWebsite\config.json. Se conserva el nombre interno anterior de la carpeta para mantener los datos de instalaciones previas de Floatly.
 - Interfaz disponible en portugués de Brasil, inglés y español. Cambia el idioma en **Configuración → Idioma**.
 - Una pequeña pestaña en la parte superior central permite arrastrar el widget. Las zonas de interacción de los bordes siguen activas, pero son transparentes y no dibujan un marco alrededor del contenido. El tamaño y la posición se pueden cambiar en la configuración.
 - El tamaño predeterminado es 350 × 550 px y el zoom predeterminado del navegador integrado es del 80 %; ambos se pueden cambiar en la configuración.
