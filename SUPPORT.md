@@ -21,11 +21,11 @@ O Floatly não vem com um site de terceiros predefinido. A compatibilidade e os 
 
 ## Informações úteis para diagnóstico
 
-O Floatly mantém registros locais em:
+Em uma instalação convencional pelo instalador NSIS, os registros locais ficam normalmente em:
 
 `%APPDATA%\WidgetWebsite\diagnostics.log`
 
-O arquivo pode conter horários, mensagens técnicas, informações sobre navegação e caminhos locais do Windows. Antes de enviá-lo ao suporte, revise seu conteúdo e remova dados pessoais, endereços ou outros detalhes que não queira compartilhar. O aplicativo não envia automaticamente esses registros ao desenvolvedor.
+O arquivo pode conter horários, mensagens técnicas, informações sobre navegação e caminhos locais do Windows. As URLs são parcialmente reduzidas antes de serem registradas, mas isso não elimina todo risco de informação pessoal; revise o conteúdo e remova dados que não queira compartilhar. O aplicativo não envia automaticamente os registros ao desenvolvedor. Na instalação MSIX pela Microsoft Store, o Windows pode redirecionar o armazenamento de dados para a área privada do pacote, portanto o caminho NSIS acima pode não se aplicar.
 
 Para preservar a privacidade, não envie senhas, códigos de autenticação, cookies, tokens ou arquivos de perfil do WebView2. Descreva o problema e compartilhe somente o trecho mínimo de log necessário.
 
@@ -62,11 +62,11 @@ Floatly does not preconfigure a third-party website. Compatibility and sign-in f
 
 ## Useful diagnostic information
 
-Floatly keeps local logs at:
+In a conventional NSIS installation, local logs are normally stored at:
 
 `%APPDATA%\WidgetWebsite\diagnostics.log`
 
-The file may contain timestamps, technical messages, navigation information, and local Windows paths. Review it before sending it to support and remove personal data, addresses, or other details you do not want to share. The application does not automatically send these logs to the developer.
+The file may contain timestamps, technical messages, navigation information, and local Windows paths. URLs are partially redacted before logging, but this does not remove every privacy risk; review the file and remove anything you do not want to share. The application does not automatically send logs to the developer. In a Microsoft Store MSIX installation, Windows may redirect application data to the package's private storage area, so the NSIS path above may not apply.
 
 For privacy, do not send passwords, authentication codes, cookies, tokens, or WebView2 profile files. Describe the issue and share only the minimum log excerpt needed.
 
@@ -103,11 +103,11 @@ Floatly no incluye un sitio web de terceros preconfigurado. La compatibilidad y 
 
 ## Información útil para el diagnóstico
 
-Floatly conserva registros locales en:
+En una instalación convencional mediante el instalador NSIS, los registros locales suelen guardarse en:
 
 `%APPDATA%\WidgetWebsite\diagnostics.log`
 
-El archivo puede contener fechas, mensajes técnicos, información de navegación y rutas locales de Windows. Revísalo antes de enviarlo al soporte y elimina datos personales, direcciones u otros detalles que no quieras compartir. La aplicación no envía automáticamente estos registros al desarrollador.
+El archivo puede contener fechas, mensajes técnicos, información de navegación y rutas locales de Windows. Las URL se redactan parcialmente antes de registrarse, pero esto no elimina todos los riesgos de privacidad; revisa el archivo y elimina cualquier dato que no quieras compartir. La aplicación no envía automáticamente los registros al desarrollador. En una instalación MSIX desde Microsoft Store, Windows puede redirigir los datos de la aplicación al almacenamiento privado del paquete, por lo que la ruta NSIS anterior puede no ser válida.
 
 Por privacidad, no envíes contraseñas, códigos de autenticación, cookies, tokens ni archivos del perfil de WebView2. Describe el problema y comparte solo el fragmento mínimo del registro que sea necesario.
 
