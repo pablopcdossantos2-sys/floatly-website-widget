@@ -23,9 +23,9 @@ let DRAG_LOCKED='__WIDGET_LOCKED__'==='true';
 const ACTION_TOKEN='__WIDGET_ACTION_TOKEN__';
 const HEARTBEAT_TOKEN='__WIDGET_HEARTBEAT_TOKEN__';
 const UI_COPY={
- 'pt-BR':{dragTitle:'Arraste a aba superior para mover o widget.',dragLabel:'Mover o widget pela aba superior',offlineTitle:'Sem conexão com o calendário',offlineMessage:'O site não respondeu. Verifique a internet e tente novamente.',retry:'Tentar novamente'},
- en:{dragTitle:'Drag the top handle to move the widget.',dragLabel:'Move the widget using the top handle',offlineTitle:'Calendar connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
- es:{dragTitle:'Arrastra el tirador superior para mover el widget.',dragLabel:'Mover el widget desde el tirador superior',offlineTitle:'Sin conexión con el calendario',offlineMessage:'El sitio no respondió. Comprueba la conexión e inténtalo de nuevo.',retry:'Reintentar'}
+ 'pt-BR':{dragTitle:'Arraste a aba superior para mover o widget.',dragLabel:'Mover o widget pela aba superior',offlineTitle:'Sem conexão com o site',offlineMessage:'O site não respondeu. Verifique a internet e tente novamente.',retry:'Tentar novamente'},
+ en:{dragTitle:'Drag the top handle to move the widget.',dragLabel:'Move the widget using the top handle',offlineTitle:'Website connection unavailable',offlineMessage:'The website did not respond. Check your connection and try again.',retry:'Try again'},
+ es:{dragTitle:'Arrastra el tirador superior para mover el widget.',dragLabel:'Mover el widget desde el tirador superior',offlineTitle:'Sin conexión con el sitio web',offlineMessage:'El sitio no respondió. Comprueba la conexión e inténtalo de nuevo.',retry:'Reintentar'}
 };
 function setUiLanguage(language){UI_LANGUAGE=UI_COPY[language]?language:'pt-BR';const copy=UI_COPY[UI_LANGUAGE];const drag=document.getElementById('__widget_drag');if(drag){drag.title=copy.dragTitle;drag.setAttribute('aria-label',copy.dragLabel)}document.querySelectorAll('#__widget_drag_frame .__widget_drag_edge').forEach(edge=>{edge.title=copy.dragTitle;edge.setAttribute('aria-label',copy.dragLabel)});const overlay=document.getElementById('__widget_offline');if(overlay){const heading=overlay.querySelector('h2');const paragraph=overlay.querySelector('p');const button=overlay.querySelector('button');if(heading)heading.textContent=copy.offlineTitle;if(paragraph)paragraph.textContent=copy.offlineMessage;if(button)button.textContent=copy.retry}}
 window.__widgetSetLanguage=setUiLanguage;
@@ -46,13 +46,13 @@ style.textContent=`
 #__widget_drag_frame .__widget_drag_edge--right{right:-3px;top:0;bottom:0;width:9px;cursor:move}
 #__widget_offline{position:fixed;z-index:2147483646;inset:0;background:rgba(248,250,253,.98);color:#203247;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font:14px Segoe UI,Arial,sans-serif;padding:24px}
 #__widget_offline button{border:0;background:#1769d2;color:#fff;border-radius:8px;padding:10px 14px}
-html{overflow-y:auto!important}
-html,body,*{scrollbar-width:thin;scrollbar-color:transparent transparent}
-html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:9px;height:9px}
-html::-webkit-scrollbar-track,body::-webkit-scrollbar-track,*::-webkit-scrollbar-track{background:transparent}
-html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb,*::-webkit-scrollbar-thumb{background-color:transparent;border:2px solid transparent;border-radius:9px;background-clip:padding-box;transition:background-color .16s ease}
-html.__widget_scroll_active,html.__widget_scroll_active body,html.__widget_scroll_active *{scrollbar-color:rgba(100,116,139,.82) transparent!important}
-html.__widget_scroll_active::-webkit-scrollbar-thumb,html.__widget_scroll_active body::-webkit-scrollbar-thumb,html.__widget_scroll_active *::-webkit-scrollbar-thumb{background-color:rgba(100,116,139,.78)!important}
+
+html,body{scrollbar-width:thin;scrollbar-color:transparent transparent}
+html::-webkit-scrollbar,body::-webkit-scrollbar{width:9px;height:9px}
+html::-webkit-scrollbar-track,body::-webkit-scrollbar-track{background:transparent}
+html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb{background-color:transparent;border:2px solid transparent;border-radius:9px;background-clip:padding-box;transition:background-color .16s ease}
+html.__widget_scroll_active,html.__widget_scroll_active body{scrollbar-color:rgba(100,116,139,.82) transparent!important}
+html.__widget_scroll_active::-webkit-scrollbar-thumb,html.__widget_scroll_active body::-webkit-scrollbar-thumb{background-color:rgba(100,116,139,.78)!important}
 `;
 (document.head||document.documentElement).appendChild(style);
 function action(p){location.href='widget-action://'+ACTION_TOKEN+'/'+p}
@@ -165,7 +165,25 @@ function revealScrollbar(){const root=document.documentElement;if(!root)return;r
 document.addEventListener('wheel',revealScrollbar,{passive:true,capture:true});
 document.addEventListener('scroll',revealScrollbar,{passive:true,capture:true});
 document.addEventListener('pointermove',e=>{if(innerWidth-e.clientX<=24)revealScrollbar()},{passive:true});
-async function check(){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{await fetch(new URL('/favicon.ico',location.origin),{mode:'no-cors',cache:'no-store',signal:c.signal})}finally{clearTimeout(t)}document.getElementById('__widget_offline')?.remove()}catch(_){if(!document.getElementById('__widget_offline')){const b=document.createElement('div');b.id='__widget_offline';const copy=UI_COPY[UI_LANGUAGE]||UI_COPY['pt-BR'];b.innerHTML='<div style="font-size:30px">⌁</div><h2></h2><p></p><button type="button"></button>';b.querySelector('h2').textContent=copy.offlineTitle;b.querySelector('p').textContent=copy.offlineMessage;b.querySelector('button').textContent=copy.retry;(document.body||document.documentElement).appendChild(b);b.querySelector('button').addEventListener('click',()=>location.reload())}}
+async function check(){
+ if(!/^https?:$/.test(location.protocol))return;
+ try{
+  const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);
+  try{await fetch(new URL('/favicon.ico',location.origin),{mode:'no-cors',cache:'no-store',signal:c.signal})}finally{clearTimeout(t)}
+  document.getElementById('__widget_offline')?.remove();
+ }catch(_){
+  if(!document.getElementById('__widget_offline')){
+   const b=document.createElement('div');b.id='__widget_offline';
+   const copy=UI_COPY[UI_LANGUAGE]||UI_COPY['pt-BR'];
+   const symbol=document.createElement('div');symbol.textContent='⌁';
+   const heading=document.createElement('h2');heading.textContent=copy.offlineTitle;
+   const paragraph=document.createElement('p');paragraph.textContent=copy.offlineMessage;
+   const button=document.createElement('button');button.type='button';button.textContent=copy.retry;
+   b.append(symbol,heading,paragraph,button);
+   (document.body||document.documentElement).appendChild(b);
+   button.addEventListener('click',()=>location.reload());
+  }
+ }
 }
 addEventListener('offline',check);
 setInterval(check,30000);
@@ -661,7 +679,9 @@ fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
     };
 
     if unsafe { GetAsyncKeyState(VK_LBUTTON as i32) } as u16 & 0x8000 == 0 {
-        return Err("Arraste cancelado porque o botão esquerdo do mouse já foi solto.".into());
+        // The pointer was released before the native move could start. This is an
+        // intentional cancellation, not a failure that should trigger Tauri fallback.
+        return Ok(());
     }
     let raw_hwnd = window.hwnd().map_err(|error| error.to_string())?;
     let mut cursor: POINT = unsafe { std::mem::zeroed() };
@@ -711,9 +731,8 @@ fn begin_native_resize(window: &WebviewWindow, direction: &str) -> Result<(), St
         _ => return Err("Direção de redimensionamento inválida.".into()),
     };
     if unsafe { GetAsyncKeyState(VK_LBUTTON as i32) } as u16 & 0x8000 == 0 {
-        return Err(
-            "Redimensionamento cancelado porque o botão esquerdo do mouse já foi solto.".into(),
-        );
+        // The pointer was released before the native resize could start.
+        return Ok(());
     }
     let raw_hwnd = window.hwnd().map_err(|error| error.to_string())?;
     let mut cursor: POINT = unsafe { std::mem::zeroed() };
@@ -832,7 +851,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
     let initial_config = state.snapshot();
     let language = initial_config.language.clone();
     let initially_authenticating =
-        is_auth_page(url.host_str().unwrap_or(""), url.path(), &initial_config);
+        is_auth_page(&url, &initial_config);
     let data_dir = state.app_dir.join("webview-data");
     if let Err(error) = std::fs::create_dir_all(&data_dir) {
         crate::diagnostics::log(
@@ -902,7 +921,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
 
             crate::diagnostics::log_navigation(&nav_diag_dir, url);
             let config = nav.state::<AppState>().snapshot();
-            if is_auth_page(url.host_str().unwrap_or(""), url.path(), &config) {
+            if is_auth_page(url, &config) {
                 nav_seen_auth.store(true, Ordering::SeqCst);
             }
             if should_close_login(nav_seen_auth.load(Ordering::SeqCst), url, &config) {
@@ -944,7 +963,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
             let config = popup.state::<AppState>().snapshot();
             match decide_login(&url, &config) {
                 NavAction::Allow | NavAction::OpenLogin => {
-                    if is_auth_page(url.host_str().unwrap_or(""), url.path(), &config) {
+                    if is_auth_page(url, &config) {
                         popup_seen_auth.store(true, Ordering::SeqCst);
                     }
                     if allow_login_popup() {
@@ -1564,22 +1583,33 @@ mod navigation_policy_tests {
     }
 
     #[test]
-    fn is_auth_page_matches_path_segments_not_substrings() {
+    fn is_auth_page_distinguishes_login_routes_from_account_content() {
         let cfg = config("https://br.investing.com/economic-calendar");
-        assert!(!is_auth_page(
-            "br.investing.com",
-            "/news/authors/joao",
-            &cfg
-        ));
-        assert!(!is_auth_page(
-            "br.investing.com",
-            "/analysis/authority-x",
-            &cfg
-        ));
-        assert!(!is_auth_page("br.investing.com", "/accounting-news", &cfg));
-        assert!(is_auth_page("br.investing.com", "/login", &cfg));
-        assert!(is_auth_page("br.investing.com", "/oauth/authorize", &cfg));
-        assert!(is_auth_page("br.investing.com", "/account/login", &cfg));
+        for path in [
+            "/news/authors/joao", "/analysis/authority-x", "/accounting-news",
+            "/account/profile", "/accounts/overview", "/docs/auth", "/api/callback",
+        ] {
+            let url = Url::parse(&format!("https://br.investing.com{path}")).unwrap();
+            assert!(!is_auth_page(&url, &cfg), "ordinary page was classified as login: {path}");
+        }
+        for path in ["/login", "/oauth/authorize", "/account/login"] {
+            let url = Url::parse(&format!("https://br.investing.com{path}")).unwrap();
+            assert!(is_auth_page(&url, &cfg), "login route was not recognized: {path}");
+        }
+        let oauth_start = Url::parse(
+            "https://br.investing.com/auth/start?client_id=demo&redirect_uri=https%3A%2F%2Fexample.com%2Fcallback",
+        ).unwrap();
+        let oauth_callback = Url::parse("https://br.investing.com/callback?code=abc&state=xyz").unwrap();
+        assert!(is_auth_page(&oauth_start, &cfg));
+        assert!(is_auth_page(&oauth_callback, &cfg));
+    }
+
+    #[test]
+    fn configured_www_and_apex_hosts_are_treated_as_the_same_site() {
+        let cfg = config("https://www.example.com/dashboard");
+        assert_eq!(decide_main(&Url::parse("https://example.com/account/profile").unwrap(), &cfg), NavAction::Allow);
+        assert_eq!(decide_main(&Url::parse("https://api.example.com/v1").unwrap(), &cfg), NavAction::Allow);
+        assert_eq!(decide_main(&Url::parse("https://evilexample.com/").unwrap(), &cfg), NavAction::External);
     }
 
     #[test]
