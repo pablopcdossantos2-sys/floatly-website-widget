@@ -13,7 +13,7 @@ Navegador compacto para manter um endereço escolhido pelo usuário em uma janel
 - URL, tamanho, posição, travamento, sempre no topo, barra de tarefas, zoom, cantos e recarga automática configuráveis.
 - Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária com uma barra de endereço simples e a pasta de dados compartilhada do WebView2. A janela tenta fechar quando o fluxo retorna ao endereço configurado após a autenticação.
 - Workflow de compilação Windows x64 e instalador NSIS.
-- Preparação inicial para a Microsoft Store documentada em [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md); a submissão ainda depende das pendências descritas nesse documento.
+- Pacote MSIX x64 para a Microsoft Store, gerado por workflow próprio do GitHub Actions; o guia de publicação está em [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md).
 
 ## Pré-requisitos
 - Windows 10/11 x64, Node.js 22 ou mais recente (LTS) e npm.
@@ -43,17 +43,17 @@ Para um exemplo concreto de URL, consulte a seção de exemplo abaixo.
 
 ## Microsoft Store
 
-O processo de preparação e publicação está documentado no [guia passo a passo da Microsoft Store](GUIA_PUBLICACAO_MICROSOFT_STORE.md). O [rascunho de listagem multilíngue](MICROSOFT_STORE_LISTING_DRAFT.md) ajuda a preparar descrição e screenshots.
+O Floatly é preparado para a Store como **MSIX x64**. Siga o [guia passo a passo](GUIA_PUBLICACAO_MICROSOFT_STORE.md) e use o [rascunho de listagem multilíngue](MICROSOFT_STORE_LISTING_DRAFT.md).
 
-O build Store é manual: configure o publisher real e os segredos do certificado antes de executar `npm run build:store` ou o workflow **Build Microsoft Store package**. A existência do workflow não significa que o produto já esteja pronto ou aprovado para publicação.
+O workflow **Build MSIX for Microsoft Store** recebe os três campos da identidade do pacote copiados do Partner Center e gera o arquivo `.msix` sem assinatura. Isso é intencional: a Microsoft assina o MSIX depois da aprovação. Não são necessários certificado Code Signing, arquivo PFX ou segredos de assinatura para esse fluxo.
 
 ## Idioma da interface
 
 Abra **Configurações → Idioma** e escolha Português (Brasil), English ou Español. A escolha é salva em `%APPDATA%\\WidgetWebsite\\config.json` e afeta a janela de configurações, menus da bandeja, a janela auxiliar de login e as mensagens próprias do widget. O conteúdo do site escolhido continua no idioma fornecido pelo próprio site.
 
-## Assinatura digital e alerta do Windows
+## Assinatura opcional do instalador independente (não usada pela Store)
 
-A compilação no GitHub Actions oferece assinatura Authenticode opcional. Para ativá-la, obtenha um **certificado confiável de assinatura de código para Windows** e crie estes dois segredos nas configurações do repositório, em **Settings → Secrets and variables → Actions**:
+O workflow do instalador NSIS para distribuição independente oferece assinatura Authenticode opcional. Isso é separado do pacote MSIX da Microsoft Store, que não usa certificado do desenvolvedor. Para assinar o NSIS distribuído fora da Store, obtenha um **certificado confiável de assinatura de código para Windows** e crie estes dois segredos nas configurações do repositório, em **Settings → Secrets and variables → Actions**:
 
 - `WINDOWS_PFX_BASE64`: conteúdo do arquivo PFX codificado em Base64.
 - `WINDOWS_PFX_PASSWORD`: senha desse arquivo PFX.
