@@ -47,8 +47,16 @@ try {
     }
 
     if ($tauriConfig.version -notmatch "^(\d+)\.(\d+)\.(\d+)$") {
-        Stop-Build "A versão Tauri deve usar três componentes numéricos, por exemplo 0.1.0."
+        Stop-Build "A versão Tauri deve usar três componentes numéricos, por exemplo 1.0.0."
     }
+    $versionParts = @($tauriConfig.version.Split(".") | ForEach-Object { [int]$_ })
+    if ($versionParts[0] -eq 0) {
+        Stop-Build "A versão MSIX não pode começar com zero. Use uma versão como 1.0.0."
+    }
+    if ($versionParts | Where-Object { $_ -lt 0 -or $_ -gt 65535 }) {
+        Stop-Build "Cada componente da versão MSIX precisa estar entre 0 e 65535."
+    }
+    # The fourth package version field is reserved by Microsoft Store and must be 0.
     $packageVersion = "$($tauriConfig.version).0"
 
     Invoke-Checked "Validar configuração MSIX" { npm run check:msix-config }
