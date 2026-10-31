@@ -1,6 +1,6 @@
 # Rascunho de listagem da Microsoft Store
 
-**Status:** rascunho atualizado para o produto Floatly já criado no Partner Center. Textos PT-BR/EN/ES preparados; revisar publisher, pacote assinado, suporte e capturas reais antes de enviar.
+**Status:** rascunho atualizado para o produto Floatly já criado no Partner Center. Textos PT-BR/EN/ES preparados; revisar publisher, pacote assinado e capturas reais antes de enviar.
 
 O objetivo da listagem é apresentar o Floatly como um navegador compacto para Windows, baseado em WebView2, que mantém um endereço escolhido pelo usuário em uma janela flutuante. Não é um navegador completo com abas e histórico, nem um cliente ou produto oficial de qualquer website exibido.
 
@@ -110,7 +110,6 @@ Não usar capturas de páginas de terceiros sem permissão. Evitar logotipos, im
 ## Pendências antes de enviar
 
 - [ ] Confirmar que o publisher exibido na Store corresponde ao certificado Authenticode usado no pacote.
-- [ ] Atualizar o campo Website de suporte para a página dedicada https://github.com/pablopcdossantos2-sys/floatly-website-widget/blob/main/SUPPORT.md.
 - [ ] Validar a descrição e os recursos com a versão final realmente testada.
 - [ ] Revisar os termos de pesquisa para não incluir marcas ou serviços de terceiros.
 - [ ] Capturar screenshots reais da versão final em Windows.
