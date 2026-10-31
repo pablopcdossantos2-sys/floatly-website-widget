@@ -1,6 +1,6 @@
 # Rascunho de listagem — Floatly na Microsoft Store
 
-**Situação:** textos PT-BR, EN e ES preparados. A nova ficha MSIX ainda será criada no Partner Center.
+**Situação:** ficha MSIX Floatly criada e identidade do pacote confirmada. Textos PT-BR, EN e ES preparados; a listagem e as capturas ainda precisam ser inseridas na submissão.
 
 O Floatly é um aplicativo desktop compacto para Windows que exibe um endereço HTTP ou HTTPS escolhido pelo usuário em uma janela flutuante. Não é um navegador completo com abas e histórico, nem um cliente ou produto oficial de qualquer website exibido.
 
