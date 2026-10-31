@@ -1,4 +1,4 @@
-# Widget Website — Windows
+# Floatly — Windows
 
 **Idiomas:** [Português (Brasil)](README.md) · [English](README.en.md) · Español
 
@@ -79,6 +79,10 @@ La aplicación no lee, copia ni almacena contraseñas. Se conserva el agente de 
 - Los registros incluyen el inicio, la navegación, los errores de inicialización, las acciones de movimiento y la recuperación de actividad. Las URL se registran sin parámetros de consulta ni fragmentos para reducir el riesgo de guardar tokens de sesión.
 - En una compilación gráfica de Windows puede no haber terminal. El archivo de registro es la fuente de diagnóstico fiable; ábrelo con el Bloc de notas después de reproducir el bloqueo.
 - Estos diagnósticos no pueden demostrar que una aplicación externa causó el bloqueo. Tampoco pueden registrar más información si el proceso o todos sus hilos se terminan abruptamente.
+
+## Privacidad y soporte
+
+Consulta la [Política de privacidad de Floatly](PRIVACY_POLICY.md), disponible en portugués, inglés y español, y la página de [Soporte](SUPPORT.md). La política identifica al responsable individual del proyecto y el canal de contacto para solicitudes de privacidad.
 
 ## Privacidad y limitaciones
 
