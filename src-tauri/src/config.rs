@@ -21,6 +21,7 @@ pub const DEFAULT_HEIGHT: u32 = 550;
 static SAVE_LOCK: Mutex<()> = Mutex::new(());
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 static CONFIG_POISON_WARNING_LOGGED: AtomicBool = AtomicBool::new(false);
+static REGISTERED_SHORTCUT_POISON_WARNING_LOGGED: AtomicBool = AtomicBool::new(false);
 
 fn default_language() -> String {
     "pt-BR".to_owned()
@@ -183,6 +184,24 @@ impl AppState {
             Err(poisoned) => {
                 self.config.clear_poison();
                 self.log_poison_recovery();
+                poisoned.into_inner()
+            }
+        }
+    }
+
+    /// Lock the active shortcut, recovering after a panic instead of disabling future saves.
+    pub fn lock_registered_shortcut(&self) -> MutexGuard<'_, String> {
+        match self.registered_shortcut.lock() {
+            Ok(shortcut) => shortcut,
+            Err(poisoned) => {
+                self.registered_shortcut.clear_poison();
+                if !REGISTERED_SHORTCUT_POISON_WARNING_LOGGED.swap(true, Ordering::Relaxed) {
+                    crate::diagnostics::log(
+                        &self.app_dir,
+                        "WARN",
+                        "O mutex do atalho registrado foi envenenado; recuperando o último valor armazenado.",
+                    );
+                }
                 poisoned.into_inner()
             }
         }
