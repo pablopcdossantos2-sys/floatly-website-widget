@@ -49,7 +49,7 @@ Para ver una URL de ejemplo concreta, consulta la sección de ejemplo a continua
 
 ## Microsoft Store
 
-Floatly se prepara para la Store como paquete **MSIX x64**. Sigue la [guía paso a paso en portugués](GUIA_PUBLICACAO_MICROSOFT_STORE.md) y utiliza el [borrador multilingüe de la ficha](MICROSOFT_STORE_LISTING_DRAFT.md).
+Floatly se prepara para la Store como paquete **MSIX x64**. Sigue la [guía paso a paso en portugués](GUIA_PUBLICACAO_MICROSOFT_STORE.md) y utiliza el [borrador multilingüe de la ficha](MICROSOFT_STORE_LISTING_DRAFT.md). Este paquete requiere Windows 10 versión 2004 (compilación 19041) o posterior; la versión convencional NSIS se distribuye por separado.
 
 El workflow **Build MSIX for Microsoft Store** se ejecuta automáticamente cuando hay cambios en la rama `main` y utiliza la identidad del paquete ya confirmada en Partner Center. Genera un archivo `.msix` sin firma. Esto es intencional: Microsoft firma el MSIX después de la aprobación. Esta ruta no requiere certificado de firma de código, archivo PFX ni secretos de firma.
 
@@ -78,9 +78,9 @@ La aplicación no lee, copia ni almacena contraseñas. Se conserva el agente de 
 
 ## Diagnóstico de bloqueos
 
-- Los registros se guardan en %APPDATA%\WidgetWebsite\diagnostics.log (normalmente C:\Users\<usuario>\AppData\Roaming\WidgetWebsite\diagnostics.log). Las marcas de tiempo están en UTC. El archivo anterior se rota a diagnostics.log.1 al alcanzar aproximadamente 1 MB.
-- La página envía una señal de actividad de JavaScript/WebView2 cada cinco segundos. Si no llega durante 20 segundos, el monitor registra un aviso, comprueba si la ventana nativa responde y busca procesos msedgewebview2.exe descendientes. La ausencia de estos procesos es una pista de que WebView2 pudo cerrarse, no una prueba de la causa.
-- Los registros incluyen el inicio, la navegación, los errores de inicialización, las acciones de movimiento y la recuperación de actividad. Las URL se registran sin parámetros de consulta ni fragmentos para reducir el riesgo de guardar tokens de sesión.
+- Los registros se guardan normalmente en `%APPDATA%\WidgetWebsite\diagnostics.log`. Las marcas de tiempo están en UTC; los archivos rotan al alcanzar aproximadamente 1 MiB y se conservan hasta tres registros anteriores. Los registros no se envían automáticamente al desarrollador.
+- La página envía una señal de actividad de JavaScript/WebView2 cada cinco segundos. Si no llega durante 20 segundos, el monitor registra un aviso; no reinicia ni cierra la aplicación y omite los periodos en que la ventana está minimizada u oculta. La ausencia de procesos msedgewebview2.exe descendientes es una pista, no una prueba de la causa.
+- Los registros incluyen el inicio, la navegación, los errores de inicialización, las acciones de movimiento y la recuperación de actividad. Las URL registradas no incluyen credenciales, parámetros de consulta ni fragmentos; la ruta se limita a sus dos primeros segmentos y se enmascaran los segmentos largos o parecidos a identificadores. Revisa el archivo antes de compartirlo.
 - En una compilación gráfica de Windows puede no haber terminal. El archivo de registro es la fuente de diagnóstico fiable; ábrelo con el Bloc de notas después de reproducir el bloqueo.
 - Estos diagnósticos no pueden demostrar que una aplicación externa causó el bloqueo. Tampoco pueden registrar más información si el proceso o todos sus hilos se terminan abruptamente.
 
@@ -91,16 +91,16 @@ Consulta la [Política de privacidad de Floatly](PRIVACY_POLICY.md), disponible 
 ## Privacidad y limitaciones
 
 - Sin telemetría. La navegación principal se limita al sitio configurado y a recursos de autenticación reconocidos; los enlaces a otros dominios se abren en el navegador predeterminado. El sitio remoto solo recibe permiso para enviar la señal autenticada de actividad.
-- Si el archivo de configuración está dañado, se reemplaza por valores predeterminados. **Restaurar tamaño predeterminado** solo cambia las dimensiones a 350 × 550 px; conserva las demás preferencias.
+- Si el JSON de configuración está completamente dañado, el archivo original se conserva como `config.json.bad-*`. Si hay campos individuales que reparar, Floatly crea copias `config.json.repaired-*` antes de corregir los valores y mantiene hasta tres copias recientes de reparación. **Restaurar tamaño predeterminado** solo cambia las dimensiones a 350 × 550 px; conserva las demás preferencias.
 - CI comprueba la alineación de versiones de Tauri, el manifiesto de comandos y las capabilities; ejecuta `npm ci`, la verificación de tipos, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` y `cargo test`, y después compila el instalador de Windows.
 - La ventana secundaria de inicio de sesión comparte la carpeta de datos de WebView2 e incluye una barra de direcciones inyectada. Los dominios no autorizados se abren en el navegador predeterminado. El cierre automático depende de que el proveedor vuelva al sitio configurado; algunos inicios de sesión sociales pueden requerir cerrar la ventana manualmente.
 - El zoom usa el control nativo de WebView2. El recorte de las esquinas puede variar en Windows 10.
 - Las comprobaciones de red muestran un panel propio antes de la navegación principal y supervisan la conectividad mientras el sitio está abierto. El envoltorio predeterminado de Tauri no puede reemplazar todos los errores de navegación de Chromium en todos los escenarios.
-- Es necesario probar el inicio de sesión real, los filtros guardados, los conflictos de atajos, escalas del 125 %/150 %, varios monitores, cambios de DPI y consumo de memoria en hardware Windows.
+
 
 ## Desinstalación y datos guardados
 
-El desinstalador NSIS ofrece la casilla **Delete the application data**. Si se marca, elimina `%APPDATA%\\WidgetWebsite` (configuración, registros y sesión de WebView2) y `%LOCALAPPDATA%\\WidgetWebsite` si existe. Si se deja desmarcada, estos datos se conservan para una reinstalación posterior. La entrada de inicio automático de Windows siempre se elimina al desinstalar la aplicación.
+El desinstalador NSIS ofrece la casilla **Delete the application data**. Si se marca, elimina `%APPDATA%\WidgetWebsite` (configuración, registros y sesión de WebView2) y `%LOCALAPPDATA%\WidgetWebsite` si existe. Si se deja desmarcada, estos datos se conservan para una reinstalación posterior. La entrada de inicio automático de Windows siempre se elimina al desinstalar la aplicación.
 
 ## Estructura
 
