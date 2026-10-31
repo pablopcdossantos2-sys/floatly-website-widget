@@ -15,7 +15,7 @@
     "check:tauri-versions": "node scripts/check-tauri-versions.mjs",
     "check:contrast": "node scripts/check-theme-contrast.mjs",
     "check:msix-config": "node scripts/check-msix-config.mjs",
-    "test:scripts": "node --test scripts/",
+    "test:scripts": "node --test",
     "build:msix": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-msix.ps1"
   },
   "devDependencies": {
