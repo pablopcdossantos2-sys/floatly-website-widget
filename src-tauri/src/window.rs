@@ -88,6 +88,7 @@ function dragWindow(event){
 }
 function install(){
  if(!document.documentElement)return;
+ if(document.getElementById('__widget_drag_frame')&&document.getElementById('__widget_drag'))return;
  let frame=document.getElementById('__widget_drag_frame');
  if(!frame){
   frame=document.createElement('div');frame.id='__widget_drag_frame';
@@ -135,8 +136,17 @@ function install(){
  applyDragLockedUi();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-const dragObserver=new MutationObserver(()=>install());
-dragObserver.observe(document.documentElement,{childList:true,subtree:true});
+let observedBody=document.body;
+const dragObserver=new MutationObserver(()=>{
+ install();
+ const currentBody=document.body;
+ if(currentBody&&currentBody!==observedBody){
+  observedBody=currentBody;
+  dragObserver.observe(currentBody,{childList:true});
+ }
+});
+dragObserver.observe(document.documentElement,{childList:true});
+if(observedBody)dragObserver.observe(observedBody,{childList:true});
 document.addEventListener('pointerdown',e=>{
  if(!e.isTrusted||e.button!==0||DRAG_LOCKED)return;
  const x=e.clientX,y=e.clientY,w=innerWidth,h=innerHeight;
@@ -157,7 +167,7 @@ document.addEventListener('contextmenu',e=>{
 document.addEventListener('keydown',e=>{
  const target=e.target;
  if(target instanceof Element&&target.closest('input,textarea,select,[contenteditable=""],[contenteditable="true"]'))return;
- if((e.ctrlKey||e.metaKey)&&['l','t','n','w','p','j','u','s'].includes(e.key.toLowerCase())){e.preventDefault();e.stopImmediatePropagation()}
+ if((e.ctrlKey||e.metaKey)&&['l','t','n','w','p','j','u','s'].includes(e.key.toLowerCase())){e.preventDefault()}
  else if(e.key==='F5'){e.preventDefault();location.reload()}
 },true);
 let scrollHideTimer=0;
@@ -585,7 +595,7 @@ pub fn create_main(
     let action_token = uuid::Uuid::new_v4().simple().to_string();
     let heartbeat_token = app.state::<AppState>().heartbeat_token.clone();
     let init_script = INIT
-        .replace("__WIDGET_LANGUAGE__", &c.language)
+        .replace("__WIDGET_LANGUAGE__", crate::i18n::normalize_language(&c.language))
         .replace("__WIDGET_LOCKED__", &c.locked.to_string())
         .replace("__WIDGET_ACTION_TOKEN__", &action_token)
         .replace("__WIDGET_HEARTBEAT_TOKEN__", &heartbeat_token);
@@ -917,7 +927,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
         .zoom_hotkeys_enabled(false)
         .initialization_script(
             LOGIN_INIT
-                .replace("__WIDGET_LANGUAGE__", &language)
+                .replace("__WIDGET_LANGUAGE__", crate::i18n::normalize_language(&language))
                 .replace("__WIDGET_LOGIN_CLOSE_TOKEN__", &close_token),
         )
         .on_navigation(move |url| {
@@ -1277,6 +1287,29 @@ pub fn apply_config(app: &AppHandle, c: &AppConfig, resize: bool) {
 }
 static SETTINGS_WINDOW_CREATING: AtomicBool = AtomicBool::new(false);
 
+struct ResetOnPanic<'a>(&'a AtomicBool);
+
+impl Drop for ResetOnPanic<'_> {
+    fn drop(&mut self) {
+        if thread::panicking() {
+            self.0.store(false, Ordering::SeqCst);
+        }
+    }
+}
+
+struct GeometryWorkerPanicGuard(AppHandle);
+
+impl Drop for GeometryWorkerPanicGuard {
+    fn drop(&mut self) {
+        if thread::panicking() {
+            self.0
+                .state::<AppState>()
+                .geometry_save_worker_running
+                .store(false, Ordering::SeqCst);
+        }
+    }
+}
+
 pub fn open_settings(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("settings") {
         for (name, result) in [
@@ -1308,6 +1341,7 @@ pub fn open_settings(app: &AppHandle) {
     }
     let app = app.clone();
     thread::spawn(move || {
+        let _panic_guard = ResetOnPanic(&SETTINGS_WINDOW_CREATING);
         let app_dir = app.state::<AppState>().app_dir.clone();
         let language = app.state::<AppState>().snapshot().language;
         let title = crate::i18n::settings_title(&language);
@@ -1353,7 +1387,9 @@ fn schedule_debounced_config_save(app: &AppHandle) {
     }
 
     let app = app.clone();
-    thread::spawn(move || loop {
+    thread::spawn(move || {
+        let _panic_guard = GeometryWorkerPanicGuard(app.clone());
+        loop {
         let revision = app
             .state::<AppState>()
             .geometry_save_revision
@@ -1377,6 +1413,7 @@ fn schedule_debounced_config_save(app: &AppHandle) {
             schedule_debounced_config_save(&app);
         }
         break;
+        }
     });
 }
 
@@ -1468,11 +1505,15 @@ pub fn start_auto_reload(app: AppHandle) {
         let mut state = ReloadState::default();
         loop {
             thread::sleep(Duration::from_secs(10));
-            let minutes = app.state::<AppState>().snapshot().auto_reload_minutes as u32;
+            let app_state = app.state::<AppState>();
+            if app_state.shutdown_requested.load(Ordering::SeqCst) {
+                break;
+            }
+            let minutes = app_state.snapshot().auto_reload_minutes as u32;
             let window = app.get_webview_window("main");
-            let visible = window
-                .as_ref()
-                .is_some_and(|window| window.is_visible().unwrap_or(false));
+            let visible = window.as_ref().is_some_and(|window| {
+                window.is_visible().unwrap_or(false) && !window.is_minimized().unwrap_or(false)
+            });
             let (next, should_reload) = next_reload_state(state, minutes, visible);
             state = next;
             if should_reload {
@@ -1712,6 +1753,24 @@ mod navigation_policy_tests {
             "https://example.com/after-window",
             62_000
         ));
+    }
+
+    #[test]
+    fn reset_on_panic_clears_flag_only_while_unwinding() {
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+
+        let flag = AtomicBool::new(true);
+        let _ = catch_unwind(AssertUnwindSafe(|| {
+            let _guard = ResetOnPanic(&flag);
+            panic!("test panic");
+        }));
+        assert!(!flag.load(Ordering::SeqCst));
+
+        flag.store(true, Ordering::SeqCst);
+        {
+            let _guard = ResetOnPanic(&flag);
+        }
+        assert!(flag.load(Ordering::SeqCst));
     }
 
     #[test]
