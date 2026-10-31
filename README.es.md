@@ -14,7 +14,7 @@ Navegador compacto para Windows que mantiene una dirección HTTP/HTTPS elegida p
 - URL, tamaño, posición, bloqueo del movimiento, mantener siempre visible, visibilidad en la barra de tareas, zoom, esquinas redondeadas y actualización automática configurables.
 - Los enlaces externos se abren en el navegador predeterminado. Los dominios de autenticación reconocidos se abren en una ventana secundaria con una barra de direcciones sencilla y la misma carpeta de datos de WebView2. La ventana intenta cerrarse cuando el inicio de sesión vuelve al sitio configurado.
 - Flujo de compilación para Windows x64 e instalador NSIS.
-- La preparación inicial para Microsoft Store se documenta en [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md) (portugués); el envío aún depende de las tareas pendientes indicadas.
+- El paquete MSIX x64 para Microsoft Store se genera mediante un workflow específico de GitHub Actions; consulta [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md) para ver la lista de publicación.
 
 ## Requisitos
 
@@ -47,15 +47,17 @@ Para ver una URL de ejemplo concreta, consulta la sección de ejemplo a continua
 
 ## Microsoft Store
 
-La guía detallada paso a paso está disponible en [portugués](GUIA_PUBLICACAO_MICROSOFT_STORE.md), junto con un [borrador multilingüe de la ficha de la Store](MICROSOFT_STORE_LISTING_DRAFT.md). La compilación para Store es manual y requiere la identidad real del publisher y los secretos del certificado. El workflow no significa que la aplicación esté lista para enviarse ni que haya sido aprobada.
+Floatly se prepara para la Store como paquete **MSIX x64**. Sigue la [guía paso a paso en portugués](GUIA_PUBLICACAO_MICROSOFT_STORE.md) y utiliza el [borrador multilingüe de la ficha](MICROSOFT_STORE_LISTING_DRAFT.md).
+
+El workflow **Build MSIX for Microsoft Store** recibe los tres valores de identidad del paquete copiados de Partner Center y genera un archivo `.msix` sin firma. Esto es intencional: Microsoft firma el MSIX después de la aprobación. Esta ruta no requiere certificado de firma de código, archivo PFX ni secretos de firma.
 
 ## Idioma de la interfaz
 
 Abre **Configuración → Idioma** y elige Portugués (Brasil), English o Español. La selección se guarda en %APPDATA%\WidgetWebsite\config.json y traduce la ventana de configuración, el menú de la bandeja del sistema, la barra de inicio de sesión y los mensajes de conexión propios del widget. El contenido del sitio elegido seguirá usando el idioma que proporcione el propio sitio.
 
-## Firma digital y avisos de seguridad de Windows
+## Firma opcional del instalador independiente (no se usa en Store)
 
-El flujo de GitHub Actions admite firma Authenticode opcional. Para activarla, consigue un **certificado de firma de código de Windows de confianza** y crea estos secretos del repositorio en **Settings → Secrets and variables → Actions**:
+El workflow del instalador NSIS independiente admite firma Authenticode opcional. Esto es distinto del paquete MSIX de Microsoft Store, que no utiliza un certificado proporcionado por el desarrollador. Para firmar el instalador NSIS distribuido fuera de Store, consigue un **certificado de firma de código de Windows de confianza** y crea estos secretos del repositorio en **Settings → Secrets and variables → Actions**:
 
 - WINDOWS_PFX_BASE64: archivo de certificado PFX codificado en Base64.
 - WINDOWS_PFX_PASSWORD: contraseña del archivo PFX.
