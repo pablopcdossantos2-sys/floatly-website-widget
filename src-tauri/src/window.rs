@@ -1400,29 +1400,29 @@ fn schedule_debounced_config_save(app: &AppHandle) {
     thread::spawn(move || {
         let _panic_guard = GeometryWorkerPanicGuard(app.clone());
         loop {
-        let revision = app
-            .state::<AppState>()
-            .geometry_save_revision
-            .load(Ordering::SeqCst);
-        thread::sleep(Duration::from_millis(500));
-        let state = app.state::<AppState>();
-        if state.geometry_save_revision.load(Ordering::SeqCst) != revision {
-            continue;
-        }
-        if let Err(error) = state.persist_current() {
-            crate::diagnostics::log(
-                &state.app_dir,
-                "ERRO",
-                format!("Falha ao persistir posição/tamanho da janela: {error}"),
-            );
-        }
-        state
-            .geometry_save_worker_running
-            .store(false, Ordering::SeqCst);
-        if state.geometry_save_revision.load(Ordering::SeqCst) != revision {
-            schedule_debounced_config_save(&app);
-        }
-        break;
+            let revision = app
+                .state::<AppState>()
+                .geometry_save_revision
+                .load(Ordering::SeqCst);
+            thread::sleep(Duration::from_millis(500));
+            let state = app.state::<AppState>();
+            if state.geometry_save_revision.load(Ordering::SeqCst) != revision {
+                continue;
+            }
+            if let Err(error) = state.persist_current() {
+                crate::diagnostics::log(
+                    &state.app_dir,
+                    "ERRO",
+                    format!("Falha ao persistir posição/tamanho da janela: {error}"),
+                );
+            }
+            state
+                .geometry_save_worker_running
+                .store(false, Ordering::SeqCst);
+            if state.geometry_save_revision.load(Ordering::SeqCst) != revision {
+                schedule_debounced_config_save(&app);
+            }
+            break;
         }
     });
 }
