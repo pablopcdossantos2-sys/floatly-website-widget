@@ -1,32 +1,30 @@
-# Microsoft Store — pendências do desenvolvedor
+# Microsoft Store — prontidão do Floatly (MSIX)
 
 **Última revisão:** 30 de outubro de 2026  
-**Status:** aguardar definição do formato de publicação antes de comprar certificados ou gerar chaves.
-
-O produto **Floatly** e as propriedades básicas da Store já estão configurados. O site de suporte também já foi atualizado. Não é necessário repetir essas tarefas.
+**Formato:** MSIX x64. Não usar o fluxo EXE/MSI.
 
 ## Próxima ação humana
 
-- [ ] Abrir um chamado no Partner Center perguntando se a ficha Floatly, criada como **EXE or MSI app** e ainda não publicada, pode ser convertida para **MSIX**, preservando o nome e a identidade do produto. Use a mensagem pronta do [guia passo a passo](GUIA_PUBLICACAO_MICROSOFT_STORE.md).
+- [ ] Criar uma nova ficha em Partner Center → Apps and games → New product → **MSIX or PWA app** e reservar o nome Floatly.
+- [ ] Iniciar a submissão e copiar, em Product management → Product identity, o Package/Identity Name, Publisher e Publisher display name.
+- [ ] Informar esses três valores ao workflow **Build MSIX for Microsoft Store** na branch main e baixar o artefato floatly-msix-x64.
 
-**Não compre um certificado Code Signing, não gere chave do Tauri Updater e não exclua a ficha atual antes da resposta do suporte.**
+Siga o [guia passo a passo](GUIA_PUBLICACAO_MICROSOFT_STORE.md). Não escolha EXE/MSI.
 
-## Depois da resposta do Partner Center
+## Trabalho técnico preparado no repositório
 
-### Se o suporte permitir MSIX
+- Manifesto MSIX com identidade preenchida no momento do build.
+- Pacote sem assinatura Authenticode de terceiros; a Microsoft assina o MSIX depois da aprovação.
+- Workflow Windows x64 que compila, verifica as permissões e gera o MSIX.
+- Extensão windows.startupTask e integração Rust com a API StartupTask para manter a opção de iniciar com o Windows.
+- runFullTrust declarado para o aplicativo desktop Tauri.
 
-A Microsoft assina o pacote MSIX depois da certificação e gerencia as atualizações da distribuição pela Store. Não será necessário comprar certificado de uma AC, enviar PFX ou usar token USB/HSM.
+## O que ainda precisa de validação
 
-O trabalho no repositório será migrar o empacotamento Tauri para MSIX, configurar o manifesto/identidade e testar instalação, persistência de dados, bandeja, atalhos, janela flutuante e atualizações pela Store. O desenvolvedor humano fará os testes finais e a submissão no Partner Center.
+- [ ] Executar o workflow com os dados reais de identidade fornecidos pelo Partner Center.
+- [ ] Confirmar que o MSIX é aceito no upload do Partner Center e passa pela validação.
+- [ ] Concluir a revisão da listagem, capturas reais e notas de certificação.
+- [ ] Submeter o pacote à certificação e testar a versão instalada pela Store em Windows 10/11 x64.
+- [ ] Verificar a inicialização automática, bandeja, atalhos, janela flutuante, WebView2, atualização e desinstalação.
 
-### Se for necessário manter EXE/MSI
-
-Aí sim será necessário adquirir um certificado Code Signing compatível com Authenticode e com o Microsoft Trusted Root Program. O guia contém um procedimento para consultar a certificadora, verificar emissão para CPF/CNPJ e confirmar token/HSM antes de pagar.
-
-Nesse modelo, o Tauri Updater e o processo de assinatura do instalador precisarão ser preparados no repositório. O workflow atual pressupõe PFX e não deve ser executado com token USB/HSM sem adaptação.
-
-## Trabalho que será feito no repositório
-
-Depois de definida a rota, a integração técnica correspondente — empacotamento MSIX ou assinatura EXE/MSI, permissões, atualizações e workflow — será realizada diretamente na branch main. O desenvolvedor humano não precisa editar Rust, TypeScript, YAML ou PowerShell manualmente.
-
-Não marque uma etapa como concluída apenas porque o arquivo de configuração foi alterado: a instalação e o fluxo de atualização precisam ser testados em Windows.
+**Não é necessário comprar certificado Code Signing, cadastrar segredos PFX ou gerar chave do Tauri Updater para o canal Microsoft Store MSIX.**
