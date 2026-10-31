@@ -6,9 +6,6 @@ use windows::{
     core::HSTRING,
     ApplicationModel::{Package, StartupTask, StartupTaskState},
 };
-#[cfg(windows)]
-use windows_future::*;
-
 /// The startup task declared in Package.appxmanifest for the Store/MSIX build.
 #[cfg(windows)]
 const MSIX_STARTUP_TASK_ID: &str = "FloatlyStartup";

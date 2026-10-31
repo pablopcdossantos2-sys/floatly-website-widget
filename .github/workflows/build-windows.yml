@@ -5,8 +5,38 @@ concurrency:
 on:
   push:
     branches: [main]
+    paths:
+      - "src/**"
+      - "src-tauri/**"
+      - "icons/**"
+      - "packaging/**"
+      - "scripts/**"
+      - "package.json"
+      - "package-lock.json"
+      - "rust-toolchain.toml"
+      - "index.html"
+      - "settings.html"
+      - "tsconfig.json"
+      - "vite.config.ts"
+      - ".github/workflows/build-windows.yml"
+      - ".github/workflows/build-msix.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "src/**"
+      - "src-tauri/**"
+      - "icons/**"
+      - "packaging/**"
+      - "scripts/**"
+      - "package.json"
+      - "package-lock.json"
+      - "rust-toolchain.toml"
+      - "index.html"
+      - "settings.html"
+      - "tsconfig.json"
+      - "vite.config.ts"
+      - ".github/workflows/build-windows.yml"
+      - ".github/workflows/build-msix.yml"
   workflow_dispatch:
 permissions:
   contents: read
