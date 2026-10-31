@@ -1,0 +1,119 @@
+name: Build MSIX for Microsoft Store
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_identity_name:
+        description: "Package identity Name copied from Partner Center"
+        required: true
+        type: string
+      package_publisher:
+        description: "Package identity Publisher copied exactly from Partner Center (X.500)"
+        required: true
+        type: string
+      publisher_display_name:
+        description: "Publisher display name from Partner Center"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: floatly-msix-store-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-msix:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-2025
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # pinned rust-toolchain action
+        with:
+          toolchain: 1.90.0
+          targets: x86_64-pc-windows-msvc
+          components: rustfmt, clippy
+
+      - name: Set up WinApp CLI
+        uses: microsoft/setup-WinAppCli@cc8ea9a08b3ee3db43d5aa6bddda4a0e87d800f7 # v0.1
+
+      - name: Cache Cargo registry only
+        uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # actions/cache v6.2.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: floatly-msix-cargo-${{ runner.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+
+      - name: Install locked npm dependencies
+        run: npm ci
+
+      - name: Validate MSIX manifest and Tauri permissions
+        shell: pwsh
+        run: |
+          npm run check:tauri-versions
+          if ($LASTEXITCODE -ne 0) { throw "Tauri dependency versions are inconsistent." }
+          npm run check:acl
+          if ($LASTEXITCODE -ne 0) { throw "Tauri capability/command ACL check failed." }
+          npm run check:msix-config
+          if ($LASTEXITCODE -ne 0) { throw "MSIX package configuration check failed." }
+
+      - name: Check drag overlay behavior
+        run: npm run check:drag-overlay
+
+      - name: TypeScript type check
+        run: npm run typecheck
+
+      - name: Check light/dark theme contrast
+        run: npm run check:contrast
+
+      - name: Audit npm dependencies
+        run: npm audit --audit-level=high
+
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+
+      - name: Install and run RustSec audit
+        shell: pwsh
+        run: |
+          cargo install cargo-audit --version 0.22.2 --locked
+          if ($LASTEXITCODE -ne 0) { throw "Could not install cargo-audit." }
+          cargo audit --file src-tauri/Cargo.lock
+          if ($LASTEXITCODE -ne 0) { throw "RustSec found an advisory affecting the locked dependencies." }
+
+      - name: Run Rust tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Run Clippy
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Build unsigned MSIX for Microsoft Store
+        shell: pwsh
+        env:
+          MSIX_PACKAGE_IDENTITY_NAME: ${{ inputs.package_identity_name }}
+          MSIX_PACKAGE_PUBLISHER: ${{ inputs.package_publisher }}
+          MSIX_PUBLISHER_DISPLAY_NAME: ${{ inputs.publisher_display_name }}
+        run: |
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/build-msix.ps1
+
+      - name: Upload MSIX package
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: floatly-msix-x64
+          path: |
+            dist/msix/Floatly_*.msix
+            dist/msix/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
