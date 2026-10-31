@@ -420,7 +420,13 @@ pub fn show_settings(app: &AppHandle) {
     window::open_settings(app)
 }
 pub fn show_login(app: &AppHandle) {
-    if app.state::<AppState>().snapshot().site_url.trim().is_empty() {
+    if app
+        .state::<AppState>()
+        .snapshot()
+        .site_url
+        .trim()
+        .is_empty()
+    {
         window::open_settings(app);
     } else {
         window::open_login_from_tray(app)
