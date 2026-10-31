@@ -1,6 +1,6 @@
 # Rascunho de listagem da Microsoft Store
 
-**Status:** texto inicial para revisão humana. Não publicar sem confirmar o nome reservado, a categoria, a classificação etária, o publisher, o suporte e a política de privacidade.
+**Status:** rascunho atualizado para o produto Floatly já criado no Partner Center. Textos PT-BR/EN/ES preparados; revisar publisher, pacote assinado, suporte e capturas reais antes de enviar.
 
 O objetivo da listagem é apresentar o Floatly como um navegador compacto para Windows, baseado em WebView2, que mantém um endereço escolhido pelo usuário em uma janela flutuante. Não é um navegador completo com abas e histórico, nem um cliente ou produto oficial de qualquer website exibido.
 
@@ -104,7 +104,7 @@ Cada listagem pode ter até sete termos/frases únicos. Usar somente termos que 
 **Observação:** esta é a recomendação para o modelo atual do Floatly (aplicativo desktop Win32 distribuído por instalador EXE). A seleção final deve ser conferida nas opções efetivamente apresentadas pelo Partner Center no momento do envio.
 
 - **Classificação etária:** responder ao questionário IARC considerando que a pessoa pode abrir sites variados. Não escolher uma classificação baixa por suposição. Confirmar com a Microsoft como avaliar conteúdo de terceiros escolhido pelo usuário.
-- **Política de privacidade:** [https://github.com/pablopcdossantos2-sys/widget-website/blob/main/PRIVACY_POLICY.md](https://github.com/pablopcdossantos2-sys/widget-website/blob/main/PRIVACY_POLICY.md). Antes de informar o link no Partner Center, preencher o nome legal do responsável e o e-mail de privacidade nos campos indicados no documento e revisar o texto final.
+- **Política de privacidade:** [https://github.com/pablopcdossantos2-sys/floatly-website-widget/blob/main/PRIVACY_POLICY.md](https://github.com/pablopcdossantos2-sys/widget-website/blob/main/PRIVACY_POLICY.md). Antes de informar o link no Partner Center, preencher o nome legal do responsável e o e-mail de privacidade nos campos indicados no documento e revisar o texto final.
 - **Suporte:** inserir o endereço real de suporte ou página de contato.
 
 ## Plano de screenshots reais
@@ -120,12 +120,13 @@ Não usar capturas de páginas de terceiros sem permissão. Evitar logotipos, im
 
 ## Antes de aprovar a listagem
 
-- [ ] Nome confirmado como reservado no Partner Center.
+- [x] Nome **Floatly** confirmado no produto criado no Partner Center.
 - [ ] Requisito da política 10.2.1 validado: mecanismo Chromium/WebView2 dentro do limite de duas versões principais e runtime Evergreen atualizado.
 - [ ] Descrição validada com as funcionalidades da versão realmente testada.
 - [ ] Publisher e suporte identificados corretamente.
-- [ ] Política de privacidade publicada e revisada.
-- [ ] Categoria e classificação IARC preenchidas com base no produto real.
+- [x] Política de privacidade revisada e publicada no repositório.
+- [ ] Site de suporte no Partner Center atualizado para a página dedicada SUPPORT.md.
+- [x] Categoria Productivity e classificação IARC preenchidas no Partner Center.
 - [ ] Termos de pesquisa revisados para não incluir marcas de terceiros.
 - [ ] Screenshots capturadas da versão final em Windows.
 - [ ] Texto não sugere parceria, endosso ou afiliação com sites exibidos.
