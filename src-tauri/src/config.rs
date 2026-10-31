@@ -23,6 +23,14 @@ static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 static CONFIG_POISON_WARNING_LOGGED: AtomicBool = AtomicBool::new(false);
 static REGISTERED_SHORTCUT_POISON_WARNING_LOGGED: AtomicBool = AtomicBool::new(false);
 
+const RESERVED_SHORTCUTS: &[&str] = &[
+    "CTRL+C", "CTRL+V", "CTRL+X", "CTRL+Z", "CTRL+Y", "CTRL+A", "CTRL+S",
+    "CTRL+F", "CTRL+P", "CTRL+W", "CTRL+T", "CTRL+N",
+    "CTRL+ESC", "CTRL+ESCAPE", "CTRL+SHIFT+ESC", "CTRL+SHIFT+ESCAPE",
+    "ALT+F4", "ALT+TAB", "ALT+ESC", "ALT+ESCAPE", "ALT+SPACE",
+    "SUPER+L", "SUPER+D", "SUPER+E", "SUPER+R", "SUPER+TAB",
+];
+
 fn default_language() -> String {
     "pt-BR".to_owned()
 }
@@ -144,6 +152,9 @@ impl AppConfig {
             _ => 4,
         });
         let shortcut = format!("{}+{}", modifiers.join("+"), key);
+        if RESERVED_SHORTCUTS.contains(&shortcut.as_str()) {
+            return Err("config.shortcut_reserved".into());
+        }
         Shortcut::from_str(&shortcut).map_err(|_| "config.shortcut_key_unsupported".to_owned())?;
         self.global_shortcut = shortcut;
         if !["pt-BR", "en", "es"].contains(&self.language.as_str()) {
@@ -608,6 +619,28 @@ mod tests {
         assert_eq!(config.width, 777);
         assert_eq!(config.height, DEFAULT_HEIGHT);
         assert_eq!(config.site_url, DEFAULT_SITE);
+    }
+
+    #[test]
+    fn normalization_rejects_reserved_system_shortcuts() {
+        for shortcut in [
+            "CTRL+C", "ctrl+v", "CTRL+SHIFT+ESC", "ALT+F4", "ALT+TAB", "SUPER+L",
+        ] {
+            let mut config = AppConfig {
+                global_shortcut: shortcut.into(),
+                ..AppConfig::default()
+            };
+            assert_eq!(
+                config.normalize().unwrap_err(),
+                "config.shortcut_reserved",
+                "accepted reserved shortcut: {shortcut}"
+            );
+        }
+        let mut allowed = AppConfig {
+            global_shortcut: "CTRL+ALT+C".into(),
+            ..AppConfig::default()
+        };
+        allowed.normalize().unwrap();
     }
 
     #[test]
