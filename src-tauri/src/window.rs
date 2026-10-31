@@ -214,8 +214,23 @@ enum NavAction {
 }
 
 const LOGIN_SEGMENTS: &[&str] = &[
-    "login", "log-in", "signin", "sign-in", "account", "accounts", "auth", "oauth", "callback",
+    "login", "log-in", "signin", "sign-in", "oauth", "authorize", "sso",
 ];
+const AMBIGUOUS_LOGIN_SEGMENTS: &[&str] = &["account", "accounts", "auth", "callback"];
+
+fn has_oauth_query(url: &Url) -> bool {
+    let keys = url
+        .query_pairs()
+        .map(|(key, _)| key.to_ascii_lowercase())
+        .collect::<std::collections::HashSet<_>>();
+    let client_flow = keys.contains("client_id")
+        && (keys.contains("redirect_uri") || keys.contains("response_type"));
+    let callback_flow = keys.contains("state")
+        && ["code", "error", "id_token", "access_token"]
+            .iter()
+            .any(|key| keys.contains(*key));
+    client_flow || callback_flow
+}
 
 fn normalized_host(host: &str) -> String {
     host.trim().trim_end_matches('.').to_ascii_lowercase()
@@ -268,20 +283,38 @@ fn is_auth_provider(host: &str, path: &str) -> bool {
     }
 }
 
-fn is_login_path(path: &str) -> bool {
-    path.split('/')
+fn is_login_path(url: &Url) -> bool {
+    let segments = url
+        .path()
+        .split('/')
         .filter(|segment| !segment.is_empty())
-        .any(|segment| {
-            let normalized = segment.to_ascii_lowercase();
-            LOGIN_SEGMENTS.contains(&normalized.as_str())
-        })
+        .map(str::to_ascii_lowercase)
+        .collect::<Vec<_>>();
+    segments
+        .iter()
+        .any(|segment| LOGIN_SEGMENTS.contains(&segment.as_str()))
+        || (has_oauth_query(url)
+            && segments
+                .iter()
+                .any(|segment| AMBIGUOUS_LOGIN_SEGMENTS.contains(&segment.as_str())))
 }
 
-fn is_auth_page(host: &str, path: &str, c: &AppConfig) -> bool {
-    if is_auth_provider(host, path) {
+fn site_host_matches(host: &str, target: &str) -> bool {
+    if host_matches(host, target) {
         return true;
     }
-    configured_host(c).is_some_and(|target| host_matches(host, &target) && is_login_path(path))
+    let host = normalized_host(host);
+    let target = normalized_host(target);
+    host.strip_prefix("www.") == Some(target.as_str())
+        || target.strip_prefix("www.") == Some(host.as_str())
+}
+
+fn is_auth_page(url: &Url, c: &AppConfig) -> bool {
+    if is_auth_provider(url.host_str().unwrap_or(""), url.path()) {
+        return true;
+    }
+    configured_host(c)
+        .is_some_and(|target| site_host_matches(url.host_str().unwrap_or(""), &target) && is_login_path(url))
 }
 
 fn is_configured_page(url: &Url, c: &AppConfig) -> bool {
@@ -289,14 +322,14 @@ fn is_configured_page(url: &Url, c: &AppConfig) -> bool {
         return false;
     };
     let host = url.host_str().unwrap_or("");
-    host_matches(host, &target_host) && !is_auth_page(host, url.path(), c)
+    site_host_matches(host, &target_host) && !is_auth_page(url, c)
 }
 
 fn is_exact_configured_page(url: &Url, c: &AppConfig) -> bool {
     let Ok(target) = Url::parse(&c.site_url) else {
         return false;
     };
-    host_matches(
+    site_host_matches(
         url.host_str().unwrap_or(""),
         target.host_str().unwrap_or(""),
     ) && url.path().trim_end_matches('/') == target.path().trim_end_matches('/')
@@ -311,8 +344,8 @@ fn decide_main(url: &Url, c: &AppConfig) -> NavAction {
         return NavAction::OpenLogin;
     }
     if let Some(target) = configured_host(c) {
-        if host_matches(host, &target) {
-            if is_login_path(url.path()) && !is_exact_configured_page(url, c) {
+        if site_host_matches(host, &target) {
+            if is_login_path(url) && !is_exact_configured_page(url, c) {
                 return NavAction::OpenLogin;
             }
             return NavAction::Allow;
@@ -327,7 +360,7 @@ fn decide_login(url: &Url, c: &AppConfig) -> NavAction {
     }
     let host = url.host_str().unwrap_or("");
     if is_auth_provider(host, url.path())
-        || configured_host(c).is_some_and(|target| host_matches(host, &target))
+        || configured_host(c).is_some_and(|target| site_host_matches(host, &target))
     {
         NavAction::Allow
     } else {
@@ -340,12 +373,15 @@ fn should_close_login(seen_auth: bool, url: &Url, c: &AppConfig) -> bool {
 }
 
 fn is_internal_app_url(url: &Url) -> bool {
-    if url.scheme() == "tauri" {
-        return true;
-    }
     let host = url.host_str().unwrap_or("");
-    (url.scheme() == "http" && host == "tauri.localhost")
-        || (cfg!(debug_assertions) && host == "127.0.0.1")
+    if url.scheme() == "tauri" {
+        return host == "localhost" && url.port().is_none();
+    }
+    (url.scheme() == "http" && host == "tauri.localhost" && url.port().is_none())
+        || (cfg!(debug_assertions)
+            && url.scheme() == "http"
+            && host == "127.0.0.1"
+            && url.port() == Some(1420))
 }
 
 fn authorized_widget_action<'a>(url: &'a Url, expected_token: &str) -> Option<&'a str> {
