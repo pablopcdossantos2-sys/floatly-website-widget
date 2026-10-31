@@ -6,17 +6,15 @@
 
 O MSIX é a rota adequada para publicar o Floatly sem comprar certificado Code Signing. O pacote enviado à Store não precisa ser assinado por você: depois da aprovação, a Microsoft assina o pacote e hospeda a distribuição. A Store também gerencia as atualizações das instalações feitas por ela.
 
-## 1. Criar a ficha correta no Partner Center
+## 1. Abrir a ficha já criada
+
+A ficha **Floatly** já foi criada no Partner Center e a identidade do pacote foi confirmada. Não crie outro produto e não reserve o nome novamente.
 
 1. Entre no [Microsoft Partner Center](https://partner.microsoft.com/dashboard).
-2. Abra **Apps and games**.
-3. Clique em **New product**.
-4. Escolha **MSIX or PWA app**.
-5. Digite **Floatly** e clique em **Check availability**.
-6. Quando o nome estiver disponível, clique em **Reserve product name**.
-7. Abra a ficha criada e clique em **Start submission**.
+2. Abra **Apps and games → Floatly**.
+3. Abra a submissão existente ou clique em **Start submission** para começar a submissão inicial.
 
-**Atenção:** escolha **MSIX or PWA app**. Não escolha **EXE or MSI app**, nem **Game**. O Floatly é um aplicativo desktop Tauri que será entregue como pacote MSIX, não um site PWA.
+Confirme que o tipo de produto escolhido foi **MSIX or PWA app**. Não use **EXE or MSI app**, nem **Game**. O Floatly é um aplicativo desktop Tauri que será entregue como pacote MSIX, não um site PWA.
 
 Referência oficial: https://learn.microsoft.com/en-us/windows/apps/publish/get-started
 
