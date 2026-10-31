@@ -14,7 +14,7 @@ A compact Windows desktop browser that keeps a user-chosen HTTP/HTTPS address vi
 - Configurable website URL, size, position, movement lock, always-on-top behavior, taskbar visibility, zoom, corner radius and automatic reload.
 - External links open in the default browser. Recognized sign-in domains open in a secondary window with a simple address bar and shared WebView2 data folder; the window attempts to close when sign-in returns to the configured website.
 - Windows x64 build workflow and NSIS installer.
-- Initial Microsoft Store preparation is documented in [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md) (Portuguese); submission still depends on the listed outstanding work.
+- An x64 MSIX package for Microsoft Store is built by a dedicated GitHub Actions workflow; see [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md) for the publication checklist.
 
 ## Requirements
 
@@ -47,15 +47,17 @@ For a concrete example URL, see the example section below.
 
 ## Microsoft Store
 
-The detailed step-by-step publication guide is available in [Portuguese](GUIA_PUBLICACAO_MICROSOFT_STORE.md), along with a [multilingual Store listing draft](MICROSOFT_STORE_LISTING_DRAFT.md). The Store build is manual and requires the real publisher identity and code-signing secrets. The build workflow does not mean the app is ready for submission or has been approved.
+Floatly is prepared for the Store as an **x64 MSIX** package. Follow the [step-by-step guide in Portuguese](GUIA_PUBLICACAO_MICROSOFT_STORE.md) and use the [multilingual listing draft](MICROSOFT_STORE_LISTING_DRAFT.md).
+
+The **Build MSIX for Microsoft Store** workflow takes the three package-identity values copied from Partner Center and produces an unsigned `.msix` file. This is intentional: Microsoft signs the MSIX after approval. No code-signing certificate, PFX file or signing secrets are required for this route.
 
 ## Interface language
 
 Open **Settings → Language** and choose Portuguese (Brazil), English or Spanish. The setting is saved in %APPDATA%\WidgetWebsite\config.json and translates the settings window, system-tray menu, sign-in toolbar and the widget's own connection messages. The chosen website remains in the language served by that website.
 
-## Digital signing and Windows security warnings
+## Optional signing for the standalone installer (not used by the Store)
 
-The GitHub Actions workflow supports optional Authenticode signing. To enable it, obtain a **trusted Windows code-signing certificate** and create the following repository secrets under **Settings → Secrets and variables → Actions**:
+The standalone NSIS installer workflow supports optional Authenticode signing. This is separate from the Microsoft Store MSIX package, which does not use a developer-provided certificate. To sign the NSIS installer for distribution outside the Store, obtain a **trusted Windows code-signing certificate** and create the following repository secrets under **Settings → Secrets and variables → Actions**:
 
 - WINDOWS_PFX_BASE64: the PFX certificate file encoded as Base64.
 - WINDOWS_PFX_PASSWORD: the password for that PFX file.
