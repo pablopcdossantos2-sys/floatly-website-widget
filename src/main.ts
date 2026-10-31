@@ -14,7 +14,7 @@ const footer = document.querySelector<HTMLElement>(".status-panel small")!;
 
 const translations: Record<Language, Record<MessageKey, string>> = {
   "pt-BR": {
-    title: "Widget Website",
+    title: "Floatly",
     configureTitle: "Escolha um site",
     configureMessage: "Informe o endereço de um site nas Configurações para mantê-lo visível nesta janela.",
     configureButton: "Escolher site",
@@ -27,7 +27,7 @@ const translations: Record<Language, Record<MessageKey, string>> = {
     configFailed: "Não foi possível carregar a configuração. Abra as Configurações e informe o endereço do site."
   },
   en: {
-    title: "Widget Website",
+    title: "Floatly",
     configureTitle: "Choose a website",
     configureMessage: "Enter a website address in Settings to keep it visible in this window.",
     configureButton: "Choose website",
@@ -40,7 +40,7 @@ const translations: Record<Language, Record<MessageKey, string>> = {
     configFailed: "Could not load the configuration. Open Settings and enter a website address."
   },
   es: {
-    title: "Widget Website",
+    title: "Floatly",
     configureTitle: "Elige un sitio web",
     configureMessage: "Introduce la dirección de un sitio web en Configuración para mantenerlo visible en esta ventana.",
     configureButton: "Elegir sitio web",
