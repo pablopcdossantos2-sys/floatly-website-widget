@@ -9,7 +9,7 @@ O produto **Floatly** e as propriedades básicas da Store já estão configurado
 
 - [ ] Atualizar o campo Website de suporte no Partner Center para a URL direta de [SUPPORT.md](https://github.com/pablopcdossantos2-sys/floatly-website-widget/blob/main/SUPPORT.md).
 - [ ] Obter um certificado Authenticode confiável e confirmar o nome exato do publisher.
-- [ ] Configurar bundle.publisher e os segredos WINDOWS_PFX_BASE64 e WINDOWS_PFX_PASSWORD no GitHub.
+- [ ] Informar ao mantenedor o nome exato do publisher do certificado para configurar bundle.publisher; cadastrar os segredos WINDOWS_PFX_BASE64 e WINDOWS_PFX_PASSWORD no GitHub.
 - [ ] Gerar a chave do Tauri Updater e cadastrar TAURI_SIGNING_PRIVATE_KEY e, se aplicável, TAURI_SIGNING_PRIVATE_KEY_PASSWORD.
 - [ ] Aguardar a integração do Tauri Updater e do feed de releases no repositório; essa é uma alteração de código, não uma tarefa de edição manual do Partner Center.
 - [ ] Executar o workflow de Store depois que a integração estiver pronta e guardar o EXE assinado e SHA256SUMS.txt.
