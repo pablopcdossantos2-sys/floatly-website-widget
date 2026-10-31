@@ -87,7 +87,7 @@ fn main() {
     diagnostics::log(
         &app_dir,
         "INFO",
-        format!("Widget Website iniciando. PID={}", std::process::id()),
+        format!("Floatly iniciando. PID={}", std::process::id()),
     );
 
     #[cfg(windows)]
@@ -262,7 +262,7 @@ fn main() {
                         diagnostics::log(&event_diag_dir, "FATAL", "A janela principal foi destruída inesperadamente; o processo será encerrado para evitar que a bandeja fique sem uma janela funcional.");
                         #[cfg(windows)]
                         show_message(
-                            "Widget Website — falha da janela",
+                            "Floatly — falha da janela",
                             &format!("A janela principal foi encerrada inesperadamente. O aplicativo será fechado.\n\nConsulte o diagnóstico em: {}", diagnostics::log_path(&event_diag_dir).display()),
                         );
                         handle.exit(1);
@@ -287,7 +287,7 @@ fn main() {
         );
         #[cfg(windows)]
         show_message(
-            "Widget Website — erro ao iniciar",
+            "Floatly — erro ao iniciar",
             &format!(
                 "O widget encontrou um erro ao iniciar. Consulte o diagnóstico em:\n{}\n\nDetalhe: {}",
                 diagnostics::log_path(&app_dir).display(),
