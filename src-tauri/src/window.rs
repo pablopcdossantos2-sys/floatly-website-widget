@@ -242,7 +242,13 @@ enum NavAction {
 }
 
 const LOGIN_SEGMENTS: &[&str] = &[
-    "login", "log-in", "signin", "sign-in", "oauth", "authorize", "sso",
+    "login",
+    "log-in",
+    "signin",
+    "sign-in",
+    "oauth",
+    "authorize",
+    "sso",
 ];
 const AMBIGUOUS_LOGIN_SEGMENTS: &[&str] = &["account", "accounts", "auth", "callback"];
 
@@ -341,8 +347,9 @@ fn is_auth_page(url: &Url, c: &AppConfig) -> bool {
     if is_auth_provider(url.host_str().unwrap_or(""), url.path()) {
         return true;
     }
-    configured_host(c)
-        .is_some_and(|target| site_host_matches(url.host_str().unwrap_or(""), &target) && is_login_path(url))
+    configured_host(c).is_some_and(|target| {
+        site_host_matches(url.host_str().unwrap_or(""), &target) && is_login_path(url)
+    })
 }
 
 fn is_configured_page(url: &Url, c: &AppConfig) -> bool {
@@ -452,7 +459,9 @@ fn external_open_allowed(state: &mut ExternalOpenState, url: &str, now_ms: u64) 
     const WINDOW_MS: u64 = 60_000;
     const MAX_OPENINGS_PER_WINDOW: usize = 5;
 
-    state.recent_open_ms.retain(|opened| now_ms.saturating_sub(*opened) < WINDOW_MS);
+    state
+        .recent_open_ms
+        .retain(|opened| now_ms.saturating_sub(*opened) < WINDOW_MS);
     let elapsed = now_ms.saturating_sub(state.last_open_ms);
     if state.last_open_ms != 0 && elapsed < MINIMUM_INTERVAL_MS {
         return false;
@@ -568,8 +577,7 @@ pub fn local_start_url() -> Url {
         Url::parse("http://tauri.localhost/index.html")
             .expect("static Windows Tauri asset URL must be valid")
     } else {
-        Url::parse("tauri://localhost/index.html")
-            .expect("static Tauri asset URL must be valid")
+        Url::parse("tauri://localhost/index.html").expect("static Tauri asset URL must be valid")
     }
 }
 
@@ -595,7 +603,10 @@ pub fn create_main(
     let action_token = uuid::Uuid::new_v4().simple().to_string();
     let heartbeat_token = app.state::<AppState>().heartbeat_token.clone();
     let init_script = INIT
-        .replace("__WIDGET_LANGUAGE__", crate::i18n::normalize_language(&c.language))
+        .replace(
+            "__WIDGET_LANGUAGE__",
+            crate::i18n::normalize_language(&c.language),
+        )
         .replace("__WIDGET_LOCKED__", &c.locked.to_string())
         .replace("__WIDGET_ACTION_TOKEN__", &action_token)
         .replace("__WIDGET_HEARTBEAT_TOKEN__", &heartbeat_token);
@@ -884,8 +895,7 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
     let diag_dir = state.app_dir.clone();
     let initial_config = state.snapshot();
     let language = initial_config.language.clone();
-    let initially_authenticating =
-        is_auth_page(&url, &initial_config);
+    let initially_authenticating = is_auth_page(&url, &initial_config);
     let data_dir = state.app_dir.join("webview-data");
     if let Err(error) = std::fs::create_dir_all(&data_dir) {
         crate::diagnostics::log(
@@ -1651,20 +1661,32 @@ mod navigation_policy_tests {
     fn is_auth_page_distinguishes_login_routes_from_account_content() {
         let cfg = config("https://br.investing.com/economic-calendar");
         for path in [
-            "/news/authors/joao", "/analysis/authority-x", "/accounting-news",
-            "/account/profile", "/accounts/overview", "/docs/auth", "/api/callback",
+            "/news/authors/joao",
+            "/analysis/authority-x",
+            "/accounting-news",
+            "/account/profile",
+            "/accounts/overview",
+            "/docs/auth",
+            "/api/callback",
         ] {
             let url = Url::parse(&format!("https://br.investing.com{path}")).unwrap();
-            assert!(!is_auth_page(&url, &cfg), "ordinary page was classified as login: {path}");
+            assert!(
+                !is_auth_page(&url, &cfg),
+                "ordinary page was classified as login: {path}"
+            );
         }
         for path in ["/login", "/oauth/authorize", "/account/login"] {
             let url = Url::parse(&format!("https://br.investing.com{path}")).unwrap();
-            assert!(is_auth_page(&url, &cfg), "login route was not recognized: {path}");
+            assert!(
+                is_auth_page(&url, &cfg),
+                "login route was not recognized: {path}"
+            );
         }
         let oauth_start = Url::parse(
             "https://br.investing.com/auth/start?client_id=demo&redirect_uri=https%3A%2F%2Fexample.com%2Fcallback",
         ).unwrap();
-        let oauth_callback = Url::parse("https://br.investing.com/callback?code=abc&state=xyz").unwrap();
+        let oauth_callback =
+            Url::parse("https://br.investing.com/callback?code=abc&state=xyz").unwrap();
         assert!(is_auth_page(&oauth_start, &cfg));
         assert!(is_auth_page(&oauth_callback, &cfg));
     }
@@ -1672,16 +1694,35 @@ mod navigation_policy_tests {
     #[test]
     fn configured_www_and_apex_hosts_are_treated_as_the_same_site() {
         let cfg = config("https://www.example.com/dashboard");
-        assert_eq!(decide_main(&Url::parse("https://example.com/account/profile").unwrap(), &cfg), NavAction::Allow);
-        assert_eq!(decide_main(&Url::parse("https://api.example.com/v1").unwrap(), &cfg), NavAction::External);
-        assert_eq!(decide_main(&Url::parse("https://evilexample.com/").unwrap(), &cfg), NavAction::External);
+        assert_eq!(
+            decide_main(
+                &Url::parse("https://example.com/account/profile").unwrap(),
+                &cfg
+            ),
+            NavAction::Allow
+        );
+        assert_eq!(
+            decide_main(&Url::parse("https://api.example.com/v1").unwrap(), &cfg),
+            NavAction::External
+        );
+        assert_eq!(
+            decide_main(&Url::parse("https://evilexample.com/").unwrap(), &cfg),
+            NavAction::External
+        );
     }
 
     #[test]
     fn local_start_url_uses_the_current_tauri_frontend_origin() {
         let url = local_start_url();
         assert!(is_internal_app_url(&url));
-        assert_eq!(url.path(), if cfg!(debug_assertions) { "/" } else { "/index.html" });
+        assert_eq!(
+            url.path(),
+            if cfg!(debug_assertions) {
+                "/"
+            } else {
+                "/index.html"
+            }
+        );
     }
 
     #[test]
@@ -1856,10 +1897,15 @@ mod internal_app_navigation_tests {
             "http://127.0.0.1:1421/",
         ] {
             let url = Url::parse(address).unwrap();
-            assert!(!is_internal_app_url(&url), "accepted unexpected origin: {address}");
+            assert!(
+                !is_internal_app_url(&url),
+                "accepted unexpected origin: {address}"
+            );
         }
         if cfg!(debug_assertions) {
-            assert!(is_internal_app_url(&Url::parse("http://127.0.0.1:1420/").unwrap()));
+            assert!(is_internal_app_url(
+                &Url::parse("http://127.0.0.1:1420/").unwrap()
+            ));
         }
     }
 }
