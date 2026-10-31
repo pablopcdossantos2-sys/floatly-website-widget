@@ -237,8 +237,7 @@ pub fn save_config(
         }
     }
 
-    let previous_autostart =
-        crate::autostart::is_enabled(&app).unwrap_or(old.autostart);
+    let previous_autostart = crate::autostart::is_enabled(&app).unwrap_or(old.autostart);
     let mut autostart_changed = false;
     if c.autostart != previous_autostart {
         match crate::autostart::set_enabled(&app, c.autostart) {
@@ -259,8 +258,7 @@ pub fn save_config(
                     "WARN",
                     format!("Não foi possível alterar a inicialização automática: {error}"),
                 );
-                let actual =
-                    crate::autostart::is_enabled(&app).unwrap_or(previous_autostart);
+                let actual = crate::autostart::is_enabled(&app).unwrap_or(previous_autostart);
                 if actual != c.autostart {
                     c.autostart = actual;
                     warns.push(if requested.autostart {
