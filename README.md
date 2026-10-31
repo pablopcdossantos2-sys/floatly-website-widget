@@ -1,10 +1,8 @@
 # Floatly — Windows
 
-*Read this in other languages: [English](README-en.md)*
+**Idiomas / Languages / Idiomas:** Português (Brasil) · [English](README-en.md) · [Español](README.es.md)
 
 ---
-
-**Idiomas / Languages / Idiomas:** Português (Brasil) · [English](README-en.md) · [Español](README.es.md)
 
 Navegador compacto para manter um endereço escolhido pelo usuário em uma janela flutuante WebView2 no desktop do Windows. O endereço é configurado na primeira execução; nenhum site de terceiros vem predefinido. Projeto Tauri 2 para Windows 10/11 x64.
 
