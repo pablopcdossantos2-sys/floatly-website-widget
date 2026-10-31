@@ -9,6 +9,15 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      - dependency-name: "@tauri-apps/api"
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-major
+      - dependency-name: "@tauri-apps/cli"
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-major
   - package-ecosystem: cargo
     directory: /src-tauri
     schedule:
@@ -18,6 +27,15 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      - dependency-name: "tauri"
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-major
+      - dependency-name: "tauri-build"
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-major
   - package-ecosystem: github-actions
     directory: /
     schedule:
