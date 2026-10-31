@@ -1,8 +1,7 @@
 # Política de Privacidade — Floatly
 
-**Última atualização:** 29 de outubro de 2026
+**Última atualização:** 30 de outubro de 2026
 
-> **Atenção antes da publicação:** substitua os dois campos entre colchetes na seção “Responsável e contato”. Use o nome civil completo ou a razão social de quem efetivamente publicará o Floatly no Microsoft Partner Center e um endereço de e-mail monitorado para solicitações de privacidade. Não envie esta versão à Microsoft enquanto esses campos estiverem em branco.
 
 ## 1. Sobre o Floatly
 
@@ -14,9 +13,9 @@ Esta política descreve o tratamento de informações realizado pelo próprio ap
 
 ## 2. Responsável pelo tratamento e contato
 
-**Responsável pelo Floatly (controlador):** [NOME CIVIL COMPLETO OU RAZÃO SOCIAL DO PUBLICADOR]
+**Responsável pelo Floatly (controlador):** Pablo Phillipe Cândido dos Santos
 
-**Contato para privacidade e proteção de dados:** [E-MAIL DE CONTATO PARA PRIVACIDADE]
+**Contato para privacidade e proteção de dados:** pablopcsantos@outlook.com
 
 O responsável acima é o canal para dúvidas e solicitações relacionadas a esta política e ao tratamento de dados realizado pelo Floatly. O nome informado deve corresponder à pessoa ou entidade que efetivamente publica e mantém o aplicativo.
 
@@ -148,16 +147,15 @@ Esta política poderá ser atualizada quando houver mudanças nas funcionalidade
 
 Para dúvidas, solicitações de privacidade ou exercício de direitos relacionados ao tratamento de dados realizado pelo Floatly, entre em contato:
 
-**Responsável:** [NOME CIVIL COMPLETO OU RAZÃO SOCIAL DO PUBLICADOR]  
-**E-mail:** [E-MAIL DE CONTATO PARA PRIVACIDADE]
+**Responsável:** Pablo Phillipe Cândido dos Santos  
+**E-mail:** pablopcsantos@outlook.com
 
 ---
 
 # Privacy Policy — Floatly
 
-**Last updated:** October 29, 2026
+**Last updated:** October 30, 2026
 
-> **Before publication:** replace the two bracketed fields in “Controller and contact”. Use the full legal name of the individual or entity that will actually publish Floatly in Microsoft Partner Center, and a monitored email address for privacy requests. Do not submit this version while those fields remain blank.
 
 ## 1. About Floatly
 
@@ -169,9 +167,9 @@ This policy describes information handling by the Floatly application and its pu
 
 ## 2. Controller and contact
 
-**Floatly controller:** [FULL LEGAL NAME OF THE PUBLISHER — INDIVIDUAL OR LEGAL ENTITY]
+**Floatly controller:** Pablo Phillipe Cândido dos Santos
 
-**Privacy and data protection contact:** [PRIVACY CONTACT EMAIL ADDRESS]
+**Privacy and data protection contact:** pablopcsantos@outlook.com
 
 The controller identified above is the contact for questions and requests about this policy and the processing carried out by Floatly. The name must match the person or entity that actually publishes and maintains the application.
 
@@ -303,16 +301,15 @@ This policy may be updated when Floatly features, data handling practices, or le
 
 For questions, privacy requests, or to exercise rights related to data processing carried out by Floatly, contact:
 
-**Controller:** [FULL LEGAL NAME OF THE PUBLISHER — INDIVIDUAL OR LEGAL ENTITY]  
-**Email:** [PRIVACY CONTACT EMAIL ADDRESS]
+**Controller:** Pablo Phillipe Cândido dos Santos  
+**Email:** pablopcsantos@outlook.com
 
 ---
 
 # Política de privacidad — Floatly
 
-**Última actualización:** 29 de octubre de 2026
+**Última actualización:** 30 de octubre de 2026
 
-> **Antes de publicar:** sustituye los dos campos entre corchetes de la sección «Responsable y contacto». Utiliza el nombre legal completo de la persona o entidad que realmente publicará Floatly en Microsoft Partner Center y una dirección de correo electrónico supervisada para solicitudes de privacidad. No envíes esta versión a Microsoft mientras esos campos estén vacíos.
 
 ## 1. Acerca de Floatly
 
@@ -324,9 +321,9 @@ Esta política describe el tratamiento de información realizado por la aplicaci
 
 ## 2. Responsable y contacto
 
-**Responsable de Floatly (responsable del tratamiento):** [NOMBRE LEGAL COMPLETO DE LA PERSONA O ENTIDAD EDITORA]
+**Responsable de Floatly (responsable del tratamiento):** Pablo Phillipe Cândido dos Santos
 
-**Contacto para privacidad y protección de datos:** [CORREO ELECTRÓNICO DE PRIVACIDAD]
+**Contacto para privacidad y protección de datos:** pablopcsantos@outlook.com
 
 El responsable indicado arriba es el canal para preguntas y solicitudes sobre esta política y el tratamiento realizado por Floatly. El nombre debe corresponder a la persona o entidad que realmente publica y mantiene la aplicación.
 
@@ -458,5 +455,5 @@ Esta política podrá actualizarse cuando cambien las funciones de Floatly, las 
 
 Para preguntas, solicitudes de privacidad o para ejercer derechos relacionados con el tratamiento de datos realizado por Floatly, ponte en contacto con:
 
-**Responsable:** [NOMBRE LEGAL COMPLETO DE LA PERSONA O ENTIDAD EDITORA]  
-**Correo electrónico:** [CORREO ELECTRÓNICO DE PRIVACIDAD]
+**Responsable:** Pablo Phillipe Cândido dos Santos  
+**Correo electrónico:** pablopcsantos@outlook.com
