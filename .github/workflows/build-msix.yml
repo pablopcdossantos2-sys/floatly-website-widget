@@ -1,19 +1,24 @@
 name: Build MSIX for Microsoft Store
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       package_identity_name:
-        description: "Package identity Name copied from Partner Center"
+        description: "Package identity Name from Partner Center"
         required: true
+        default: "pablopcdsantos.Floatly"
         type: string
       package_publisher:
-        description: "Package identity Publisher copied exactly from Partner Center (X.500)"
+        description: "Package identity Publisher from Partner Center (X.500)"
         required: true
+        default: "CN=A3E973B8-1411-4314-B754-F3DADD99C070"
         type: string
       publisher_display_name:
         description: "Publisher display name from Partner Center"
         required: true
+        default: "pablopcdsantos"
         type: string
 
 permissions:
@@ -104,9 +109,9 @@ jobs:
       - name: Build unsigned MSIX for Microsoft Store
         shell: pwsh
         env:
-          MSIX_PACKAGE_IDENTITY_NAME: ${{ inputs.package_identity_name }}
-          MSIX_PACKAGE_PUBLISHER: ${{ inputs.package_publisher }}
-          MSIX_PUBLISHER_DISPLAY_NAME: ${{ inputs.publisher_display_name }}
+          MSIX_PACKAGE_IDENTITY_NAME: ${{ inputs.package_identity_name || 'pablopcdsantos.Floatly' }}
+          MSIX_PACKAGE_PUBLISHER: ${{ inputs.package_publisher || 'CN=A3E973B8-1411-4314-B754-F3DADD99C070' }}
+          MSIX_PUBLISHER_DISPLAY_NAME: ${{ inputs.publisher_display_name || 'pablopcdsantos' }}
         run: |
           pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/build-msix.ps1
 
