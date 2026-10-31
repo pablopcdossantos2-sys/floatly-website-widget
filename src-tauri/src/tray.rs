@@ -60,8 +60,13 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     let mut builder = TrayIconBuilder::with_id("widget-website-tray")
         .menu(&menu)
         .tooltip(text.tooltip);
-    if let Some(icon) = app.default_window_icon().cloned() {
-        builder = builder.icon(icon);
+    match app.default_window_icon().cloned() {
+        Some(icon) => builder = builder.icon(icon),
+        None => diagnostics::log(
+            &app.state::<AppState>().app_dir,
+            "WARN",
+            "A bandeja foi criada sem ícone porque a janela não forneceu um ícone padrão.",
+        ),
     }
     builder
         .on_menu_event(|app, event| match event.id().as_ref() {
