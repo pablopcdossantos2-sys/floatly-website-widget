@@ -24,8 +24,8 @@ const cargoVersion = cargo.match(/^version\s*=\s*"([^"]+)"/m)?.[1];
 if (!pkg.version || pkg.version !== tauri.version || pkg.version !== cargoVersion) {
   fail("package.json, tauri.conf.json and Cargo.toml versions must match.");
 }
-if (!tauri.productName || tauri.productName.trim() !== "Widget Website") {
-  fail("The product name must stay generic; do not use a third-party website's brand.");
+if (!tauri.productName || tauri.productName.trim() !== "Floatly") {
+  fail("The product name must be Floatly; do not use a third-party website's brand.");
 }
 if (!tauri.identifier || !/^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$/.test(tauri.identifier)) {
   fail("The Tauri bundle identifier is missing or invalid.");
