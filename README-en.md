@@ -43,13 +43,13 @@ The installer is created under src-tauri/target/release/bundle/nsis and the exec
 
 ## First launch
 
-On first launch, the widget asks you to choose a website. Click **Choose website** and enter a URL under **Settings → Website URL**. The field starts empty: no third-party website is preconfigured. The site must allow loading in WebView2; some sites may restrict specific features or sign-in flows.
+On first launch, the widget asks you to choose a website. Click **Choose website** and enter a URL under **Settings → Website URL**. The field starts empty: no third-party website is preconfigured. The site must allow loading in WebView2; some sites may restrict specific features or sign-in flows. To return to the setup page, clear the URL in Settings and save.
 
 For a concrete example URL, see the example section below.
 
 ## Microsoft Store
 
-Floatly is prepared for the Store as an **x64 MSIX** package. Follow the [step-by-step guide in Portuguese](GUIA_PUBLICACAO_MICROSOFT_STORE.md) and use the [multilingual listing draft](MICROSOFT_STORE_LISTING_DRAFT.md).
+Floatly is prepared for the Store as an **x64 MSIX** package. This package requires Windows 10 version 2004 (build 19041) or later; the conventional NSIS version is distributed separately. Follow the [step-by-step guide in Portuguese](GUIA_PUBLICACAO_MICROSOFT_STORE.md) and use the [multilingual listing draft](MICROSOFT_STORE_LISTING_DRAFT.md).
 
 The **Build MSIX for Microsoft Store** workflow runs automatically on `main` when relevant source-code, dependency, configuration or packaging files change. It can also be started manually from the **Actions** tab and uses the package identity already confirmed in Partner Center. The workflow produces an unsigned `.msix` file. This is intentional: Microsoft signs the MSIX after approval. No code-signing certificate, PFX file or signing secrets are required for this route.
 
@@ -75,6 +75,23 @@ Investing.com is only an example of a website the widget can display. To use it,
 For sites that require sign-in, use the authentication flow provided by that website. The system-tray menu includes an option to sign in or configure the website.
 
 The app does not read, copy or store passwords. The default WebView2 user agent is preserved.
+
+## Diagnostics, privacy and limitations
+
+- Local logs are normally stored at `%APPDATA%\\WidgetWebsite\\diagnostics.log`. They use UTC timestamps, rotate at approximately 1 MiB, and retain up to three older log files. Logs are not automatically sent to the developer.
+- To reduce exposure, logged URLs omit credentials, query parameters and fragments. The path is limited to its first two segments, and long or identifier-like segments are masked. Review logs before sharing them anyway.
+- The activity monitor logs a warning when it stops receiving the WebView2 heartbeat for approximately 20 seconds. It does not restart or terminate the application, and it ignores periods when the window is minimized or hidden.
+- Floatly does not implement its own telemetry. The selected website and authentication providers may receive connection data and store cookies or sessions in the local WebView2 profile under their own policies.
+- If the configuration JSON is completely invalid, the original file is preserved as `config.json.bad-*`. If individual fields need repair, Floatly creates `config.json.repaired-*` copies before correcting values and keeps up to three recent repair copies.
+- Floatly is not a full browser with tabs and history. Compatibility, sign-in and available features depend on the website you choose.
+
+## Project structure
+
+- `src-tauri/src/`: Rust window, navigation, configuration, tray, startup and diagnostics code.
+- `src/`: TypeScript startup page and settings interface.
+- `scripts/`: configuration, permission, contrast and packaging checks.
+- `packaging/msix/`: Microsoft Store package manifest.
+- `icons/widget.svg`: vector source for the application icons.
 
 ## Uninstalling and stored data
 
