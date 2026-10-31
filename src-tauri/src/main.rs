@@ -163,8 +163,35 @@ fn main() {
             // the application setup thread on WinRT's asynchronous StartupTask API.
             let config_needs_persist = !config_file_existed || !load_warnings.is_empty();
             if safe_to_persist && config_needs_persist {
-                if let Err(error) = config::save(&dir, &cfg) {
-                    diagnostics::log(&dir, "ERRO", format!("Não foi possível persistir a configuração inicial: {error}"));
+                let backup_ready = if config_file_existed && !load_warnings.is_empty() {
+                    match config::backup_before_repair(&dir) {
+                        Ok(Some(backup)) => {
+                            diagnostics::log(
+                                &dir,
+                                "INFO",
+                                format!("Cópia da configuração anterior ao reparo: {}", backup.display()),
+                            );
+                            true
+                        }
+                        Ok(None) => true, // A JSON inválida já foi preservada como config.json.bad-*.
+                        Err(error) => {
+                            diagnostics::log(&dir, "ERRO", &error);
+                            false
+                        }
+                    }
+                } else {
+                    true
+                };
+                if backup_ready {
+                    if let Err(error) = config::save(&dir, &cfg) {
+                        diagnostics::log(&dir, "ERRO", format!("Não foi possível persistir a configuração inicial: {error}"));
+                    }
+                } else {
+                    diagnostics::log(
+                        &dir,
+                        "ERRO",
+                        "A configuração reparada não será gravada porque o arquivo original não pôde ser preservado.",
+                    );
                 }
             } else if !safe_to_persist {
                 diagnostics::log(&dir, "ERRO", "A configuração inicial não será sobrescrita porque o arquivo original não pôde ser preservado.");
