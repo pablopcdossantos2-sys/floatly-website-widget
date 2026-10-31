@@ -1,414 +1,211 @@
-# Guia passo a passo — publicação do Floatly na Microsoft Store
+# Guia das tarefas do desenvolvedor — publicação do Floatly na Microsoft Store
 
 **Revisado em:** 30 de outubro de 2026  
-**Estado atual:** preparação técnica inicial concluída; ainda não pronto para submissão.
+**Situação:** o produto e as propriedades básicas já estão configurados no Partner Center. Ainda não enviar para certificação.
 
-Este guia foi escrito para que o desenvolvedor consiga executar a preparação e a publicação sem precisar conhecer previamente o Partner Center, o Tauri ou o fluxo de distribuição Win32 da Microsoft Store.
+Este guia contém somente as ações que ainda dependem do desenvolvedor humano. As etapas já concluídas não precisam ser repetidas. O trabalho técnico que pode ser feito no próprio repositório — como integrar o atualizador Tauri e ajustar o workflow — não exige edição manual de código pelo desenvolvedor.
 
-## 1. Entenda o caminho de publicação escolhido
+## Antes de começar
 
-O Floatly é um **navegador compacto para desktop Windows**, desenvolvido para manter um endereço HTTP/HTTPS escolhido pela pessoa usuária em uma janela flutuante. Ele pode exibir um site próprio, uma ferramenta hospedada pela própria pessoa ou outro site compatível. Não é um aplicativo dedicado a um serviço específico e não vem associado a nenhum domínio.
+Use o repositório https://github.com/pablopcdossantos2-sys/floatly-website-widget, sempre na branch main, e o produto **Floatly** que já existe na conta Partner Center.
 
-A janela oferece integração própria com o desktop: aba para movimentação, redimensionamento, opção de manter no topo, bandeja do sistema, atalho global, sessão WebView2 persistente e zoom. Seu escopo é intencionalmente compacto: a pessoa configura o endereço nas Configurações e usa uma janela dedicada, em vez de substituir um navegador completo com abas e histórico.
+O produto já tem disponibilidade, preço, categoria, classificação etária, notas de certificação, requisitos de sistema e política de privacidade configurados. Não crie outro produto nem refaça essas etapas.
 
-O projeto usa Tauri 2 e, no momento, gera um instalador **NSIS EXE**. Por isso, o caminho técnico preparado é o tipo de produto **EXE or MSI app** do Partner Center. A Microsoft também aceita MSIX e recomenda esse formato em vários cenários, mas migrar este projeto para MSIX exigiria uma etapa própria de empacotamento e validação.
+## 1. Atualizar o site de suporte no Partner Center
 
-A publicação EXE/MSI é diferente de enviar um ZIP ou um artefato do GitHub Actions. O Partner Center recebe uma URL HTTPS direta para o instalador EXE/MSI hospedado pelo desenvolvedor ou em sua infraestrutura/CDN. A Microsoft baixa e valida esse arquivo.
+A página dedicada de suporte já está pronta:
 
-### Enquadramento nas políticas da Microsoft Store
+https://github.com/pablopcdossantos2-sys/floatly-website-widget/blob/main/SUPPORT.md
 
-A regra 10.1.1 que exige que aplicativos da Web sejam publicados pelo proprietário do domínio é destinada a produtos enviados como web apps. O Floatly não é a publicação de um site dentro de um invólucro: é um aplicativo Win32 genérico, distribuído como EXE, cuja função é fornecer uma janela de navegação configurável. O usuário escolhe o destino; o produto não depende de um site ou serviço específico. Portanto, essa regra não deve ser tratada como um bloqueio prévio para este projeto.
+No Partner Center:
 
-Como o Floatly navega na Web, a regra diretamente relevante é a **10.2.1**: o mecanismo deve ser Chromium ou Gecko e precisa permanecer dentro de duas versões principais do projeto de código aberto correspondente. O Tauri usa WebView2, baseado em Chromium. A configuração de Store seleciona offlineInstaller, que instala o Evergreen WebView2 Runtime; ela não fixa uma versão privada do Chromium. O Evergreen recebe atualizações automáticas da Microsoft.
+1. Abra **Apps and Games → Floatly**.
+2. Entre em **Properties**.
+3. Na área de informações de suporte, localize o campo **Website**.
+4. Substitua a URL da raiz do repositório pela URL direta acima.
+5. Salve as alterações.
 
-Há, porém, um detalhe operacional: uma instância do aplicativo que já está aberta pode continuar usando a versão anterior do Runtime até ser reiniciada. O processo de validação deve confirmar a versão efetivamente carregada e verificar que o aplicativo adota a versão atualizada após reiniciar. Se a pessoa mantiver o widget aberto por períodos longos, convém avaliar um aviso de reinicialização quando uma nova versão do Runtime estiver disponível.
+A página é pública e contém o e-mail de suporte, instruções de primeira utilização e orientações de privacidade para envio de logs.
 
-O produto deve ser apresentado com precisão como navegador compacto de um endereço por vez, não como navegador completo. A compatibilidade de páginas, autenticação e recursos depende do site escolhido; a pessoa usuária continua responsável por respeitar os termos de cada serviço. A Microsoft fará a certificação final do pacote enviado, como ocorre com qualquer aplicativo da Store.
+## 2. Obter o certificado Authenticode e confirmar o publisher
 
-## 2. O que já está preparado no repositório
+O pacote EXE/MSI precisa ser assinado com um certificado de assinatura de código confiável. O nome do publisher configurado no Tauri deve corresponder à identidade que aparece no certificado e ser coerente com o publisher da conta Partner Center.
 
-Os itens abaixo foram implementados diretamente na branch `main`:
+1. Obtenha um certificado **Code Signing** de uma autoridade certificadora aceita pelo Microsoft Trusted Root Program.
+2. Peça à autoridade certificadora que confirme o nome exato exibido como sujeito/Publisher do certificado.
+3. Compare esse nome com a identidade de publicador da conta Partner Center. Não use automaticamente o nome que aparece na política de privacidade: ele identifica o responsável pelo tratamento de dados e pode não ser a grafia exigida pelo certificado.
+4. Exporte o certificado com sua chave privada em um arquivo PFX e guarde-o em local seguro.
 
-- O campo da URL padrão está vazio. Uma instalação nova não abre automaticamente o Investing.com nem outro site de terceiros.
-- Na primeira execução, a janela pede que a pessoa escolha um site e oferece um botão para abrir as Configurações.
-- O Investing.com aparece nos READMEs somente como exemplo de endereço.
-- A opção Opacidade foi removida da interface e da configuração persistente. Configurações antigas descartam esse campo sem perder as demais preferências.
-- O tamanho padrão continua em 350 × 550 px e o zoom padrão em 80%.
-- `src-tauri/tauri.microsoftstore.conf.json` seleciona o instalador offline do WebView2 sem alterar a compilação normal.
-- `npm run check:store-config` verifica alguns requisitos locais de configuração.
-- `npm run build:store` executa o build e assinatura no Windows. Ele assina o executável principal antes do empacotamento; usa o `bundle.windows.signCommand` do Tauri para assinar o desinstalador NSIS e o instalador externo; faz uma primeira compilação para materializar o toolset NSIS; assina também as DLLs originais da pasta de plugins usada pelo `makensis`; e reconstrói o instalador. Depois extrai o EXE e verifica a assinatura Authenticode de **todos os arquivos PE** encontrados. Se houver um executável ou DLL sem assinatura válida, interrompe o build. O processo gera `SHA256SUMS.txt` com a versão, o hash do instalador e a lista dos PE verificados.
-- O workflow manual **Build Microsoft Store package** executa os testes e gera o instalador assinado como artefato temporário do GitHub Actions.
+Depois de confirmar o nome exato, atualize o arquivo src-tauri/tauri.conf.json. Dentro de bundle, acrescente publisher, preservando os outros campos:
 
-A marca Floatly agora também está aplicada ao pacote e à interface. O identificador do Tauri e as pastas internas `WidgetWebsite` foram preservados deliberadamente para manter compatibilidade com instalações já existentes.
-
-Esses recursos são preparação, não aprovação de certificação. O build de Store para quando não encontra `bundle.publisher` preenchido com a identidade real do publicador ou quando faltam os segredos do certificado.
-
-### Situação já preenchida no Partner Center
-
-O nome **Floatly** já está criado. A disponibilidade foi configurada como gratuita, pesquisável e habilitada para 240 de 240 regiões. A categoria principal é **Productivity**; a classificação etária IARC foi concluída. As notas para certificação já orientam o avaliador a configurar um endereço de teste na primeira execução. Os campos opcionais de requisitos de sistema foram deixados em branco, e o desenvolvedor removeu endereço residencial e telefone pessoais dos contatos públicos.
-
-A política de privacidade já contém o nome do responsável individual e o e-mail de privacidade. A página de suporte dedicada está em [SUPPORT.md](SUPPORT.md); use sua URL direta no campo de suporte do Partner Center, em vez da raiz do repositório.
-
-## 3. Tarefas que exigem o desenvolvedor humano
-
-### Etapa 1 — Acessar a conta Partner Center existente
-
-O desenvolvedor já possui uma conta em storedeveloper.microsoft.com e já publicou outro widget por meio dela. Portanto, **não é necessário criar outra conta nem repetir o cadastro de desenvolvedor**.
-
-1. Acesse o Partner Center com a mesma conta Microsoft usada na publicação anterior.
-2. Abra **Apps and Games**.
-3. Confirme que a conta e o painel de publicação continuam acessíveis.
-4. Continue usando essa conta para administrar o produto Floatly já criado.
-
-### Etapa 2 — Confirmar o produto já criado
-
-O produto já foi criado na conta Partner Center existente, com o nome **Floatly**. O breadcrumb do Partner Center e as telas de disponibilidade e propriedades compartilhadas pelo desenvolvedor confirmam que o produto está disponível para edição. **Não crie um segundo produto nem tente reservar o nome novamente.**
-
-1. No Partner Center, abra **Apps and Games**.
-2. Localize e abra o produto **Floatly**.
-3. Confirme que o tipo de distribuição continua sendo **EXE or MSI app**.
-4. Continue usando essa mesma entrada para as próximas etapas da publicação.
-
-A reserva de nome na Store não substitui uma pesquisa de marca registrada nem constitui, por si só, autorização jurídica de uso da marca.
-
-### Etapa 3 — Definir a identidade do publisher
-
-O Tauri exige que o nome do publisher seja diferente do nome do produto. O valor deve representar a pessoa ou entidade que realmente publica o aplicativo e deve ser coerente com a identidade usada no certificado de assinatura e no Partner Center. O nome inserido na política de privacidade identifica o responsável pelo tratamento de dados; não o copie automaticamente para o publisher se o certificado apresentar outro nome.
-
-1. Obtenha ou confirme o certificado Authenticode que será usado no pacote.
-2. Use para `bundle.publisher` o nome de publisher compatível com a identidade do certificado e com a conta Individual/Company do Partner Center.
-3. Abra `src-tauri/tauri.conf.json`.
-4. Dentro de `bundle`, adicione o campo `publisher` com o nome verdadeiro, por exemplo:
-
-```json
+~~~json
 "bundle": {
-  "publisher": "NOME REAL DO PUBLISHER",
-  "active": true
+  "publisher": "NOME EXATO DO PUBLISHER NO CERTIFICADO"
 }
-```
+~~~
 
-Não copie literalmente o texto de exemplo. Não use um nome fictício. Preserve as demais propriedades já existentes no objeto `bundle`.
+Não substitua o objeto bundle inteiro por esse exemplo. Faça a alteração na branch main e confirme que npm run check:store-config não apresenta mais o aviso de publisher ausente.
 
-5. Faça commit dessa alteração na `main`.
-6. Execute `npm run check:store-config` e confirme que a verificação passa sem o aviso de publisher ausente.
+### Cadastrar os segredos de assinatura no GitHub
 
-**Esta etapa não pode ser concluída automaticamente:** o repositório não contém e não deve inventar a identidade legal/comercial do publicador.
+1. Abra o PFX no computador Windows e converta seu conteúdo para Base64 no PowerShell:
 
-### Etapa 4 — Obter um certificado de assinatura de código
-
-Para o caminho EXE/MSI, a Microsoft exige que o instalador e todos os arquivos PE que ele contém sejam assinados por um certificado de assinatura de código que encadeie até uma autoridade certificadora participante do Microsoft Trusted Root Program.
-
-1. Obtenha um certificado de assinatura de código de uma autoridade certificadora aceita pela Microsoft.
-2. Confirme com a autoridade certificadora o nome que será exibido como publisher.
-3. Exporte o certificado com chave privada em formato PFX.
-4. Guarde o PFX e sua senha em um gerenciador de segredos. Nunca coloque o arquivo PFX, sua senha ou a chave privada no Git, README, issue ou artefato público.
-5. No GitHub, abra **Settings → Secrets and variables → Actions → New repository secret**.
-6. Crie os segredos:
-   - `WINDOWS_PFX_BASE64`: conteúdo do PFX codificado em Base64, sem cabeçalhos de arquivo PEM.
-   - `WINDOWS_PFX_PASSWORD`: senha do PFX.
-
-Para obter o Base64 em PowerShell sem criar um arquivo de texto intermediário:
-
-```powershell
+~~~powershell
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\caminho\publisher.pfx"))
-```
+~~~
 
-Copie a saída diretamente para o segredo do GitHub. Não a salve no repositório.
+2. No GitHub, abra **Settings → Secrets and variables → Actions**.
+3. Crie os segredos do repositório:
+   - WINDOWS_PFX_BASE64: saída Base64 do PFX.
+   - WINDOWS_PFX_PASSWORD: senha do PFX.
 
-O script de Store verifica a validade do certificado, a finalidade Code Signing, a cadeia de confiança e o resultado da assinatura. O executável do aplicativo é assinado antes de entrar no NSIS; o instalador é assinado depois de empacotado. O instalador offline do WebView2 vem da Microsoft e também deve ser confirmado como componente assinado pelo fornecedor.
+Nunca envie o PFX, sua senha ou a chave privada por mensagem, issue, commit ou arquivo do repositório. Não coloque esses valores em README ou em arquivos .env.
 
-**Importante:** os segredos Authenticode acima são diferentes da chave que será usada pelo atualizador Tauri. Não os confunda nem reutilize uma chave privada em finalidades diferentes.
+## 3. Preparar a chave do atualizador
 
-### Etapa 5 — Definir como as atualizações do aplicativo serão entregues
+O instalador EXE/MSI da Store não recebe atualizações automaticamente para quem já instalou o aplicativo. A Microsoft permite atualizações dentro do próprio aplicativo quando o instalador dá suporte a elas. Por isso, o Floatly precisa de um mecanismo in-app antes de ser considerado pronto para distribuição estável.
 
-Esta é uma pendência técnica real. O projeto ainda não tem o plugin Tauri Updater configurado, não possui chave pública/privada de atualização, endpoint de atualização nem artefatos assinados de atualização.
+Para este repositório, a opção padrão recomendada é usar o **Tauri Updater com um feed estático publicado em GitHub Releases**. A integração do plugin, as permissões, a verificação de atualizações e o workflow de release são alterações de código que serão feitas no repositório; não edite esses arquivos manualmente.
 
-Há uma distinção importante: a Microsoft informa que a Store não entrega atualizações automaticamente nem manualmente aos usuários que já instalaram um aplicativo EXE/MSI. O usuário existente só pode receber uma atualização dentro do aplicativo se o próprio instalador e o aplicativo oferecerem esse mecanismo. Novos clientes recebem o pacote atual da URL cadastrada na Store. O guia do Tauri para Microsoft Store também orienta que o instalador trate atualizações automáticas. Para este projeto, o caminho recomendado é implementar o plugin `tauri-plugin-updater`, que valida os arquivos de atualização com uma assinatura própria.
+A ação do desenvolvedor é gerar e guardar o par de chaves:
 
-O desenvolvedor precisa:
+1. No PowerShell, abra a pasta do repositório e instale as dependências:
 
-1. Decidir onde os arquivos de atualização serão hospedados (por exemplo, um servidor HTTPS ou um feed estático em uma infraestrutura/CDN de confiança).
-2. Seguir o [guia oficial do Tauri Updater](https://v2.tauri.app/plugin/updater/) para adicionar o plugin Rust e o pacote JavaScript correspondente.
-3. Gerar o par de chaves de atualização pelo Tauri CLI. O comando documentado é:
-
-```powershell
-npm run tauri signer generate -- -w "$HOME\.tauri\widget-website.key"
-```
-
-4. Guardar a chave privada em local seguro e adicionar seu conteúdo/senha aos segredos do GitHub usados pelo processo de release (por exemplo, `TAURI_SIGNING_PRIVATE_KEY` e `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`).
-5. Colocar somente a chave pública em `plugins.updater.pubkey` na configuração Tauri.
-6. Configurar o endpoint HTTPS real em `plugins.updater.endpoints`.
-7. Ativar a geração dos artefatos do atualizador, implementar a consulta/aviso ao usuário e testar a atualização de uma versão anterior para a nova.
-8. Confirmar que a estratégia de atualização escolhida é compatível com a distribuição EXE/MSI cadastrada no Partner Center e com as obrigações da Store.
-
-A chave privada do atualizador nunca deve ser publicada. Se for perdida, os usuários das versões existentes podem ficar impossibilitados de validar atualizações futuras. A implementação do atualizador é, portanto, um requisito importante para manter instalações existentes atualizadas; não confunda o feed do Tauri com a submissão de uma nova URL versionada no Partner Center.
-
-Não configure um endpoint de exemplo ou uma chave falsa: o atualizador só deve ser ativado quando o endpoint, o feed, as chaves e o processo de release forem reais e testados.
-
-### Etapa 6 — Conferir a versão do aplicativo
-
-Antes de cada pacote que será enviado à Store, mantenha os seguintes valores sincronizados:
-
-- `package.json` → `version`
-- `src-tauri/Cargo.toml` → `version`
-- `src-tauri/tauri.conf.json` → `version`
-
-Hoje esses arquivos estão alinhados em `0.1.0`. Antes da submissão, defina a versão de lançamento que será publicada e atualize os três campos no mesmo commit. Não reutilize a mesma URL de pacote para binários diferentes.
-
-## 4. Como gerar o instalador de Store
-
-### Pré-requisitos no computador Windows
-
-- Windows 10/11 x64.
-- Node.js 22 ou mais recente e npm.
-- Rust 1.90 ou mais recente, com target `x86_64-pc-windows-msvc`.
-- Visual Studio Build Tools com **Desktop development with C++** e Windows SDK.
-- Certificado PFX válido e segredos carregados no ambiente.
-- Publisher real definido em `src-tauri/tauri.conf.json`.
-
-### Opção A — Gerar localmente pelo PowerShell
-
-1. Abra o PowerShell na pasta do repositório.
-2. Atualize a branch `main` e instale as dependências:
-
-```powershell
-git switch main
-git pull
+~~~powershell
 npm ci
-```
+New-Item -ItemType Directory -Force "$HOME\.tauri" | Out-Null
+npm run tauri signer generate -- -w "$HOME\.tauri\floatly.key"
+~~~
 
-3. Disponibilize temporariamente `WINDOWS_PFX_BASE64` e `WINDOWS_PFX_PASSWORD` no ambiente do PowerShell, sem gravá-los em arquivos ou no histórico do terminal.
-4. Execute:
+2. Guarde os arquivos gerados em local seguro. A chave privada é o arquivo floatly.key; a chave pública correspondente é floatly.key.pub.
+3. No GitHub, em **Settings → Secrets and variables → Actions**, crie:
+   - TAURI_SIGNING_PRIVATE_KEY: conteúdo da chave privada.
+   - TAURI_SIGNING_PRIVATE_KEY_PASSWORD: senha escolhida na geração, se houver.
+4. Mantenha uma cópia segura da chave privada e da senha fora do computador. Se perder a chave, não será possível assinar atualizações futuras para as instalações existentes.
+5. Nunca publique a chave privada. A chave pública pode ser incluída na configuração do aplicativo; a privada deve existir somente no computador seguro e no segredo protegido do GitHub Actions.
 
-```powershell
-npm run build:store
-```
+Não é necessário cadastrar um endpoint agora. A integração do repositório definirá o endereço do feed e o formato do arquivo latest.json. O endereço planejado para o feed estático é:
 
-5. O script executa as verificações, compila o aplicativo sem empacotar, assina o executável principal, gera o instalador usando a configuração offline do WebView2 e assina o instalador final.
-6. O script faz uma primeira compilação para materializar o toolset NSIS, assina os DLLs originais da pasta `Plugins` usada pelo `makensis` e reconstrói o instalador. O script também exige que o **7-Zip** esteja instalado e disponível em `PATH` ou em uma das pastas padrão do Windows. Ele é usado para extrair o conteúdo do NSIS e verificar as assinaturas de cada executável/DLL. O build falha caso não consiga fazer essa inspeção.
-7. O instalador deverá estar em:
+~~~text
+https://github.com/pablopcdossantos2-sys/floatly-website-widget/releases/latest/download/latest.json
+~~~
 
-```text
-src-tauri/target/release/bundle/nsis/
-```
+Esse endereço só deverá ser usado depois que a integração estiver implementada e um release real publicar o arquivo latest.json e os artefatos assinados correspondentes.
 
-8. O script remove as variáveis de ambiente do processo ao terminar e apaga o arquivo PFX temporário.
-8. Verifique o resultado:
+## 4. Gerar o pacote assinado da Microsoft Store
 
-```powershell
-Get-AuthenticodeSignature ".\src-tauri\target\release\bundle\nsis\NOME-DO-INSTALADOR.exe" |
-  Format-List Status, StatusMessage, SignerCertificate
-Get-FileHash ".\src-tauri\target\release\bundle\nsis\NOME-DO-INSTALADOR.exe" -Algorithm SHA256
-```
+Esta etapa depende das anteriores e da integração do atualizador no repositório.
 
-O status da assinatura precisa ser `Valid`. O manifesto `SHA256SUMS.txt` registra o SHA-256 do instalador e os arquivos PE extraídos. Revise esse manifesto antes de hospedar o pacote e guarde-o no registro do release.
+1. Confirme que bundle.publisher, os segredos Authenticode e os segredos do atualizador estão configurados.
+2. Abra a aba **Actions** do GitHub.
+3. Selecione **Build Microsoft Store package**.
+4. Clique em **Run workflow** e escolha a branch main.
+5. Aguarde o workflow terminar. Só considere o pacote utilizável quando todos os testes, a compilação e a validação das assinaturas forem concluídos com sucesso.
+6. Baixe o artefato widget-website-microsoft-store-x64.
+7. Guarde o EXE e o SHA256SUMS.txt juntos, identificando a versão e o commit que os produziram.
 
-### Opção B — Gerar pelo GitHub Actions
+O ZIP do Actions é temporário; não use a URL do artefato como endereço permanente do pacote na Store. Se o workflow falhar, abra a execução, identifique o primeiro passo com falha e corrija-o antes de prosseguir.
 
-Esta é a opção recomendada para uma compilação reproduzível:
+## 5. Testar o instalador em um Windows limpo
 
-1. Confirme que `bundle.publisher` está configurado na `main`.
-2. Confirme que os segredos `WINDOWS_PFX_BASE64` e `WINDOWS_PFX_PASSWORD` estão cadastrados no repositório.
-3. Abra a aba **Actions** no GitHub.
-4. Selecione **Build Microsoft Store package**.
-5. Clique em **Run workflow** e execute usando a branch `main`.
-6. Aguarde o workflow concluir todas as verificações e a assinatura.
-7. Baixe o artefato `widget-website-microsoft-store-x64` e extraia o EXE.
+Use uma máquina virtual ou um computador Windows de teste que não tenha uma instalação anterior do Floatly. Preserve uma cópia exata do EXE e do manifesto de hashes.
 
-O artefato do Actions é temporário e tem retenção limitada. **Não use o ZIP do Actions nem o link temporário do artefato como URL permanente de pacote do Partner Center.** Extraia o instalador EXE assinado e hospede o arquivo em uma URL pública e permanente.
+### Verificar assinatura e pacote
 
-O workflow é manual e não publica o aplicativo automaticamente na Store.
+1. No PowerShell, execute Get-AuthenticodeSignature para o EXE. O campo Status deve ser Valid.
+2. Confira o nome do certificado e a cadeia de confiança.
+3. Revise SHA256SUMS.txt e confirme que todos os executáveis e DLLs extraídos do instalador foram validados pelo script.
+4. Calcule o hash do EXE que será publicado:
 
-### Risco conhecido do empacotador NSIS
+~~~powershell
+Get-FileHash ".\Floatly-Installer.exe" -Algorithm SHA256
+~~~
 
-Há um relato upstream no Tauri ([issue #16208](https://github.com/tauri-apps/tauri/issues/16208), aberto em 4 de outubro de 2026) em que algumas DLLs padrão de plugins NSIS — como `System.dll`, `nsDialogs.dll`, `StartMenu.dll` e `NSISdl.dll` — continuam sem assinatura no instalador, embora o empacotador informe que assinou cópias desses plugins. O relato descreve Tauri CLI 2.11.2 / NSIS 3.11; o projeto atualmente resolve uma versão mais recente da CLI, então não se deve presumir que o mesmo comportamento esteja presente ou corrigido sem inspeção real.
+Use o nome real do arquivo gerado pelo workflow.
 
-O script `build-microsoft-store.ps1` tenta contornar esse problema assinando, após materializar o NSIS, os DLLs originais da pasta `Plugins` do toolset que contém `makensis.exe`, incluindo `LangDLL.dll`, antes de reconstruir o instalador. Ele não confia apenas nos logs do Tauri: extrai o EXE com 7-Zip e verifica os cabeçalhos PE e a assinatura de cada binário. **Se qualquer PE estiver sem assinatura válida, não publique o pacote.** Essa mitigação foi preparada a partir do relato upstream, mas ainda precisa ser validada em um runner Windows com certificado real. Se falhar, será necessário corrigir a integração do toolset NSIS ou avaliar outra estratégia de empacotamento (por exemplo, MSIX).
-## 5. Testar o instalador antes de enviá-lo
+### Instalação e funcionamento
 
-Faça estes testes em uma máquina virtual ou computador Windows limpo, de preferência diferente do ambiente de desenvolvimento. Preserve uma cópia do instalador exato que será enviado.
+1. Instale o pacote com a opção silenciosa exigida pelo Partner Center:
 
-### Etapa 7 — Validar assinatura e integridade
+~~~powershell
+Start-Process -FilePath ".\Floatly-Installer.exe" -ArgumentList "/S" -Wait -PassThru
+~~~
 
-1. Confirme que `Get-AuthenticodeSignature` retorna `Valid` para o instalador e para o executável principal.
-2. Confira o nome do certificado e sua cadeia de confiança.
-3. Confirme que o instalador contém a instalação offline do WebView2. A configuração Tauri Store já seleciona `offlineInstaller`; esse modo aumenta consideravelmente o tamanho do arquivo, mas evita baixar o Runtime durante a instalação.
-4. Revise `SHA256SUMS.txt`, confirme que todos os PE extraídos constam como assinados e registre o nome do arquivo, versão, tamanho, data e SHA-256.
-5. Não altere o binário depois de validar e enviar essa versão.
+2. Confirme que o aplicativo aparece em **Configurações do Windows → Aplicativos → Aplicativos instalados**, com nome, publisher e versão corretos.
+3. Abra o Floatly. A primeira execução deve pedir que você escolha um site; não deve carregar um endereço de terceiros automaticamente.
+4. Configure uma URL HTTPS de teste que você controle.
+5. Teste janela flutuante, movimentação, redimensionamento, sempre no topo, bandeja do sistema, atalho global, zoom, idioma e persistência da sessão.
+6. Reinicie o aplicativo e o Windows. Confirme o comportamento da inicialização automática, se ativada.
+7. Teste o mecanismo de atualização in-app: publique uma versão posterior de teste no feed e confirme que o Floatly detecta, baixa, valida a assinatura e instala a atualização.
+8. Desinstale com a opção de excluir os dados marcada e confirme a remoção das pastas de dados. Reinstale e teste novamente a primeira execução.
 
-### Etapa 8 — Testar a instalação silenciosa
+### Conferir o WebView2
 
-O projeto usa NSIS. Para o Partner Center, o parâmetro silencioso documentado pelo Tauri é **`/S`** (S maiúsculo).
+No computador de teste, confira a versão instalada do Runtime:
 
-Em um PowerShell elevado, execute o EXE que foi extraído do artefato:
+~~~powershell
+$programFilesX86 = [Environment]::GetEnvironmentVariable("ProgramFiles(x86)")
+$runtimeRoot = Join-Path $programFilesX86 "Microsoft\EdgeWebView\Application"
+$runtime = Get-ChildItem $runtimeRoot -Filter "msedgewebview2.exe" -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($runtime) {
+    $runtime.VersionInfo.FileVersion
+} else {
+    Write-Warning "WebView2 Runtime não encontrado no caminho padrão."
+}
+~~~
 
-```powershell
-Start-Process -FilePath ".\NOME-DO-INSTALADOR.exe" -ArgumentList "/S" -Wait -PassThru
-```
+Compare a versão efetivamente instalada com as versões atuais documentadas pela Microsoft e confirme que o aplicativo adota a versão atualizada depois de ser reiniciado. Registre a versão encontrada, a edição do Windows e o resultado do teste. A regra 10.2.1 da Store exige que o mecanismo de navegação permaneça dentro do limite de duas versões principais.
 
-O instalador deve completar sem exibir uma interface de instalação. Um aviso do UAC pode ser permitido pelo requisito Microsoft. Registre o código de saída e confirme que o aplicativo foi instalado.
+Não publique se a assinatura, a atualização, a instalação offline do WebView2 ou qualquer função essencial falhar.
 
-### Etapa 9 — Conferir a entrada do Windows e a desinstalação
+## 6. Hospedar o instalador em uma URL permanente
 
-1. Abra **Configurações do Windows → Aplicativos → Aplicativos instalados** (ou **Painel de Controle → Programas e Recursos**).
-2. Confirme que nome do aplicativo, publisher e versão aparecem corretamente; nenhum campo pode ficar em branco ou mostrar uma identidade sem relação com o produto.
-3. Confirme que a instalação criou somente a entrada do próprio aplicativo, sem software adicional ou bundleware.
-4. Abra o Floatly. A primeira execução deve pedir que você escolha um site.
-5. Configure uma página HTTPS de teste sob seu controle, se possível. Teste também um site de terceiros somente quando seus termos permitirem.
-6. Teste janela flutuante, aba de movimentação, redimensionamento, sempre no topo, bandeja, atalho global, zoom, sessão persistente, idioma e fluxo de login quando aplicável.
-7. Teste reinício do Windows, atualização e encerramento.
-8. Desinstale e confira as opções de preservação/remoção dos dados. Reinstale e teste o fluxo de primeira execução novamente.
+O Partner Center precisa de uma URL HTTPS pública que baixe diretamente o EXE, sem login, cookies ou etapas intermediárias.
 
-A instalação offline do WebView2 permite instalar o Runtime sem baixá-lo durante o setup; isso não significa que o site escolhido funcionará sem conexão à internet.
+1. Publique o instalador em um endereço permanente e versionado. Uma opção é anexá-lo a um **GitHub Release** do repositório; use um arquivo de release, não o artefato temporário de Actions.
+2. Use um caminho específico para a versão, por exemplo:
 
-## 6. Hospedar o instalador e criar a submissão
+~~~text
+https://github.com/pablopcdossantos2-sys/floatly-website-widget/releases/download/v0.1.0/Floatly-Installer.exe
+~~~
 
-### Etapa 10 — Hospedar uma URL HTTPS versionada
+Substitua a versão e o nome do arquivo pelos valores reais.
 
-A Microsoft exige um link HTTPS direto ao EXE/MSI. O instalador deve estar hospedado em infraestrutura própria ou CDN, sem login, cookies ou etapas intermediárias para baixá-lo.
+3. Abra a URL em uma janela anônima, sem estar autenticado no GitHub. Confirme que o download do EXE começa sem exigir login.
+4. Compare o SHA-256 do arquivo baixado com o resultado obtido na etapa anterior.
+5. Não substitua nem sobrescreva esse arquivo depois de submetê-lo. Uma versão nova deve ter uma URL própria.
 
-1. Escolha o servidor ou CDN que ficará sob controle do desenvolvedor.
-2. Crie um caminho versionado, por exemplo:
+Caso o Partner Center não aceite o redirecionamento do link de release, use uma hospedagem HTTPS que forneça um download direto.
 
-```text
-https://downloads.seudominio.example/widget-website/0.1.0/widget-website-setup.exe
-```
+## 7. Finalizar a submissão existente no Partner Center
 
-3. Substitua o domínio de exemplo pelo domínio real. Não use esse endereço fictício.
-4. Teste o link em uma janela anônima e confirme que ele baixa diretamente o EXE por HTTPS.
-5. Compare o SHA-256 do arquivo hospedado com o arquivo assinado localmente.
-6. Depois de submeter o binário, não substitua o conteúdo dessa URL. Para uma nova versão, publique outro caminho versionado e atualize a submissão do Partner Center.
-7. Mantenha as versões antigas disponíveis enquanto forem referenciadas por uma submissão publicada.
+O produto Floatly já existe e suas propriedades básicas estão preenchidas. Não volte a configurar disponibilidade, preço, categoria, classificação etária, requisitos do sistema, notas de certificação ou política de privacidade.
 
-### Etapa 11 — Criar a submissão no Partner Center
+1. Abra **Partner Center → Apps and Games → Floatly**.
+2. Inicie a submissão inicial do produto.
+3. Na seção **Packages**, informe a URL HTTPS permanente do EXE assinado, arquitetura x64 e os dados de pacote solicitados.
+4. Informe /S como argumento de instalação silenciosa do NSIS.
+5. Na listagem, use os textos de MICROSOFT_STORE_LISTING_DRAFT.md.
+6. Carregue screenshots reais capturadas no Windows com a versão testada. Mostre a primeira execução, a janela flutuante, as configurações e os controles da bandeja. Não use mockups nem conteúdo de sites de terceiros sem autorização.
+7. Confirme que o campo de suporte aponta para SUPPORT.md.
+8. Salve as seções e execute **Package validation** em **Manage Packages**.
+9. Se houver falhas, corrija o pacote, gere outro EXE, publique-o em uma nova URL versionada e execute a validação novamente.
+10. Quando a validação estiver aprovada, revise a submissão e clique em **Submit to the Store**.
+11. Acompanhe o resultado no Partner Center. Só anuncie a disponibilidade depois que o produto estiver publicado.
 
-1. Entre em **Partner Center → Apps and Games**.
-2. Abra o produto **Floatly** já criado na Etapa 2.
-3. Complete as seções da submissão:
-   - **Availability:** mercados, disponibilidade, preço e agenda de publicação.
-   - **Properties:** categoria, subcategoria quando disponível, requisitos de sistema e informações de produto.
-   - **Age ratings:** responda ao questionário de classificação etária IARC.
-   - **Packages:** informe a URL HTTPS do EXE assinado e os dados solicitados pelo Partner Center.
-   - **Store listings:** título, descrição, screenshots, ícone/logo e idiomas.
-4. Para este instalador NSIS, informe o argumento de instalação silenciosa `/S` no campo de parâmetros de instalação.
-5. Se o Partner Center pedir informações adicionais, use os dados do arquivo efetivamente testado: versão, arquitetura x64, requisitos e SHA-256.
-6. Salve cada seção antes de avançar.
+## 8. Para futuras versões
 
-A Microsoft recomenda completar a listagem em todos os idiomas suportados pelo produto. Este projeto oferece interface PT-BR, inglês e espanhol; prepare textos e capturas coerentes nesses idiomas.
+Depois da primeira publicação:
 
-### Etapa 12 — Preparar os materiais da página da Store
+1. A atualização in-app deve ser publicada com os artefatos assinados pelo Tauri Updater e o arquivo latest.json no GitHub Release.
+2. Publique também o novo instalador Authenticode em uma URL versionada.
+3. Crie uma atualização da submissão existente no Partner Center e envie o novo pacote.
+4. Não substitua arquivos de versões anteriores que já tenham sido publicados.
 
-Use o arquivo [MICROSOFT_STORE_LISTING_DRAFT.md](MICROSOFT_STORE_LISTING_DRAFT.md) como rascunho de título, descrições, palavras-chave e roteiro de screenshots.
+## Referências oficiais
 
-Antes de publicar:
-
-- Use capturas reais do aplicativo executando no Windows. Não use mockups que mostrem funções ainda não implementadas.
-- Mostre a primeira execução, a janela flutuante com uma página de demonstração autorizada e os controles nativos de desktop.
-- Não use telas do Investing.com, logotipos de sites de terceiros, marcas, imagens ou termos de pesquisa que sugiram parceria ou publicação por esses serviços.
-- Use no máximo sete termos/frases de pesquisa únicos, relevantes e próprios do Floatly.
-- Não prometa que todos os sites, anúncios, players, autenticações ou páginas protegidas funcionarão. O comportamento depende da tecnologia e dos termos de cada site.
-- Defina a categoria correta. Não escolha uma categoria de navegador, calendário ou finanças só porque o usuário pode abrir um desses conteúdos.
-- Informe um canal real de suporte e uma página de política de privacidade acessível.
-- Revise o texto e as capturas para garantir que o valor principal esteja claro já na primeira execução.
-
-### Etapa 13 — Política de privacidade e notas para certificação
-
-O produto mantém uma sessão WebView2 local, grava configuração/logs no perfil do usuário e acessa o site escolhido por essa pessoa. O repositório informa que não há telemetria e que os logs omitem query strings e fragments das URLs. O desenvolvedor deve verificar se essa descrição continua precisa na versão que será enviada.
-
-1. A política pública está em [PRIVACY_POLICY.md](PRIVACY_POLICY.md), com versão em português, inglês e espanhol, identificação do responsável e canal de privacidade. Confirme que a URL informada no Partner Center aponta para este arquivo e permanece acessível sem login.
-2. Use a página [SUPPORT.md](SUPPORT.md) como site de suporte e mantenha o e-mail de contato monitorado. Não publique endereço residencial ou telefone pessoal se não houver uma necessidade comercial e consentimento para essa exposição.
-3. Em **Certification notes**, explique que é um utilitário desktop de sites escolhidos pelo usuário, e descreva como o testador configura a URL na primeira execução.
-4. Forneça uma página de demonstração pública e controlada pelo desenvolvedor para a avaliação, caso a Microsoft solicite uma URL de teste. Não dependa de uma conta pessoal ou de credenciais privadas.
-5. Explique as limitações conhecidas: compatibilidade depende do site, alguns provedores bloqueiam certas navegações ou autenticações, e o Floatly não é afiliado aos serviços exibidos.
-
-## 7. Validação e envio
-
-### Etapa 14 — Executar a validação de pacote
-
-Para produtos EXE/MSI, o Partner Center oferece a seção de **Package validation**. Na página **Manage Packages**, use **Run** no pacote e depois consulte **View status** para inspecionar os resultados.
-
-Antes de enviar, confirme também manualmente:
-- assinatura Authenticode válida;
-- URL de pacote HTTPS direta e versionada;
-- instalação silenciosa sem interface (UAC pode aparecer);
-- nome, publisher e versão corretos em Aplicativos instalados;
-- uma única entrada do produto, sem bundleware;
-- instalador completo/offline, sem downloader stub;
-- nenhuma alteração no binário depois de submetido.
-
-Se a validação indicar falhas, corrija o build e produza um novo instalador. Quando o binário mudar, use outra URL versionada e atualize o pacote no Partner Center.
-
-### Etapa 15 — Submeter para certificação
-
-1. Revise todas as seções e confirme que não há campos pendentes.
-2. Clique em **Submit to the Store**.
-3. Acompanhe o status no Partner Center e as mensagens enviadas ao e-mail de contato.
-4. Se houver reprovação, leia cada item do relatório e as notas do avaliador. Corrija o problema, gere um pacote novo quando necessário e crie uma nova submissão.
-5. Só anuncie que o aplicativo está disponível depois que o status indicar publicação na Microsoft Store.
-
-A Microsoft informa que a certificação de produtos MSI/EXE pode levar até três dias úteis, mas isso é uma referência documental, não uma garantia de prazo.
-
-## 8. Atualizações depois da publicação
-
-Para cada atualização:
-
-1. Atualize a versão nos três arquivos de metadados.
-2. Gere e teste os artefatos de atualização Tauri com a chave privada protegida.
-3. Compile, assine, instale e teste em cima da versão anterior.
-4. Publique os arquivos de atualização e o instalador final em uma nova URL versionada.
-5. Registre o hash e guarde uma cópia imutável do binário enviado.
-6. Atualize a submissão existente no Partner Center com o pacote e a URL da nova versão.
-7. Não substitua o binário que corresponde a uma versão já publicada.
-
-## 9. Checklist de responsabilidade
-
-| Tarefa | Responsável |
-|---|---|
-| Acessar a conta Partner Center já existente | Já concluído pelo desenvolvedor |
-| Criar o produto Floatly e preencher as propriedades básicas do Partner Center | Nome e propriedades principais já configurados pelo desenvolvedor |
-| Definir publisher real e preencher `bundle.publisher` | Desenvolvedor humano |
-| Obter certificado Authenticode de uma CA confiável | Desenvolvedor humano |
-| Guardar o PFX e criar GitHub Actions Secrets | Desenvolvedor humano |
-| Escolher endpoint/host de atualizações e criar a chave do Tauri Updater | Desenvolvedor humano |
-| Integrar e testar o mecanismo de atualizações | Trabalho técnico futuro no repositório |
-| Verificar versão, permissões e configuração Store | Automatizado pelo script/CI |
-| Compilar e assinar app antes do NSIS e assinar instalador | Automatizado por `npm run build:store` ou workflow manual, após os segredos e publisher existirem |
-| Testar instalação, desinstalação, atualização e comportamento em Windows limpo | Desenvolvedor humano |
-| Verificar WebView2 Evergreen/Chromium e adoção de atualizações após reiniciar o widget | Desenvolvedor humano |
-| Hospedar pacote em URL HTTPS versionada e imutável | Desenvolvedor humano |
-| Revisar textos finais e criar capturas reais da versão final | Desenvolvedor humano |
-| Executar package validation, submeter e responder à certificação | Desenvolvedor humano |
-
-## 10. Bloqueios atuais — não marcar como pronto
-
-- [x] Produto **Floatly** criado na conta Partner Center existente.
-- [x] Disponibilidade gratuita, descoberta habilitada, 240 de 240 regiões e categoria Productivity configuradas.
-- [x] Classificação etária IARC, notas para certificação e requisitos de sistema opcionais revisados.
-- [x] Política de privacidade com responsável e contato preenchidos; telefone e endereço pessoais removidos dos dados públicos.
-- [ ] Alterar o Website de suporte no Partner Center para a URL direta de SUPPORT.md.
-- [ ] Nome real do publisher definido e configurado em `src-tauri/tauri.conf.json`.
-- [ ] Certificado Authenticode obtido e segredos GitHub configurados.
-- [ ] Integrar e testar o Tauri Updater (ou outro mecanismo de atualização dentro do aplicativo) para usuários de versões já instaladas.
-- [ ] Build Store executado com sucesso no Windows usando certificado real, com `SHA256SUMS.txt` validando todos os PE extraídos.
-- [ ] WebView2 Evergreen validado em Windows limpo: versão Chromium dentro do limite da regra 10.2.1 e adoção da versão atualizada após reiniciar o aplicativo.
-- [ ] Instalação silenciosa, atualização dentro do aplicativo, desinstalação e teste em máquina limpa aprovados.
-- [ ] Instalador hospedado em URL HTTPS direta, versionada e imutável.
-- [ ] Capturas reais da versão final em Windows preparadas e revisadas.
-- [ ] Package validation aprovada no Partner Center.
-- [ ] Submissão enviada e certificação concluída.
-
-## Fontes oficiais consultadas
-
-- [Microsoft Learn — Publish update to your MSI/EXE app on the Store](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/publish-update-to-your-app-on-store) — a Store não distribui atualizações automaticamente aos usuários existentes de aplicativos EXE/MSI; o aplicativo pode oferecer atualizações in-app quando o instalador dá suporte a isso.
-- [Tauri — Microsoft Store](https://tauri.app/distribute/microsoft-store/) — orientação de que o instalador deve ser offline, assinado e tratar atualizações automáticas.
-
-- [Microsoft Store Policies — versão 7.20 (publicada em 15/09/2026; efetiva em 22/10/2026)](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies), especialmente as regras 10.1.1 (representação correta do produto) e 10.2.1 (mecanismo de navegação Web).
-- [WebView2: boas práticas de desenvolvimento](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/developer-guide) — uso do Evergreen Runtime e adoção de atualizações.
-- [Guia Tauri 2 — Microsoft Store](https://v2.tauri.app/distribute/microsoft-store/).
-- [Tauri 2 — Windows Installer](https://v2.tauri.app/distribute/windows-installer/).
-- [Tauri 2 — versões dos mecanismos WebView](https://v2.tauri.app/reference/webview-versions/).
-- [Requisitos de pacote EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/app-package-requirements).
-- [Validação de pacotes EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/package-validation-pre-check).
-- [Validação manual de instaladores EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/manual-package-validation).
-- [Listagem da Store para produtos EXE/MSI](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/add-and-edit-store-listing-info).
-- [Tauri 2 — Updater plugin](https://v2.tauri.app/plugin/updater/).
+- [Microsoft Learn — atualizações de aplicativos MSI/EXE na Store](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/publish-update-to-your-app-on-store).
+- [Microsoft Store Policies](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies), especialmente a regra 10.2.1.
+- [Tauri — Microsoft Store](https://tauri.app/distribute/microsoft-store/).
+- [Tauri — Updater plugin](https://v2.tauri.app/plugin/updater/).
+- [Tauri — assinatura de aplicativos Windows](https://tauri.app/distribute/sign/windows/).
