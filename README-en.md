@@ -68,9 +68,9 @@ Never put a private key in the repository or this README. The build runs without
 
 **Important:** a valid signature cannot guarantee that Microsoft Defender SmartScreen will never show a warning. New apps or files may still display a warning until publisher and file reputation are established. Publishing through the Microsoft Store is the most direct way to avoid SmartScreen download warnings. See [Microsoft's SmartScreen reputation guidance](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) and [Tauri's Windows code-signing guide](https://tauri.app/distribute/sign/windows/).
 
-## Example: Investing.com
+## Example
 
-Investing.com is only an example of a website the widget can display. To use it, open **Settings → Website URL** and enter `https://br.investing.com/economic-calendar`. The widget is not tied to this service; any website using HTTP or HTTPS can be configured.
+To test the widget, open **Settings → Website URL** and enter `https://example.com`. This is only a demonstration address; replace it with the HTTP or HTTPS address of the website you want to keep open.
 
 For sites that require sign-in, use the authentication flow provided by that website. The system-tray menu includes an option to sign in or configure the website.
 
