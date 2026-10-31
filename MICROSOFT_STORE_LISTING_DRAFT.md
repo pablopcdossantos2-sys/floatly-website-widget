@@ -123,7 +123,8 @@ Não usar capturas de páginas de terceiros sem permissão. Evitar logotipos, im
 - [x] Nome **Floatly** confirmado no produto criado no Partner Center.
 - [ ] Requisito da política 10.2.1 validado: mecanismo Chromium/WebView2 dentro do limite de duas versões principais e runtime Evergreen atualizado.
 - [ ] Descrição validada com as funcionalidades da versão realmente testada.
-- [ ] Publisher e suporte identificados corretamente.
+- [ ] Identidade do publisher alinhada ao certificado Authenticode.
+- [ ] Campo Website de suporte do Partner Center atualizado para SUPPORT.md.
 - [x] Política de privacidade revisada e publicada no repositório.
 - [ ] Site de suporte no Partner Center atualizado para a página dedicada SUPPORT.md.
 - [x] Categoria Productivity e classificação IARC preenchidas no Partner Center.
