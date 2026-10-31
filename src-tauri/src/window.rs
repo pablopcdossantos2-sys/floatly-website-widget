@@ -550,6 +550,19 @@ fn open_login_limited(app: AppHandle, url: Url, dir: std::path::PathBuf) {
     });
 }
 
+/// URL for the local bootstrap page shown when no external website is configured.
+pub fn local_start_url() -> Url {
+    if cfg!(debug_assertions) {
+        Url::parse("http://127.0.0.1:1420/").expect("static Tauri development URL must be valid")
+    } else if cfg!(windows) {
+        Url::parse("http://tauri.localhost/index.html")
+            .expect("static Windows Tauri asset URL must be valid")
+    } else {
+        Url::parse("tauri://localhost/index.html")
+            .expect("static Tauri asset URL must be valid")
+    }
+}
+
 pub fn create_main(
     app: &AppHandle,
     c: &AppConfig,
@@ -1621,6 +1634,13 @@ mod navigation_policy_tests {
         assert_eq!(decide_main(&Url::parse("https://example.com/account/profile").unwrap(), &cfg), NavAction::Allow);
         assert_eq!(decide_main(&Url::parse("https://api.example.com/v1").unwrap(), &cfg), NavAction::Allow);
         assert_eq!(decide_main(&Url::parse("https://evilexample.com/").unwrap(), &cfg), NavAction::External);
+    }
+
+    #[test]
+    fn local_start_url_uses_the_current_tauri_frontend_origin() {
+        let url = local_start_url();
+        assert!(is_internal_app_url(&url));
+        assert_eq!(url.path(), if cfg!(debug_assertions) { "/" } else { "/index.html" });
     }
 
     #[test]
