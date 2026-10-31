@@ -1,3 +1,13 @@
+// Floatly — Windows
+// Aplicação desktop desenvolvida de forma independente por Pablo Phillipe Cândido dos Santos.
+// Exibe um site escolhido pelo usuário em uma janela flutuante compacta baseada no Microsoft Edge WebView2.
+// Independently developed by Pablo Phillipe Cândido dos Santos, Floatly displays a user-selected
+// website in a compact floating window powered by Microsoft Edge WebView2.
+// Ferramentas de IA generativa foram utilizadas como recurso auxiliar; a concepção, a implementação,
+// a integração e a verificação permanecem sob responsabilidade do autor.
+// Generative AI tools were used as supporting resources; conception, implementation, integration
+// and verification remain the author's responsibility.
+// Currículo Lattes: http://lattes.cnpq.br/9500873674712528
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod autostart;

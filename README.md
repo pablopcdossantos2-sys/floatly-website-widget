@@ -1,6 +1,10 @@
 # Floatly — Windows
 
-**Idiomas / Languages / Idiomas:** Português (Brasil) · [English](README.en.md) · [Español](README.es.md)
+*Read this in other languages: [English](README-en.md)*
+
+---
+
+**Idiomas / Languages / Idiomas:** Português (Brasil) · [English](README-en.md) · [Español](README.es.md)
 
 Navegador compacto para manter um endereço escolhido pelo usuário em uma janela flutuante WebView2 no desktop do Windows. O endereço é configurado na primeira execução; nenhum site de terceiros vem predefinido. Projeto Tauri 2 para Windows 10/11 x64.
 
@@ -33,7 +37,7 @@ Execute:
     npm run icons
     npm run tauri build
 
-O instalador aparece em src-tauri/target/release/bundle/nsis e o executável em src-tauri/target/release. O workflow Build Windows compila a saída no GitHub Actions e publica-a como artefato.
+O instalador aparece em src-tauri/target/release/bundle/nsis e o executável em src-tauri/target/release. O workflow Build Windows compila a saída no GitHub Actions e publica o instalador e o executável no artefato `widget-website-windows-x64`.
 
 ## Primeira execução
 
@@ -45,7 +49,7 @@ Para um exemplo concreto de URL, consulte a seção de exemplo abaixo.
 
 O Floatly é preparado para a Store como **MSIX x64**. Siga o [guia passo a passo](GUIA_PUBLICACAO_MICROSOFT_STORE.md) e use o [rascunho de listagem multilíngue](MICROSOFT_STORE_LISTING_DRAFT.md).
 
-O workflow **Build MSIX for Microsoft Store** é executado automaticamente quando há atualizações na branch `main` e usa a identidade do pacote já confirmada no Partner Center. Ele gera o arquivo `.msix` sem assinatura. Isso é intencional: a Microsoft assina o MSIX depois da aprovação. Não são necessários certificado Code Signing, arquivo PFX ou segredos de assinatura para esse fluxo.
+O workflow **Build MSIX for Microsoft Store** é executado automaticamente na branch `main` quando há alterações em arquivos de código, dependências, configuração ou empacotamento relevantes. Ele também pode ser iniciado manualmente pela aba **Actions** e usa a identidade do pacote já confirmada no Partner Center. O workflow gera o arquivo `.msix` sem assinatura. Isso é intencional: a Microsoft assina o MSIX depois da aprovação. Não são necessários certificado Code Signing, arquivo PFX ou segredos de assinatura para esse fluxo.
 
 ## Idioma da interface
 
@@ -73,3 +77,11 @@ O programa não lê, copia ou grava senhas. O User-Agent padrão do WebView2 é 
 ## Desinstalação e dados
 
 O desinstalador NSIS oferece a opção **Delete the application data**. Quando marcada, ela remove `%APPDATA%\\WidgetWebsite` (configuração, logs e sessão WebView2) e `%LOCALAPPDATA%\\WidgetWebsite`, se existir. Se a opção ficar desmarcada, esses dados são preservados para uma futura reinstalação. A entrada de início automático do Windows é removida sempre que o aplicativo é desinstalado.
+
+## 👤 Autoria e desenvolvimento
+
+Floatly é uma aplicação desktop para Windows, desenvolvida de forma independente por Pablo Phillipe Cândido dos Santos, que mantém um endereço HTTP ou HTTPS escolhido pelo usuário em uma janela flutuante compacta baseada no Microsoft Edge WebView2. O usuário pode configurar o site e ajustar aspectos da janela e da navegação, com acesso pela bandeja do sistema.
+
+O desenvolvimento contou com a utilização de ferramentas de inteligência artificial generativa como recurso auxiliar, permanecendo sob responsabilidade do autor a concepção, a implementação, a integração e a verificação do projeto.
+
+Currículo Lattes: [http://lattes.cnpq.br/9500873674712528](http://lattes.cnpq.br/9500873674712528)

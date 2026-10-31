@@ -1,5 +1,9 @@
 # Floatly — Windows
 
+*Leia isto em outros idiomas: [Português](README.md)*
+
+---
+
 **Languages:** [Português (Brasil)](README.md) · English · [Español](README.es.md)
 
 A compact Windows desktop browser that keeps a user-chosen HTTP/HTTPS address visible in a small, frameless WebView2 window. The address is configured on first launch; no third-party website is prefilled. Built with Tauri 2 for Windows 10/11 x64.
@@ -20,7 +24,7 @@ A compact Windows desktop browser that keeps a user-chosen HTTP/HTTPS address vi
 
 - Windows 10/11 x64, Node.js 22 or newer (LTS) and npm.
 - Stable Rust 1.90 or newer.
-- Microsoft Edge WebView2 Runtime: https://developer.microsoft.com/microsoft-edge/webview2/
+- Microsoft Edge WebView2 Runtime: https://developer.microsoft.com/microsoft-edge/webview2/. The app checks the usual Runtime locations and displays this address if it cannot find the Runtime.
 - To compile locally: Visual Studio Build Tools with Desktop development with C++ and the Windows SDK.
 
 ## Development
@@ -37,7 +41,7 @@ Run these commands in PowerShell (generating the icons is required before the fi
     npm run icons
     npm run tauri build
 
-The installer is created under src-tauri/target/release/bundle/nsis and the executable under src-tauri/target/release. GitHub Actions builds the Windows package and publishes it as the widget-website-windows-x64 workflow artifact.
+The installer is created under src-tauri/target/release/bundle/nsis and the executable under src-tauri/target/release. The Build Windows workflow creates both files and publishes them in the `widget-website-windows-x64` artifact.
 
 ## First launch
 
@@ -49,7 +53,7 @@ For a concrete example URL, see the example section below.
 
 Floatly is prepared for the Store as an **x64 MSIX** package. Follow the [step-by-step guide in Portuguese](GUIA_PUBLICACAO_MICROSOFT_STORE.md) and use the [multilingual listing draft](MICROSOFT_STORE_LISTING_DRAFT.md).
 
-The **Build MSIX for Microsoft Store** workflow runs automatically when changes are pushed to `main` and uses the package identity already confirmed in Partner Center. It produces an unsigned `.msix` file. This is intentional: Microsoft signs the MSIX after approval. No code-signing certificate, PFX file or signing secrets are required for this route.
+The **Build MSIX for Microsoft Store** workflow runs automatically on `main` when relevant source-code, dependency, configuration or packaging files change. It can also be started manually from the **Actions** tab and uses the package identity already confirmed in Partner Center. The workflow produces an unsigned `.msix` file. This is intentional: Microsoft signs the MSIX after approval. No code-signing certificate, PFX file or signing secrets are required for this route.
 
 ## Interface language
 
@@ -74,34 +78,15 @@ For sites that require sign-in, use the authentication flow provided by that web
 
 The app does not read, copy or store passwords. The default WebView2 user agent is preserved.
 
-## Freeze diagnostics
-
-- Logs are saved to %APPDATA%\WidgetWebsite\diagnostics.log (usually C:\Users\<user>\AppData\Roaming\WidgetWebsite\diagnostics.log). Log timestamps are in UTC. The previous file is rotated to diagnostics.log.1 at approximately 1 MB.
-- The page sends a JavaScript/WebView2 heartbeat every five seconds. After 20 seconds without a heartbeat, the monitor records a warning, checks whether the native window is responsive and looks for descendant msedgewebview2.exe processes. No descendant process is a clue that WebView2 may have exited, not proof of the cause.
-- Logs record startup, navigation, initialization failures, drag actions and activity recovery. URLs are logged without query parameters or fragments to reduce the chance of storing session tokens.
-- In a GUI Windows build, a terminal may not be available. The log file is the reliable diagnostic source; open it with Notepad after reproducing a freeze.
-- These diagnostics cannot prove that an external application caused a freeze. They also cannot write more entries if the process or all its threads are abruptly terminated.
-
-## Privacy and support
-
-See the [Floatly Privacy Policy](PRIVACY_POLICY.md), available in Portuguese, English and Spanish, and the [Support page](SUPPORT.md). The policy identifies the individual project maintainer and the contact channel for privacy requests.
-
-## Privacy and limitations
-
-- No telemetry. Main navigation is restricted to the configured website and recognized authentication resources; links to other domains open in the default browser. The remote website is granted only the authenticated activity-heartbeat command.
-- A corrupt configuration file is replaced with defaults. **Restore default size** only changes the dimensions to 350 × 550 px; other preferences are preserved.
-- CI checks Tauri version alignment, the command manifest and capabilities; it runs `npm ci`, type checking, `npm audit`, `cargo fmt --check`, `cargo clippy`, `cargo audit` and `cargo test`, then builds the Windows installer.
-- The secondary sign-in window shares the WebView2 data folder and has an injected address bar. Navigation to unapproved domains is opened in the default browser. Automatic closing depends on the sign-in provider returning to the configured website; some social sign-in flows may require closing the window manually.
-- Zoom uses the native WebView2 zoom control. Corner clipping may vary on Windows 10.
-- Network checks show a custom status panel before the main navigation and monitor connectivity while the site is open. Tauri's default wrapper cannot replace every Chromium navigation failure in every scenario.
-- Real sign-in, saved filters, shortcut conflicts, 125%/150% scaling, multiple monitors, DPI changes and memory use still need to be tested on Windows hardware.
-
 ## Uninstalling and stored data
 
 The NSIS uninstaller offers a **Delete the application data** checkbox. When selected, it removes `%APPDATA%\\WidgetWebsite` (configuration, logs and WebView2 session data) and `%LOCALAPPDATA%\\WidgetWebsite` if present. If left unchecked, these files are preserved for a later reinstall. The Windows startup entry is always removed when the app is uninstalled.
 
-## Structure
 
-- src-tauri/src: Rust configuration, window, commands, diagnostics and system tray.
-- src: TypeScript bootstrap and settings interface.
-- icons/widget.svg: vector source used to generate Windows icons.
+## 👤 Authorship and development
+
+Floatly is a Windows desktop application independently developed by Pablo Phillipe Cândido dos Santos. It keeps a user-selected HTTP or HTTPS address in a compact floating window powered by Microsoft Edge WebView2. Users can configure the website and adjust window and browsing behavior, with access through the system tray.
+
+Generative AI tools were used as supporting resources during development. The author remains responsible for the project's conception, implementation, integration and verification.
+
+Lattes Curriculum: [http://lattes.cnpq.br/9500873674712528](http://lattes.cnpq.br/9500873674712528)
