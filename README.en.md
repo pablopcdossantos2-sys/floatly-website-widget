@@ -1,4 +1,4 @@
-# Widget Website — Windows
+# Floatly — Windows
 
 **Languages:** [Português (Brasil)](README.md) · English · [Español](README.es.md)
 
@@ -79,6 +79,10 @@ The app does not read, copy or store passwords. The default WebView2 user agent 
 - Logs record startup, navigation, initialization failures, drag actions and activity recovery. URLs are logged without query parameters or fragments to reduce the chance of storing session tokens.
 - In a GUI Windows build, a terminal may not be available. The log file is the reliable diagnostic source; open it with Notepad after reproducing a freeze.
 - These diagnostics cannot prove that an external application caused a freeze. They also cannot write more entries if the process or all its threads are abruptly terminated.
+
+## Privacy and support
+
+See the [Floatly Privacy Policy](PRIVACY_POLICY.md), available in Portuguese, English and Spanish, and the [Support page](SUPPORT.md). The policy identifies the individual project maintainer and the contact channel for privacy requests.
 
 ## Privacy and limitations
 
