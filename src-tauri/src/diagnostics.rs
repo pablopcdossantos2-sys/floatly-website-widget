@@ -407,9 +407,7 @@ fn native_window_minimized() -> bool {
     use windows_sys::Win32::UI::WindowsAndMessaging::IsIconic;
 
     let raw = NATIVE_WINDOW_HANDLE.load(Ordering::SeqCst);
-    raw != 0 && unsafe {
-        IsIconic(raw as windows_sys::Win32::Foundation::HWND) != 0
-    }
+    raw != 0 && unsafe { IsIconic(raw as windows_sys::Win32::Foundation::HWND) != 0 }
 }
 
 #[cfg(not(windows))]
@@ -553,13 +551,19 @@ mod tests {
     #[test]
     fn sanitize_url_redacts_identifiers_and_token_like_path_segments() {
         let url = url::Url::parse("https://example.com/reset/ab12cd34ef56?t=secret").unwrap();
-        assert_eq!(sanitize_url(&url), "scheme=https host=example.com path=/reset/…");
+        assert_eq!(
+            sanitize_url(&url),
+            "scheme=https host=example.com path=/reset/…"
+        );
     }
 
     #[test]
     fn sanitize_url_keeps_short_non_identifying_path_segments() {
         let url = url::Url::parse("https://example.com/login").unwrap();
-        assert_eq!(sanitize_url(&url), "scheme=https host=example.com path=/login");
+        assert_eq!(
+            sanitize_url(&url),
+            "scheme=https host=example.com path=/login"
+        );
     }
 
     #[test]
