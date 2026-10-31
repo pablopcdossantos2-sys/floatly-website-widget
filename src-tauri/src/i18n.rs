@@ -24,7 +24,7 @@ pub fn tray_labels(language: &str, locked: bool) -> TrayLabels {
             topmost: "Toggle always on top",
             login: "Sign in / configure website",
             quit: "Quit",
-            tooltip: "Widget Website — Website Widget",
+            tooltip: "Floatly — Website Widget",
         },
         "es" => TrayLabels {
             show_hide: "Mostrar / ocultar",
@@ -38,7 +38,7 @@ pub fn tray_labels(language: &str, locked: bool) -> TrayLabels {
             topmost: "Alternar siempre visible",
             login: "Iniciar sesión / configurar sitio",
             quit: "Salir",
-            tooltip: "Widget Website — Ventana de sitio web",
+            tooltip: "Floatly — Ventana de sitio web",
         },
         _ => TrayLabels {
             show_hide: "Mostrar / ocultar",
@@ -52,16 +52,16 @@ pub fn tray_labels(language: &str, locked: bool) -> TrayLabels {
             topmost: "Alternar sempre no topo",
             login: "Entrar / configurar site",
             quit: "Sair",
-            tooltip: "Widget Website — Janela de site",
+            tooltip: "Floatly — Janela de site",
         },
     }
 }
 
 pub fn settings_title(language: &str) -> &'static str {
     match language {
-        "en" => "Settings — Widget Website",
-        "es" => "Configuración — Widget Website",
-        _ => "Configurações — Widget Website",
+        "en" => "Settings — Floatly",
+        "es" => "Configuración — Floatly",
+        _ => "Configurações — Floatly",
     }
 }
 
