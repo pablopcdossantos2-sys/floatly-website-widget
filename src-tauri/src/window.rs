@@ -892,7 +892,6 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
     let navigation_label = label.clone();
     let close_token = uuid::Uuid::new_v4().simple().to_string();
     let navigation_close_token = close_token.clone();
-    let navigation_label = navigation_label.clone();
     let state = app.state::<AppState>();
     let diag_dir = state.app_dir.clone();
     let initial_config = state.snapshot();
@@ -991,7 +990,9 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                                 format!("Não foi possível persistir o novo endereço: {error}"),
                             );
                         } else {
+                            let updated_config = config.clone();
                             drop(config);
+                            let _ = nav.emit_to("settings", "config-changed", &updated_config);
                             crate::diagnostics::log(
                                 &nav_diag_dir,
                                 "INFO",
