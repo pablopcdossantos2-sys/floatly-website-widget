@@ -223,7 +223,7 @@ function addToolbar(){
  reload.addEventListener('click',function(){location.reload()});
  const address=document.createElement('input');address.type='text';address.value=location.href;address.setAttribute('aria-label',TEXT.address);
  address.addEventListener('focus',function(){address.select()});
- function go(){let v=address.value.trim();try{const u=new URL(v.includes('://')?v:'https://'+v);if(u.protocol!=='https:'&&u.protocol!=='http:')throw new Error('scheme');location.href=u.href}catch(_){address.setCustomValidity(TEXT.invalidAddress);address.reportValidity();address.setCustomValidity('')}}
+ function go(){let v=address.value.trim();try{const u=new URL(v.includes('://')?v:'https://'+v);if((u.protocol!=='https:'&&u.protocol!=='http:')||u.username||u.password)throw new Error('scheme');location.href='widget-login-action://'+CLOSE_TOKEN+'/navigate?url='+encodeURIComponent(u.href)}catch(_){address.setCustomValidity(TEXT.invalidAddress);address.reportValidity();address.setCustomValidity('')}}
  address.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();go()}});
  const button=document.createElement('button');button.type='button';button.textContent=TEXT.go;button.addEventListener('click',go);
  const close=document.createElement('button');close.type='button';close.textContent=TEXT.close;close.addEventListener('click',function(){location.href='widget-login-action://'+CLOSE_TOKEN+'/close'});
@@ -889,8 +889,10 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
     let id = LOGIN_ID.fetch_add(1, Ordering::Relaxed);
     let label = format!("login-{id}");
     let close_label = label.clone();
+    let navigation_label = label.clone();
     let close_token = uuid::Uuid::new_v4().simple().to_string();
     let navigation_close_token = close_token.clone();
+    let navigation_label = navigation_label.clone();
     let state = app.state::<AppState>();
     let diag_dir = state.app_dir.clone();
     let initial_config = state.snapshot();
@@ -953,11 +955,79 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                         &nav_diag_dir,
                         "solicitação pelo botão Fechar",
                     );
+                } else if url.host_str() == Some(navigation_close_token.as_str())
+                    && url.path() == "/navigate"
+                    && url.fragment().is_none()
+                {
+                    let requested = url
+                        .query_pairs()
+                        .find(|(key, _)| key == "url")
+                        .map(|(_, value)| value.into_owned());
+                    let target = requested
+                        .as_deref()
+                        .and_then(|value| Url::parse(value).ok())
+                        .filter(|target| {
+                            matches!(target.scheme(), "http" | "https")
+                                && target.username().is_empty()
+                                && target.password().is_none()
+                        });
+                    if let Some(target) = target {
+                        let state = nav.state::<AppState>();
+                        let mut config = state.lock_config();
+                        let previous = config.clone();
+                        config.site_url = target.as_str().to_owned();
+                        if let Err(error) = config.normalize() {
+                            *config = previous;
+                            crate::diagnostics::log(
+                                &nav_diag_dir,
+                                "WARN",
+                                format!("Novo endereço rejeitado: {error}"),
+                            );
+                        } else if let Err(error) = crate::config::save(&state.app_dir, &config) {
+                            *config = previous;
+                            crate::diagnostics::log(
+                                &nav_diag_dir,
+                                "ERRO",
+                                format!("Não foi possível persistir o novo endereço: {error}"),
+                            );
+                        } else {
+                            drop(config);
+                            crate::diagnostics::log(
+                                &nav_diag_dir,
+                                "INFO",
+                                format!("Endereço principal atualizado para {}", crate::diagnostics::safe_url_summary(target.as_str())),
+                            );
+                            if let Some(main) = nav.get_webview_window("main") {
+                                if let Err(error) = main.navigate(target.clone()) {
+                                    crate::diagnostics::log(
+                                        &nav_diag_dir,
+                                        "ERRO",
+                                        format!("O endereço foi salvo, mas a janela principal não pôde navegar: {error}"),
+                                    );
+                                }
+                            }
+                            if let Some(login) = nav.get_webview_window(&navigation_label) {
+                                if let Err(error) = login.navigate(target) {
+                                    crate::diagnostics::log(
+                                        &nav_diag_dir,
+                                        "WARN",
+                                        format!("O endereço foi salvo, mas a janela de autenticação não pôde navegar: {error}"),
+                                    );
+                                }
+                            }
+                        }
+                    } else {
+                        crate::diagnostics::log(
+                            &nav_diag_dir,
+                            "WARN",
+                            "Novo endereço ignorado: URL HTTP/HTTPS inválida ou com credenciais.",
+                        );
+                    }
                 } else {
                     crate::diagnostics::log(
                         &nav_diag_dir,
                         "WARN",
-                        "Pedido de fechamento de login ignorado: token ou ação inválida.",
+                        "Ação da janela de autenticação ignorada: token ou ação inválida.",
                     );
                 }
                 return false;
