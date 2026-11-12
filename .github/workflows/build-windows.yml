@@ -58,7 +58,7 @@ jobs:
           targets: x86_64-pc-windows-msvc
           components: rustfmt, clippy
       - name: Set up WinApp CLI
-        uses: microsoft/setup-WinAppCli@b93bbddc1f7abc061ca0d3a8119e3a0c7dd71495 # v0.2
+        uses: microsoft/setup-WinAppCli@9288bd0729bd3f71e2ed1b9eb247dc91470b824e # v0.3.0
         with:
           version: v0.7.1
 
