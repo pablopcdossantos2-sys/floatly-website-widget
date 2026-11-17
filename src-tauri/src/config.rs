@@ -115,7 +115,9 @@ fn normalized_site_url(raw: &str) -> Result<String, String> {
     }
     let has_scheme = site.split_once("://").is_some_and(|(scheme, _)| {
         let mut chars = scheme.chars();
-        chars.next().is_some_and(|first| first.is_ascii_alphabetic())
+        chars
+            .next()
+            .is_some_and(|first| first.is_ascii_alphabetic())
             && chars.all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '.' | '-'))
     });
     if !has_scheme {
@@ -592,7 +594,9 @@ mod tests {
     fn recent_history_is_bounded_and_prioritizes_current_site() {
         let mut config = AppConfig {
             site_url: "new.example".into(),
-            saved_urls: (0..50).map(|i| format!("https://site{i}.example/")).collect(),
+            saved_urls: (0..50)
+                .map(|i| format!("https://site{i}.example/"))
+                .collect(),
             ..AppConfig::default()
         };
         config.normalize().unwrap();
