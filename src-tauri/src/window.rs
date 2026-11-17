@@ -733,9 +733,7 @@ fn pack_lparam(x: i32, y: i32) -> isize {
 #[cfg(windows)]
 fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
     use windows_sys::Win32::Foundation::POINT;
-    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
-        GetAsyncKeyState, ReleaseCapture,
-    };
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, ReleaseCapture};
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         GetCursorPos, PostMessageW, HTCAPTION, WM_NCLBUTTONDOWN,
     };
@@ -774,9 +772,7 @@ fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
 #[cfg(windows)]
 fn begin_native_resize(window: &WebviewWindow, direction: &str) -> Result<(), String> {
     use windows_sys::Win32::Foundation::POINT;
-    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
-        GetAsyncKeyState, ReleaseCapture,
-    };
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, ReleaseCapture};
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         GetCursorPos, PostMessageW, HTBOTTOM, HTBOTTOMLEFT, HTBOTTOMRIGHT, HTLEFT, HTRIGHT, HTTOP,
         HTTOPLEFT, HTTOPRIGHT, WM_NCLBUTTONDOWN,
