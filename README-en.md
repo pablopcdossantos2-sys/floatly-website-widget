@@ -14,6 +14,7 @@ A compact Windows desktop browser that keeps a user-chosen HTTP/HTTPS address vi
 - A small handle at the top center lets you drag the widget. The edge hit areas remain active but transparent, so no frame is drawn around the content. Window size and position are configurable.
 - The default window size is 350 × 550 px and the default embedded browser zoom is 80%; both can be changed in settings.
 - Configurable website URL, size, position, movement lock, always-on-top behavior, taskbar visibility, zoom, corner radius and automatic reload.
+- Up to 20 recent URLs are saved locally in `config.json` and suggested under **Settings → Website URL**, even after restarting. They may include query parameters and fragments; avoid sensitive data in URLs.
 - External links open in the default browser. Recognized sign-in domains open in a secondary window with a simple address bar and shared WebView2 data folder; the window attempts to close when sign-in returns to the configured website.
 - Windows x64 build workflow and NSIS installer.
 - An x64 MSIX package for Microsoft Store is built by a dedicated GitHub Actions workflow; see [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md) for the publication checklist.

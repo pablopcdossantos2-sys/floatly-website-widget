@@ -35,7 +35,7 @@
   </section>
   <section class="settings-section">
     <h2 data-i18n="siteSection">Site</h2>
-    <label class="full"><span data-i18n="siteUrl">URL do site</span><input id="site_url" type="text" placeholder="https://example.com" autocomplete="url"></label>
+    <label class="full"><span data-i18n="siteUrl">URL do site</span><input id="site_url" type="text" placeholder="https://example.com" autocomplete="url" list="saved-site-urls"><datalist id="saved-site-urls"></datalist><small data-i18n="savedSitesHelp">As últimas 20 URLs ficam disponíveis para reutilização e são armazenadas somente neste dispositivo.</small></label>
     <div class="two-col">
       <label><span data-i18n="width">Largura (px)</span><input id="width" type="number" min="150" max="2000" step="1" required></label>
       <label><span data-i18n="height">Altura (px)</span><input id="height" type="number" min="100" max="1600" step="1" required></label>
@@ -46,7 +46,7 @@
     <label class="check-row"><input id="remember_position" type="checkbox"><span><strong data-i18n="rememberPosition">Lembrar posição e tamanho</strong><small data-i18n="rememberPositionHelp">Reposiciona a janela se o monitor salvo não estiver conectado.</small></span></label>
     <label class="check-row"><input id="always_on_top" type="checkbox"><span><strong data-i18n="alwaysOnTop">Sempre no topo</strong><small data-i18n="alwaysOnTopHelp">Mantém o widget acima de outras janelas.</small></span></label>
     <label class="check-row"><input id="show_in_taskbar" type="checkbox"><span><strong data-i18n="taskbar">Mostrar na barra de tarefas</strong><small data-i18n="taskbarHelp">Se desativado, use o ícone da bandeja para reabrir.</small></span></label>
-    <label class="check-row"><input id="locked" type="checkbox"><span><strong data-i18n="locked">Travar mover e redimensionar</strong><small data-i18n="lockedHelp">Ative para bloquear o movimento e o redimensionamento. Desative para habilitar o arraste pela borda azul ao redor do widget.</small></span></label>
+    <label class="check-row"><input id="locked" type="checkbox"><span><strong data-i18n="locked">Travar mover e redimensionar</strong><small data-i18n="lockedHelp">Ative para bloquear o movimento e o redimensionamento. Desative para mover o widget pela aba superior; as bordas transparentes também aceitam arraste.</small></span></label>
     <label class="check-row"><input id="autostart" type="checkbox"><span><strong data-i18n="autostart">Iniciar com o Windows</strong><small data-i18n="autostartHelp">Usa o registro do usuário atual, sem exigir administrador.</small></span></label>
   </section>
   <section class="settings-section">

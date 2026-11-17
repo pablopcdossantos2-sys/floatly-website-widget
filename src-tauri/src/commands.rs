@@ -129,20 +129,35 @@ pub fn heartbeat(token: String, state: State<'_, AppState>) -> Result<(), String
 }
 
 #[tauri::command]
-pub fn get_config(app: AppHandle, state: State<'_, AppState>) -> AppConfig {
-    let mut c = state.snapshot();
-    if let Ok(enabled) = crate::autostart::is_enabled(&app) {
-        c.autostart = enabled;
-    }
-    c
+pub async fn get_config(app: AppHandle) -> Result<AppConfig, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<AppState>();
+        let mut c = state.snapshot();
+        if let Ok(enabled) = crate::autostart::is_enabled(&app) {
+            c.autostart = enabled;
+        }
+        c
+    })
+    .await
+    .map_err(|_| "config.read_failed".to_owned())
 }
 #[tauri::command]
-pub fn save_config(
+pub async fn save_config(
     app: AppHandle,
-    state: State<'_, AppState>,
     config: ConfigPatch,
     force_resize: Option<bool>,
 ) -> Result<SaveResult, String> {
+    tauri::async_runtime::spawn_blocking(move || save_config_blocking(app, config, force_resize))
+        .await
+        .map_err(|_| "config.write_failed".to_owned())?
+}
+
+fn save_config_blocking(
+    app: AppHandle,
+    config: ConfigPatch,
+    force_resize: Option<bool>,
+) -> Result<SaveResult, String> {
+    let state = app.state::<AppState>();
     let patch = config;
     let actual_autostart = if patch.autostart.is_none() {
         crate::autostart::is_enabled(&app).ok()
@@ -180,7 +195,7 @@ pub fn save_config(
 
     let mut warns = Vec::new();
     let mut shortcut_changed = false;
-    if c.global_shortcut != active_shortcut {
+    if patch.global_shortcut.is_some() && c.global_shortcut != active_shortcut {
         match Shortcut::from_str(&c.global_shortcut) {
             Ok(new_shortcut) => match app.global_shortcut().register(new_shortcut) {
                 Ok(()) => {

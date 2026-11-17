@@ -20,7 +20,7 @@ const translations: Record<Language, Record<MessageKey, string>> = {
     configureButton: "Escolher site",
     checking: "Verificando a conexão com o site…",
     opening: "Abrindo o site…",
-    failed: "Não foi possível acessar o site configurado. Verifique a conexão e tente novamente.",
+    failed: "Não foi possível concluir a abertura. Verifique a URL, a conexão ou redirecionamentos para outro domínio.",
     retry: "Tentar novamente",
     footer: "Um site à sua escolha em uma janela flutuante",
     settingsFailed: "Não foi possível abrir as Configurações. Tente pelo menu da bandeja do sistema.",
@@ -33,7 +33,7 @@ const translations: Record<Language, Record<MessageKey, string>> = {
     configureButton: "Choose website",
     checking: "Checking the website connection…",
     opening: "Opening website…",
-    failed: "Could not reach the configured website. Check your connection and try again.",
+    failed: "Could not finish opening the website. Check its URL, the connection or redirects to another domain.",
     retry: "Try again",
     footer: "A website of your choice in a floating window",
     settingsFailed: "Could not open Settings. Try using the system tray menu.",
@@ -46,7 +46,7 @@ const translations: Record<Language, Record<MessageKey, string>> = {
     configureButton: "Elegir sitio web",
     checking: "Comprobando la conexión con el sitio web…",
     opening: "Abriendo el sitio web…",
-    failed: "No se pudo acceder al sitio configurado. Comprueba la conexión e inténtalo de nuevo.",
+    failed: "No se pudo completar la apertura. Comprueba la URL, la conexión o redirecciones a otro dominio.",
     retry: "Reintentar",
     footer: "Un sitio web a tu elección en una ventana flotante",
     settingsFailed: "No se pudo abrir Configuración. Inténtalo desde el menú de la bandeja del sistema.",
@@ -56,7 +56,6 @@ const translations: Record<Language, Record<MessageKey, string>> = {
 
 let language: Language = "pt-BR";
 let target = "";
-let timer: number | undefined;
 let navigating = false;
 let needsConfiguration = false;
 
@@ -85,9 +84,6 @@ function failed() {
   status.textContent = text("failed");
   retry.textContent = text("retry");
   retry.hidden = false;
-  if (timer === undefined) {
-    timer = window.setInterval(() => void attempt(true), 30000);
-  }
 }
 
 async function openSettings() {
@@ -98,30 +94,23 @@ async function openSettings() {
   }
 }
 
-async function attempt(quiet = false) {
+function attempt() {
   if (navigating) return;
   if (!target) {
     showSetup();
     return;
   }
-  if (!quiet) {
-    status.textContent = text("checking");
-    retry.hidden = true;
-  }
-  try {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 8000);
-    try {
-      await fetch(new URL("/favicon.ico", target).href, {
-        mode: "no-cors",
-        cache: "no-store",
-        signal: controller.signal
-      });
-    } finally {
-      window.clearTimeout(timeout);
+  navigating = true;
+  status.textContent = text("opening");
+  retry.hidden = true;
+  // The page can remain loaded when WebView2 cancels a cross-domain redirect.
+  window.setTimeout(() => {
+    if (navigating) {
+      navigating = false;
+      failed();
     }
-    navigating = true;
-    status.textContent = text("opening");
+  }, 12000);
+  try {
     location.replace(target);
   } catch {
     navigating = false;

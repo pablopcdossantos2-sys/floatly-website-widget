@@ -13,6 +13,7 @@ Navegador compacto para manter um endereço escolhido pelo usuário em uma janel
 - Uma pequena aba na parte superior central permite arrastar o widget. As áreas de interação nas bordas continuam ativas, mas são transparentes e não desenham uma moldura ao redor do conteúdo. O tamanho e a posição podem ser alterados nas configurações.
 - O tamanho padrão é 350 × 550 px e o zoom padrão do navegador embutido é 80%; ambos podem ser alterados nas configurações.
 - URL, tamanho, posição, travamento, sempre no topo, barra de tarefas, zoom, cantos e recarga automática configuráveis.
+- Até 20 URLs recentes ficam salvas localmente em `config.json` e aparecem como sugestões em **Configurações → URL do site**, mesmo após reiniciar. Elas podem conter parâmetros e fragmentos: evite inserir dados sigilosos em URLs.
 - Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária com uma barra de endereço simples e a pasta de dados compartilhada do WebView2. A janela tenta fechar quando o fluxo retorna ao endereço configurado após a autenticação.
 - Workflow de compilação Windows x64 e instalador NSIS.
 - Pacote MSIX x64 para a Microsoft Store, gerado por workflow próprio do GitHub Actions; o guia de publicação está em [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md).
