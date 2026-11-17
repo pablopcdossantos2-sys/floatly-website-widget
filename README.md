@@ -16,7 +16,7 @@ Navegador compacto para manter um endereço escolhido pelo usuário em uma janel
 - Até 20 URLs recentes ficam salvas localmente em `config.json` e aparecem como sugestões em **Configurações → URL do site**, mesmo após reiniciar. Elas podem conter parâmetros e fragmentos: evite inserir dados sigilosos em URLs.
 - Links externos encaminhados ao navegador padrão; domínios de autenticação reconhecidos abrem em janela secundária com uma barra de endereço simples e a pasta de dados compartilhada do WebView2. A janela tenta fechar quando o fluxo retorna ao endereço configurado após a autenticação.
 - Workflow de compilação Windows x64 e instalador NSIS.
-- Pacote MSIX x64 para a Microsoft Store, gerado por workflow próprio do GitHub Actions; o guia de publicação está em [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md).
+- Pacote MSIX x64 para a Microsoft Store, gerado por workflow próprio do GitHub Actions; o guia de publicação está em [MICROSOFT_STORE_READINESS.md](docs/ATUALIZACAO_MICROSOFT_STORE_1.0.1.md).
 
 ## Pré-requisitos
 - Windows 10/11 x64, Node.js 22 ou mais recente (LTS) e npm.
@@ -46,7 +46,7 @@ Para um exemplo concreto de URL, consulte a seção de exemplo abaixo.
 
 ## Microsoft Store
 
-O Floatly é preparado para a Store como **MSIX x64**. Esse pacote exige Windows 10 versão 2004 (build 19041) ou posterior; a versão convencional NSIS continua sendo distribuída separadamente. Siga o [guia passo a passo](GUIA_PUBLICACAO_MICROSOFT_STORE.md) e use o [rascunho de listagem multilíngue](MICROSOFT_STORE_LISTING_DRAFT.md).
+O Floatly é preparado para a Store como **MSIX x64**. Esse pacote exige Windows 10 versão 2004 (build 19041) ou posterior; a versão convencional NSIS continua sendo distribuída separadamente. Siga o [guia passo a passo](docs/ATUALIZACAO_MICROSOFT_STORE_1.0.1.md) e use o [rascunho de listagem multilíngue](docs/ATUALIZACAO_MICROSOFT_STORE_1.0.1.md).
 
 O workflow **Build MSIX for Microsoft Store** é executado automaticamente na branch `main` quando há alterações em arquivos de código, dependências, configuração ou empacotamento relevantes. Ele também pode ser iniciado manualmente pela aba **Actions** e usa a identidade do pacote já confirmada no Partner Center. O workflow gera o arquivo `.msix` sem assinatura. Isso é intencional: a Microsoft assina o MSIX depois da aprovação. Não são necessários certificado Code Signing, arquivo PFX ou segredos de assinatura para esse fluxo.
 

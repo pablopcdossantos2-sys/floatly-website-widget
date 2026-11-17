@@ -17,7 +17,7 @@ Navegador compacto para Windows que mantiene una dirección HTTP/HTTPS elegida p
 - Hasta 20 URL recientes se guardan localmente en `config.json` y se sugieren en **Configuración → URL del sitio**, incluso tras reiniciar. Pueden contener parámetros y fragmentos; evita incluir datos confidenciales en URL.
 - Los enlaces externos se abren en el navegador predeterminado. Los dominios de autenticación reconocidos se abren en una ventana secundaria con una barra de direcciones sencilla y la misma carpeta de datos de WebView2. La ventana intenta cerrarse cuando el inicio de sesión vuelve al sitio configurado.
 - Flujo de compilación para Windows x64 e instalador NSIS.
-- El paquete MSIX x64 para Microsoft Store se genera mediante un workflow específico de GitHub Actions; consulta [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md) para ver la lista de publicación.
+- El paquete MSIX x64 para Microsoft Store se genera mediante un workflow específico de GitHub Actions; consulta [MICROSOFT_STORE_READINESS.md](docs/ATUALIZACAO_MICROSOFT_STORE_1.0.1.md) para ver la lista de publicación.
 
 ## Requisitos
 
@@ -50,7 +50,7 @@ Para ver una URL de ejemplo concreta, consulta la sección de ejemplo a continua
 
 ## Microsoft Store
 
-Floatly se prepara para la Store como paquete **MSIX x64**. Sigue la [guía paso a paso en portugués](GUIA_PUBLICACAO_MICROSOFT_STORE.md) y utiliza el [borrador multilingüe de la ficha](MICROSOFT_STORE_LISTING_DRAFT.md). Este paquete requiere Windows 10 versión 2004 (compilación 19041) o posterior; la versión convencional NSIS se distribuye por separado.
+Floatly se prepara para la Store como paquete **MSIX x64**. Sigue la [guía paso a paso en portugués](docs/ATUALIZACAO_MICROSOFT_STORE_1.0.1.md) y utiliza el [borrador multilingüe de la ficha](docs/ATUALIZACAO_MICROSOFT_STORE_1.0.1.md). Este paquete requiere Windows 10 versión 2004 (compilación 19041) o posterior; la versión convencional NSIS se distribuye por separado.
 
 El workflow **Build MSIX for Microsoft Store** se ejecuta automáticamente cuando hay cambios en la rama `main` y utiliza la identidad del paquete ya confirmada en Partner Center. Genera un archivo `.msix` sin firma. Esto es intencional: Microsoft firma el MSIX después de la aprobación. Esta ruta no requiere certificado de firma de código, archivo PFX ni secretos de firma.
 

@@ -17,7 +17,7 @@ A compact Windows desktop browser that keeps a user-chosen HTTP/HTTPS address vi
 - Up to 20 recent URLs are saved locally in `config.json` and suggested under **Settings → Website URL**, even after restarting. They may include query parameters and fragments; avoid sensitive data in URLs.
 - External links open in the default browser. Recognized sign-in domains open in a secondary window with a simple address bar and shared WebView2 data folder; the window attempts to close when sign-in returns to the configured website.
 - Windows x64 build workflow and NSIS installer.
-- An x64 MSIX package for Microsoft Store is built by a dedicated GitHub Actions workflow; see [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md) for the publication checklist.
+- An x64 MSIX package for Microsoft Store is built by a dedicated GitHub Actions workflow; see [MICROSOFT_STORE_READINESS.md](docs/ATUALIZACAO_MICROSOFT_STORE_1.0.1.md) for the publication checklist.
 
 ## Requirements
 
@@ -50,7 +50,7 @@ For a concrete example URL, see the example section below.
 
 ## Microsoft Store
 
-Floatly is prepared for the Store as an **x64 MSIX** package. This package requires Windows 10 version 2004 (build 19041) or later; the conventional NSIS version is distributed separately. Follow the [step-by-step guide in Portuguese](GUIA_PUBLICACAO_MICROSOFT_STORE.md) and use the [multilingual listing draft](MICROSOFT_STORE_LISTING_DRAFT.md).
+Floatly is prepared for the Store as an **x64 MSIX** package. This package requires Windows 10 version 2004 (build 19041) or later; the conventional NSIS version is distributed separately. Follow the [step-by-step guide in Portuguese](docs/ATUALIZACAO_MICROSOFT_STORE_1.0.1.md) and use the [multilingual listing draft](docs/ATUALIZACAO_MICROSOFT_STORE_1.0.1.md).
 
 The **Build MSIX for Microsoft Store** workflow runs automatically on `main` when relevant source-code, dependency, configuration or packaging files change. It can also be started manually from the **Actions** tab and uses the package identity already confirmed in Partner Center. The workflow produces an unsigned `.msix` file. This is intentional: Microsoft signs the MSIX after approval. No code-signing certificate, PFX file or signing secrets are required for this route.
 
