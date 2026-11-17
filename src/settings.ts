@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 type Language = "pt-BR" | "en" | "es";
 type C = {
   site_url: string;
+  saved_urls: string[];
   width: number;
   height: number;
   x: number | null;
@@ -27,7 +28,7 @@ const translations: Record<Language, Record<string, string>> = {
     themeGroup: "Tema da interface", themeLight: "Modo claro", themeDark: "Modo escuro",
     languageSection: "Idioma", languageLabel: "Idioma do programa",
     languageHelp: "Altera o idioma das configurações e dos menus do Floatly.",
-    siteSection: "Site", siteUrl: "URL do site", width: "Largura (px)", height: "Altura (px)",
+    siteSection: "Site", siteUrl: "URL do site", savedSitesHelp: "As últimas 20 URLs ficam disponíveis para reutilização e são armazenadas somente neste dispositivo.", width: "Largura (px)", height: "Altura (px)",
     windowSection: "Janela", rememberPosition: "Lembrar posição e tamanho",
     rememberPositionHelp: "Reposiciona a janela se o monitor salvo não estiver conectado.",
     alwaysOnTop: "Sempre no topo", alwaysOnTopHelp: "Mantém o widget acima de outras janelas.",
@@ -57,7 +58,7 @@ const translations: Record<Language, Record<string, string>> = {
     themeGroup: "Settings appearance", themeLight: "Light mode", themeDark: "Dark mode",
     languageSection: "Language", languageLabel: "Application language",
     languageHelp: "Changes the language of Floatly settings and menus.",
-    siteSection: "Website", siteUrl: "Website URL", width: "Width (px)", height: "Height (px)",
+    siteSection: "Website", siteUrl: "Website URL", savedSitesHelp: "Your last 20 saved URLs remain available on this device for reuse.", width: "Width (px)", height: "Height (px)",
     windowSection: "Window", rememberPosition: "Remember position and size",
     rememberPositionHelp: "Repositions the window if the saved monitor is no longer connected.",
     alwaysOnTop: "Always on top", alwaysOnTopHelp: "Keeps the widget above other windows.",
@@ -87,7 +88,7 @@ const translations: Record<Language, Record<string, string>> = {
     themeGroup: "Tema de la interfaz", themeLight: "Modo claro", themeDark: "Modo oscuro",
     languageSection: "Idioma", languageLabel: "Idioma del programa",
     languageHelp: "Cambia el idioma de la configuración y los menús de Floatly.",
-    siteSection: "Sitio web", siteUrl: "URL del sitio", width: "Ancho (px)", height: "Alto (px)",
+    siteSection: "Sitio web", siteUrl: "URL del sitio", savedSitesHelp: "Las últimas 20 URL se guardan solo en este equipo y se pueden reutilizar.", width: "Ancho (px)", height: "Alto (px)",
     windowSection: "Ventana", rememberPosition: "Recordar posición y tamaño",
     rememberPositionHelp: "Reubica la ventana si el monitor guardado ya no está conectado.",
     alwaysOnTop: "Siempre visible", alwaysOnTopHelp: "Mantiene el widget por encima de otras ventanas.",
@@ -195,6 +196,16 @@ function displayField(config: C, id: string) {
 }
 function display(config: C) {
   for (const id of ids) displayField(config, id);
+  displaySavedUrls(config);
+}
+function displaySavedUrls(config: C) {
+  const list = document.querySelector<HTMLDataListElement>("#saved-site-urls")!;
+  list.replaceChildren();
+  for (const url of config.saved_urls ?? []) {
+    const option = document.createElement("option");
+    option.value = url;
+    list.appendChild(option);
+  }
 }
 async function load() {
   current = await invoke<C>("get_config");
@@ -212,6 +223,7 @@ function read(): C {
   const checked = (id: string) => f(id).checked;
   return {
     site_url: value("site_url"),
+    saved_urls: current?.saved_urls ?? [],
     width: readInt("width", 150, 2000),
     height: readInt("height", 100, 1600),
     x: current?.x ?? null,
@@ -361,6 +373,7 @@ form.addEventListener("change", (event) => {
 });
 void listen<C>("config-changed", (event) => {
   current = event.payload;
+  displaySavedUrls(event.payload);
   for (const id of ids) {
     if (!dirtyFields.has(id)) displayField(event.payload, id);
   }

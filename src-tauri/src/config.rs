@@ -20,6 +20,7 @@ pub const DEFAULT_SITE: &str = "";
 const LEGACY_DEFAULT_SITE: &str = "https://br.investing.com/economic-calendar";
 pub const DEFAULT_WIDTH: u32 = 350;
 pub const DEFAULT_HEIGHT: u32 = 550;
+pub const MAX_SAVED_URLS: usize = 20;
 
 static SAVE_LOCK: Mutex<()> = Mutex::new(());
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -63,6 +64,8 @@ fn default_language() -> String {
 #[serde(default)]
 pub struct AppConfig {
     pub site_url: String,
+    /// Recent websites, ordered by last selection, persisted in config.json.
+    pub saved_urls: Vec<String>,
     pub width: u32,
     pub height: u32,
     pub x: Option<i32>,
@@ -85,6 +88,7 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             site_url: DEFAULT_SITE.into(),
+            saved_urls: Vec::new(),
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT,
             x: None,
@@ -103,32 +107,52 @@ impl Default for AppConfig {
     }
 }
 
+/// Normalize user-supplied links without allowing non-web schemes or URL credentials.
+fn normalized_site_url(raw: &str) -> Result<String, String> {
+    let mut site = raw.trim().to_owned();
+    if site.is_empty() {
+        return Ok(String::new());
+    }
+    let has_scheme = site.split_once("://").is_some_and(|(scheme, _)| {
+        let mut chars = scheme.chars();
+        chars
+            .next()
+            .is_some_and(|first| first.is_ascii_alphabetic())
+            && chars.all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '.' | '-'))
+    });
+    if !has_scheme {
+        site = format!("https://{site}");
+    }
+    let url = Url::parse(&site).map_err(|_| "config.site_url_invalid".to_owned())?;
+    if !matches!(url.scheme(), "http" | "https")
+        || url.host_str().is_none()
+        || !url.username().is_empty()
+        || url.password().is_some()
+    {
+        return Err("config.site_url_http_only".into());
+    }
+    Ok(url.to_string())
+}
+
 impl AppConfig {
     pub fn normalize(&mut self) -> Result<(), String> {
-        let mut site = self.site_url.trim().to_owned();
-        if site.is_empty() {
-            self.site_url.clear();
-        } else {
-            let has_scheme = site.split_once("://").is_some_and(|(scheme, _)| {
-                let mut chars = scheme.chars();
-                chars
-                    .next()
-                    .is_some_and(|first| first.is_ascii_alphabetic())
-                    && chars.all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '.' | '-'))
-            });
-            if !has_scheme {
-                site = format!("https://{site}");
-            }
-            let url = Url::parse(&site).map_err(|_| "config.site_url_invalid".to_owned())?;
-            if !["http", "https"].contains(&url.scheme())
-                || url.host_str().is_none()
-                || !url.username().is_empty()
-                || url.password().is_some()
-            {
-                return Err("config.site_url_http_only".into());
-            }
-            self.site_url = url.to_string();
+        self.site_url = normalized_site_url(&self.site_url)?;
+        // Upgrade existing config files by retaining the previously configured site.
+        let mut history = Vec::with_capacity(MAX_SAVED_URLS);
+        if !self.site_url.is_empty() {
+            history.push(self.site_url.clone());
         }
+        for candidate in &self.saved_urls {
+            if let Ok(url) = normalized_site_url(candidate) {
+                if !url.is_empty() && url != LEGACY_DEFAULT_SITE && !history.contains(&url) {
+                    history.push(url);
+                    if history.len() == MAX_SAVED_URLS {
+                        break;
+                    }
+                }
+            }
+        }
+        self.saved_urls = history;
         self.width = self.width.clamp(150, 2000);
         self.height = self.height.clamp(100, 1600);
         self.zoom = self.zoom.clamp(50, 200);
@@ -450,6 +474,9 @@ pub fn load_with_warnings(dir: &Path) -> (AppConfig, Vec<String>, bool) {
     if before_normalize.site_url != config.site_url {
         warnings.push("Valor de site_url normalizado.".into());
     }
+    if before_normalize.saved_urls != config.saved_urls {
+        warnings.push("Histórico de URLs atualizado e normalizado.".into());
+    }
     if before_normalize.global_shortcut != config.global_shortcut {
         warnings.push("Valor de global_shortcut normalizado.".into());
     }
@@ -533,6 +560,52 @@ mod tests {
         assert_eq!(config.zoom, 80);
         assert_eq!(config.global_shortcut, "CTRL+ALT+C");
         assert_eq!(config.language, "pt-BR");
+    }
+
+    #[test]
+    fn history_survives_restart_and_deduplicates() {
+        let dir = std::env::temp_dir().join(format!(
+            "widget-website-history-{}-{}",
+            std::process::id(),
+            TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed)
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        let mut config = AppConfig {
+            site_url: "example.com/a".into(),
+            saved_urls: vec![
+                "https://example.org".into(),
+                "https://example.com/a".into(),
+                "ftp://invalid.example".into(),
+            ],
+            ..AppConfig::default()
+        };
+        config.normalize().unwrap();
+        save(&dir, &config).unwrap();
+        let restored = load(&dir);
+        assert_eq!(restored.site_url, "https://example.com/a");
+        assert_eq!(
+            restored.saved_urls,
+            vec!["https://example.com/a", "https://example.org/"]
+        );
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn recent_history_is_bounded_and_prioritizes_current_site() {
+        let mut config = AppConfig {
+            site_url: "new.example".into(),
+            saved_urls: (0..50)
+                .map(|i| format!("https://site{i}.example/"))
+                .collect(),
+            ..AppConfig::default()
+        };
+        config.normalize().unwrap();
+        assert_eq!(config.saved_urls.len(), MAX_SAVED_URLS);
+        assert_eq!(config.saved_urls[0], "https://new.example/");
+        config.site_url = "https://site2.example/".into();
+        config.normalize().unwrap();
+        assert_eq!(config.saved_urls[0], "https://site2.example/");
+        assert_eq!(config.saved_urls.len(), MAX_SAVED_URLS);
     }
 
     #[test]

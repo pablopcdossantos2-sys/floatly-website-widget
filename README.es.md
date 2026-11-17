@@ -14,6 +14,7 @@ Navegador compacto para Windows que mantiene una dirección HTTP/HTTPS elegida p
 - Una pequeña pestaña en la parte superior central permite arrastrar el widget. Las zonas de interacción de los bordes siguen activas, pero son transparentes y no dibujan un marco alrededor del contenido. El tamaño y la posición se pueden cambiar en la configuración.
 - El tamaño predeterminado es 350 × 550 px y el zoom predeterminado del navegador integrado es del 80 %; ambos se pueden cambiar en la configuración.
 - URL, tamaño, posición, bloqueo del movimiento, mantener siempre visible, visibilidad en la barra de tareas, zoom, esquinas redondeadas y actualización automática configurables.
+- Hasta 20 URL recientes se guardan localmente en `config.json` y se sugieren en **Configuración → URL del sitio**, incluso tras reiniciar. Pueden contener parámetros y fragmentos; evita incluir datos confidenciales en URL.
 - Los enlaces externos se abren en el navegador predeterminado. Los dominios de autenticación reconocidos se abren en una ventana secundaria con una barra de direcciones sencilla y la misma carpeta de datos de WebView2. La ventana intenta cerrarse cuando el inicio de sesión vuelve al sitio configurado.
 - Flujo de compilación para Windows x64 e instalador NSIS.
 - El paquete MSIX x64 para Microsoft Store se genera mediante un workflow específico de GitHub Actions; consulta [MICROSOFT_STORE_READINESS.md](MICROSOFT_STORE_READINESS.md) para ver la lista de publicación.

@@ -175,13 +175,16 @@ function revealScrollbar(){const root=document.documentElement;if(!root)return;r
 document.addEventListener('wheel',revealScrollbar,{passive:true,capture:true});
 document.addEventListener('scroll',revealScrollbar,{passive:true,capture:true});
 document.addEventListener('pointermove',e=>{if(innerWidth-e.clientX<=24)revealScrollbar()},{passive:true});
+let consecutiveCheckFailures=0;
 async function check(){
- if(!/^https?:$/.test(location.protocol))return;
+ if(!/^https?:$/.test(location.protocol)||document.hidden)return;
  try{
   const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);
   try{await fetch(new URL('/favicon.ico',location.origin),{mode:'no-cors',cache:'no-store',signal:c.signal})}finally{clearTimeout(t)}
+  consecutiveCheckFailures=0;
   document.getElementById('__widget_offline')?.remove();
  }catch(_){
+  if(++consecutiveCheckFailures<2)return;
   if(!document.getElementById('__widget_offline')){
    const b=document.createElement('div');b.id='__widget_offline';
    const copy=UI_COPY[UI_LANGUAGE]||UI_COPY['pt-BR'];
@@ -195,8 +198,10 @@ async function check(){
   }
  }
 }
-addEventListener('offline',check);
-setInterval(check,30000);
+addEventListener('online',()=>{consecutiveCheckFailures=0;document.getElementById('__widget_offline')?.remove();void check()});
+addEventListener('offline',()=>{void check()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void check()});
+setInterval(()=>{void check()},30000);
 function heartbeat(){try{const core=window.__TAURI__&&window.__TAURI__.core;if(core&&typeof core.invoke==='function')core.invoke('heartbeat',{token:HEARTBEAT_TOKEN}).catch(()=>{})}catch(_){}}
 setTimeout(heartbeat,1000);
 setInterval(heartbeat,5000)
@@ -218,15 +223,15 @@ function addToolbar(){
  const bar=document.createElement('div');bar.id='__widget_login_bar';
  const label=document.createElement('span');label.className='label';label.textContent=TEXT.login;
  const back=document.createElement('button');back.type='button';back.textContent='←';back.title=TEXT.back;back.setAttribute('aria-label',TEXT.back);
- back.addEventListener('click',function(){history.back()});
+ back.addEventListener('click',function(e){if(!e.isTrusted)return;history.back()});
  const reload=document.createElement('button');reload.type='button';reload.textContent='↻';reload.title=TEXT.reload;
- reload.addEventListener('click',function(){location.reload()});
+ reload.addEventListener('click',function(e){if(!e.isTrusted)return;location.reload()});
  const address=document.createElement('input');address.type='text';address.value=location.href;address.setAttribute('aria-label',TEXT.address);
  address.addEventListener('focus',function(){address.select()});
- function go(){let v=address.value.trim();try{const u=new URL(v.includes('://')?v:'https://'+v);if((u.protocol!=='https:'&&u.protocol!=='http:')||u.username||u.password)throw new Error('scheme');location.href='widget-login-action://'+CLOSE_TOKEN+'/navigate?url='+encodeURIComponent(u.href)}catch(_){address.setCustomValidity(TEXT.invalidAddress);address.reportValidity();address.setCustomValidity('')}}
- address.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();go()}});
+ function go(event){if(!event.isTrusted)return;let v=address.value.trim();try{const u=new URL(v.includes('://')?v:'https://'+v);if((u.protocol!=='https:'&&u.protocol!=='http:')||u.username||u.password)throw new Error('scheme');location.href='widget-login-action://'+CLOSE_TOKEN+'/navigate?url='+encodeURIComponent(u.href)}catch(_){address.setCustomValidity(TEXT.invalidAddress);address.reportValidity();address.setCustomValidity('')}}
+ address.addEventListener('keydown',function(e){if(e.isTrusted&&e.key==='Enter'){e.preventDefault();go(e)}});
  const button=document.createElement('button');button.type='button';button.textContent=TEXT.go;button.addEventListener('click',go);
- const close=document.createElement('button');close.type='button';close.textContent=TEXT.close;close.addEventListener('click',function(){location.href='widget-login-action://'+CLOSE_TOKEN+'/close'});
+ const close=document.createElement('button');close.type='button';close.textContent=TEXT.close;close.addEventListener('click',function(e){if(!e.isTrusted)return;location.href='widget-login-action://'+CLOSE_TOKEN+'/close'});
  bar.append(label,back,address,button,reload,close);document.documentElement.appendChild(bar);
  document.documentElement.style.setProperty('padding-top','46px','important');document.documentElement.style.setProperty('scroll-padding-top','50px','important');
 }
@@ -612,7 +617,7 @@ pub fn create_main(
         .replace("__WIDGET_HEARTBEAT_TOKEN__", &heartbeat_token);
     let navigation_action_token = action_token.clone();
     let page_load_app = app.clone();
-    let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Floatly").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(true).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(init_script)
+    let w=WebviewWindowBuilder::new(app,"main",WebviewUrl::App("index.html".into())).title("Floatly").inner_size(c.width as f64,c.height as f64).min_inner_size(150.0,100.0).decorations(false).transparent(true).shadow(true).resizable(!c.locked).always_on_top(c.always_on_top).skip_taskbar(!c.show_in_taskbar).visible(false).data_directory(data).devtools(cfg!(debug_assertions)).zoom_hotkeys_enabled(false).initialization_script(init_script)
 .on_page_load(move|window,payload|{
     if payload.event()!=PageLoadEvent::Finished{return;}
     let url=payload.url();
@@ -707,8 +712,20 @@ match decide_main(u,&cfg) {
 }).build().map_err(|error|{crate::diagnostics::log(&build_diag_dir,"ERRO",format!("Falha ao criar a janela WebView2 principal: {error}"));error})?;
     restore_position(&w, c);
     apply_config(app, c, true);
+    w.show()?;
     Ok(w)
 }
+#[cfg(windows)]
+fn primary_mouse_button() -> i32 {
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{VK_LBUTTON, VK_RBUTTON};
+    use windows_sys::Win32::UI::WindowsAndMessaging::{GetSystemMetrics, SM_SWAPBUTTON};
+    if unsafe { GetSystemMetrics(SM_SWAPBUTTON) } != 0 {
+        VK_RBUTTON as i32
+    } else {
+        VK_LBUTTON as i32
+    }
+}
+
 fn pack_lparam(x: i32, y: i32) -> isize {
     ((x as u16 as u32) | ((y as u16 as u32) << 16)) as isize
 }
@@ -716,14 +733,12 @@ fn pack_lparam(x: i32, y: i32) -> isize {
 #[cfg(windows)]
 fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
     use windows_sys::Win32::Foundation::POINT;
-    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
-        GetAsyncKeyState, ReleaseCapture, VK_LBUTTON,
-    };
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, ReleaseCapture};
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         GetCursorPos, PostMessageW, HTCAPTION, WM_NCLBUTTONDOWN,
     };
 
-    if unsafe { GetAsyncKeyState(VK_LBUTTON as i32) } as u16 & 0x8000 == 0 {
+    if unsafe { GetAsyncKeyState(primary_mouse_button()) } as u16 & 0x8000 == 0 {
         // The pointer was released before the native move could start. This is an
         // intentional cancellation, not a failure that should trigger Tauri fallback.
         return Ok(());
@@ -757,9 +772,7 @@ fn begin_native_drag(window: &WebviewWindow) -> Result<(), String> {
 #[cfg(windows)]
 fn begin_native_resize(window: &WebviewWindow, direction: &str) -> Result<(), String> {
     use windows_sys::Win32::Foundation::POINT;
-    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
-        GetAsyncKeyState, ReleaseCapture, VK_LBUTTON,
-    };
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, ReleaseCapture};
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         GetCursorPos, PostMessageW, HTBOTTOM, HTBOTTOMLEFT, HTBOTTOMRIGHT, HTLEFT, HTRIGHT, HTTOP,
         HTTOPLEFT, HTTOPRIGHT, WM_NCLBUTTONDOWN,
@@ -775,7 +788,7 @@ fn begin_native_resize(window: &WebviewWindow, direction: &str) -> Result<(), St
         "south-west" => HTBOTTOMLEFT,
         _ => return Err("Direção de redimensionamento inválida.".into()),
     };
-    if unsafe { GetAsyncKeyState(VK_LBUTTON as i32) } as u16 & 0x8000 == 0 {
+    if unsafe { GetAsyncKeyState(primary_mouse_button()) } as u16 & 0x8000 == 0 {
         // The pointer was released before the native resize could start.
         return Ok(());
     }
@@ -971,50 +984,15 @@ fn open_login(app: &AppHandle, url: Url) -> tauri::Result<()> {
                                 && target.password().is_none()
                         });
                     if let Some(target) = target {
-                        let state = nav.state::<AppState>();
-                        let mut config = state.lock_config();
-                        let previous = config.clone();
-                        config.site_url = target.as_str().to_owned();
-                        if let Err(error) = config.normalize() {
-                            *config = previous;
-                            crate::diagnostics::log(
-                                &nav_diag_dir,
-                                "WARN",
-                                format!("Novo endereço rejeitado: {error}"),
-                            );
-                        } else if let Err(error) = crate::config::save(&state.app_dir, &config) {
-                            *config = previous;
-                            crate::diagnostics::log(
-                                &nav_diag_dir,
-                                "ERRO",
-                                format!("Não foi possível persistir o novo endereço: {error}"),
-                            );
-                        } else {
-                            let updated_config = config.clone();
-                            drop(config);
-                            let _ = nav.emit_to("settings", "config-changed", &updated_config);
-                            crate::diagnostics::log(
-                                &nav_diag_dir,
-                                "INFO",
-                                format!("Endereço principal atualizado para {}", crate::diagnostics::safe_url_summary(target.as_str())),
-                            );
-                            if let Some(main) = nav.get_webview_window("main") {
-                                if let Err(error) = main.navigate(target.clone()) {
-                                    crate::diagnostics::log(
-                                        &nav_diag_dir,
-                                        "ERRO",
-                                        format!("O endereço foi salvo, mas a janela principal não pôde navegar: {error}"),
-                                    );
-                                }
-                            }
-                            if let Some(login) = nav.get_webview_window(&navigation_label) {
-                                if let Err(error) = login.navigate(target) {
-                                    crate::diagnostics::log(
-                                        &nav_diag_dir,
-                                        "WARN",
-                                        format!("O endereço foi salvo, mas a janela de autenticação não pôde navegar: {error}"),
-                                    );
-                                }
+                        // This control is injected into untrusted remote content.
+                        // It may navigate only its own auxiliary login WebView.
+                        if let Some(login) = nav.get_webview_window(&navigation_label) {
+                            if let Err(error) = login.navigate(target) {
+                                crate::diagnostics::log(
+                                    &nav_diag_dir,
+                                    "WARN",
+                                    format!("Não foi possível navegar a janela auxiliar: {error}"),
+                                );
                             }
                         }
                     } else {
