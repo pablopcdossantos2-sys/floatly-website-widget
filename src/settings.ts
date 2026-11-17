@@ -223,6 +223,7 @@ function read(): C {
   const checked = (id: string) => f(id).checked;
   return {
     site_url: value("site_url"),
+    saved_urls: current?.saved_urls ?? [],
     width: readInt("width", 150, 2000),
     height: readInt("height", 100, 1600),
     x: current?.x ?? null,
